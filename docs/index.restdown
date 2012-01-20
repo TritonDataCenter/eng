@@ -1,0 +1,41 @@
+---
+title: Boilerplate API (BAPI)
+mediaroot: /docs/public/media
+apisections: Boiling Eggs
+markdown2extras: wiki-tables, code-friendly
+---
+
+# Boilerplate API (BAPI)
+
+TODO: overview, h1-section for each of the guidelines/best-practices
+
+
+# Boiling Eggs
+
+This shows the API implemented by the example node.js server in this repo.
+The main point here is show a good way to document API endpoints.
+
+TODO
+
+
+# Guideline: Repository Name
+
+A repo name that matches how the API is discussed (spoken, chatted and
+emailed) means you'll get the repo name right on first guess.
+If you can get away with it, a repo named after the abbreviate API name
+is best. E.g.:
+    
+    Network API -> NAPI -> napi.git   # Good.
+                        -> NAPI.git   # Whoa! Capital letters are crazy here.
+                        -> network-api.git   # Less good.
+                        -> network_api.git   # Even less good (*).
+
+(*) Thought, I'll admit that my dislike for underscores in filenames is
+personal preference.
+
+So why isn't this repo called "bapi.git"? Because this repo will more often
+be called the "Boilerplate API" when discussed -- no need to popularize
+"BAPI".
+
+
+    

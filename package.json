@@ -1,0 +1,16 @@
+{
+  "name": "boilerplateapi",
+  "description": "SmartDataCenter Boilerplate API",
+  "version": "1.0.0",
+  "author": "Joyent (joyent.com)",
+  "private": true,
+  "dependencies": {
+  },
+  "devDependencies": {
+    "tap": "0.1"
+  },
+  "scripts": {
+    "start": "node ./server.js",
+    "start": "node ./server.js"
+  }
+}
