@@ -1,6 +1,5 @@
 ---
 title: Boilerplate API (BAPI)
-mediaroot: /docs/public/media
 apisections: Boiling Eggs
 markdown2extras: wiki-tables, code-friendly
 ---
@@ -36,6 +35,19 @@ personal preference.
 So why isn't this repo called "bapi.git"? Because this repo will more often
 be called the "Boilerplate API" when discussed -- no need to popularize
 "BAPI".
+
+
+# Best Practice: Use restdown for docs
+
+Restdown is a tool for creating API docs using a single Markdown file.
+It lives here: <https://github.com/trentm/restdown>
+You can set it up as follows:
+
+    git submodule add git://github.com/trentm/restdown.git deps/restdown
+    cd deps/restdown/
+    git checkout 1.2.15    # let's use a restdown release tag
+
+
 
 
     

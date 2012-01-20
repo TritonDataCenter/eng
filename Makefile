@@ -8,6 +8,7 @@ TOP := $(shell pwd)
 
 # Tools
 TAP := $(TOP)/node_modules/.bin/tap
+RESTDOWN := python2.6 $(TOP)/deps/restdown/bin/restdown
 NPM := npm
 
 
@@ -20,6 +21,10 @@ NPM := npm
 all:
 	$(NPM) install
 
+
+.PHONY: docs
+docs:
+	$(RESTDOWN) -m docs docs/index.restdown
 
 .PHONY: test
 test: $(TAP)

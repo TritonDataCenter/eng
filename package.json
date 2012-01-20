@@ -5,6 +5,7 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
+    "restify": "1.0.0-1-rc"
   },
   "devDependencies": {
     "tap": "0.1"
