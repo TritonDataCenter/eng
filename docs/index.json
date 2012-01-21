@@ -1,7 +1,0 @@
-{
-  "endpoints": [
-    "POST   /eggs",
-    "GET    /eggs",
-    "GET    /eggs/:uuid"
-  ]
-}
