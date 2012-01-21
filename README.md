@@ -142,3 +142,7 @@ this file and repo.
 - Add the node/npm local build support a la Amon and DSAPI? I.e. deps/node
   and deps/npm git submodules and build handling in the Makefile.
 
+- Config handling. I'm a JSON fan for this, with a section in the restdown
+  docs describing each piece. Maybe even so far as the factory-settings.json
+  in Amon master for the defaults.
+

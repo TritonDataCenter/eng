@@ -5,7 +5,9 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
-    "restify": "1.0.0-1-rc"
+    "restify": "https://github.com/mcavage/node-restify/tarball/master#0dfba4fdfd9def5111c29dffd241f344ff1293a8",
+    "node-uuid": "1.2.0",
+    "filed": "0.0.5"
   },
   "devDependencies": {
     "tap": "0.1"
