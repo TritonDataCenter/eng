@@ -3,7 +3,7 @@ title: Joyent Engineering Guide
 markdown2extras: wiki-tables, code-friendly
 ---
 
-# This Guide
+# Joyent Engineering Guide
 
 **Note: Despite the tone below, this guide is still a work in progress.
 Everything here is subject to change as we discuss it with the team.**
@@ -19,16 +19,19 @@ be followed blindly. However, these guidelines represent the best practices
 agreed upon by the team. If you feel it necessary to diverge from them, that's
 okay, but be prepared to explain why.
 
+
 # Conventions
 
 Services implementing an API are referred to as APIs. For example, "MAPI"
 denotes the service implementing the MAPI API.
+
 
 # Repository overview
 
 These guidelines cover naming, structure, and processes around repositories.
 A template repository is included in this repo so you can quickly get something
 working that follows these guidelines.
+
 
 ## Repository naming
 
@@ -45,6 +48,7 @@ name is best. For example:
 (So why isn't this repo called "bapi.git"? Because this repo will more often be
 called the "Boilerplate API" when discussed -- no need to popularize "BAPI".)
 
+
 ## Rule #1: FCS Quality All the Time
 
 In general, use the "master" branch for development and releases. **"master"
@@ -57,12 +61,14 @@ ongoing in the release branches.
 When working on large features, it's tempting to use development branches that
 eventually get integrated into master. Indeed, this is sometimes necessary.
 However, it should be avoided when possible, as it means people are running dev
-branches rather than "master", leading to a quality death spiral (QDS) as fewer
-people actually run the mainline tree. Where possible, consider whether larger
-projects can be split into reasonably-sized chunks that can individually be
-integrated into "master" without breaking existing functionality. This allows
-you to continue developing on "master" while still being able to commit
-frequently.
+branches rather than "master", leading to a [quality death spiral
+(QDS)](http://hub.opensolaris.org/bin/view/Community+Group+on/qual_death_spiral)
+as fewer people actually run the mainline tree. Where possible, consider
+whether larger projects can be split into reasonably-sized chunks that can
+individually be integrated into "master" without breaking existing
+functionality. This allows you to continue developing on "master" while still
+being able to commit frequently.
+
 
 ## Language
 
@@ -71,9 +77,10 @@ components as needed). Consolidating onto one language makes it easier for
 everyone to dig into other teams' projects as needed (for development as well as
 debugging) and allows us to share code and tools.
 
-## README
 
-Every repository should have in its root a README.md restdown file that
+## README.md
+
+Every repository should have in its root a README.md (Markdown) file that
 describes the repo and covers:
 
 * the name of the API or other component(s) contained in the repo and a brief
@@ -100,21 +107,30 @@ All repos should have a Makefile that defines at least the following targets:
 * `check-lint`: checks all files for adherence to lint (see below)
 * `check`: checks all files for adherence to lint, style, and other
   repo-specific rules not described here.
+* `prepush`: runs all checks/tests required before pushing changes to the repo
 * `clean`: removes all built files
 * `docs`: builds documentation (restdown)
-* `pbchk`: runs all checks and tests (possibly including checks not described
-  here).
 * `test`: runs the automated test suite
+* `release`: build releasable artifacts, e.g. a tarball (for projects that
+  generate release packages)
+
+The `check` and `test` targets should fail if they find any 'check'
+violations or failed tests. Both `check` and `test` should pass before any
+push to the repo. They should also be part of the automated build. Any push
+which introduces a check or test failure should be fixed immediately or
+backed out.
 
 The `check` and `test` targets should fail if they find any 'check' violations
-or failed tests. The `pbchk` target is intended to cover all pre-commit
+or failed tests. The `prepush` target is intended to cover all pre-commit
 checks. It should run successfully before any push to the repo. It should also
-be part of the automated build. Any commit which introduces a pbchk failure
-should be fixed immediately or backed out.
+be part of the automated build. Any commit which introduces a prepush failure
+should be fixed immediately or backed out. A typical prepush target will
+look like the following, but some non-code repositories might differ (e.g.
+not have a test suite):
 
-Some projects may require no additional targets because they consist only of
-interpreted source code (e.g., JavaScript). For repos that generate an artifact
-(e.g., a tarball), use the `release` target to build it.
+    prepush: check test
+        @echo "Okay to push."
+
 
 ## Coding style
 
@@ -122,7 +138,7 @@ Every repository must have a consistent coding style that is enforced by some
 tool. Existing style-checking tools include:
 
 * C: <https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl>
-* JavaScript: <http://github.com/davepacheco/jsstyle>
+* JavaScript: <https://github.com/davepacheco/jsstyle>
 
 Both of these tools (which are 90% the same anyway) support overriding style
 checks on a per-line basis (e.g., for literal regular expressions).
@@ -134,6 +150,12 @@ flexibility, or to write new tools. All styles should limit line length to 80
 columns.
 
 Make target: "check-style"
+
+*Note: It is understood that `jsstyle` currently isn't configurable for all
+the current common JavaScript styles in Joyent repositories. Adding support
+for those styles to jsstyle (or a separate tool) should be done, but
+prioritize accordingly with actual product work.*
+
 
 ## Lint
 
@@ -150,6 +172,7 @@ recommended that we minimize divergence between repositories.
 
 Make target: "check-lint" 
 
+
 ## Testing
 
 All repos should include a comprehensive automated test suite, preferably using
@@ -157,6 +180,7 @@ node-tap. Bug fixes and new features should not be integrated without
 considering adding new tests.
 
 Make target: "test"
+
 
 ## XXX Use restify
 
