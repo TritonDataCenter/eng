@@ -1,60 +1,221 @@
 ---
-title: Boilerplate API (BAPI)
+title: Joyent Engineering Guide
 apisections: Boiled Eggs
 markdown2extras: wiki-tables, code-friendly
 ---
 
-# Boilerplate API (BAPI)
+# Joyent Engineering Guide
 
-TODO: overview, h1-section for each of the guidelines/best-practices
+**Note: Despite the tone below, this guide is still a work in progress.
+Everything here is subject to change as we discuss it with the team.**
 
+This document describes standards and best practices for software development
+at Joyent. These standards are intended to maintain product quality and to
+provide consistency across codebases to help all engineers understand
+unfamiliar parts of the system. This latter goal is important to encourage all
+engineers to feel comfortable diving into all parts of the system.
 
-# Boiled Eggs
-
-This shows the API implemented by the example node.js server in this repo.
-The main point here is show a good way to document API endpoints.
-
-## CreateEgg (POST /eggs)
-
-TODO
-
-## ListEggs (GET /eggs)
-
-TODO
-
-## GetEgg (GET /eggs/:uuid)
-
-TODO
+It's important to remember that all situations are unique, so rules should not
+be followed blindly. However, these guidelines represent the best practices
+agreed upon by the team. If you feel it necessary to diverge from them, that's
+okay, but be prepared to explain why.
 
 
+# Conventions
+
+Services implementing an API are referred to as APIs. For example, "MAPI"
+denotes the service implementing the MAPI API.
 
 
-# Guideline: Repository Name
+# Repository Guidelines
 
-A repo name that matches how the API is discussed (spoken, chatted and
-emailed) means you'll get the repo name right on first guess.
-If you can get away with it, a repo named after the abbreviate API name
-is best. E.g.:
+These guidelines cover naming, structure, and processes around repositories.
+A template repository is included in this repo so you can quickly get something
+working that follows these guidelines.
+
+
+## Rule #1: FCS Quality All the Time
+
+In general, use the "master" branch for development and releases. **"master"
+should be FCS (First Customer Ship) quality at all times.** Although releases
+are technically cut from release-specific branches, these branches are not
+expected to diverge significantly from "master" at the time the branch was cut
+except for fixes backported after the cut. That is, development should not be
+ongoing in the release branches.
+
+When working on large features, it's tempting to use development branches that
+eventually get integrated into master. Indeed, this is sometimes necessary.
+However, it should be avoided when possible, as it means people are running dev
+branches rather than "master", leading to a [quality death spiral
+(QDS)](http://hub.opensolaris.org/bin/view/Community+Group+on/qual_death_spiral)
+as fewer people actually run the mainline tree. Where possible, consider
+whether larger projects can be split into reasonably-sized chunks that can
+individually be integrated into "master" without breaking existing
+functionality. This allows you to continue developing on "master" while still
+being able to commit frequently.
+
+
+## Repository naming
+
+For repositories representing an API, the repo name that matches how the API is
+discussed (spoken, chatted and emailed) means you'll get the repo name right on
+first guess. If you can get away with it, a repo named after the abbreviate API
+name is best. For example:
     
     Network API -> NAPI -> napi.git   # Good.
-                        -> NAPI.git   # Whoa! Capital letters are crazy here.
                         -> network-api.git   # Less good.
-                        -> network_api.git   # Even less good (*).
+                        -> network_api.git   # Even less good.
+                        -> NAPI.git   # Whoa! Capital letters are crazy here.
 
-(*) Thought, I'll admit that my dislike for underscores in filenames is
-personal preference.
-
-So why isn't this repo called "bapi.git"? Because this repo will more often
-be called the "Boilerplate API" when discussed -- no need to popularize
-"BAPI".
+(So why isn't this repo called "bapi.git"? Because this repo will more often be
+called the "Boilerplate API" when discussed -- no need to popularize "BAPI".)
 
 
+## Language
 
-# Best Practice: Use restdown for docs
+New server-side projects should almost certainly use Node.js (with C/C++
+components as needed). Consolidating onto one language makes it easier for
+everyone to dig into other teams' projects as needed (for development as well as
+debugging) and allows us to share code and tools.
 
-Restdown is a tool for creating API docs using a single Markdown file.
-It lives here: <https://github.com/trentm/restdown>.
-You can set it up as follows:
+
+## Directory Layout
+
+Here is a suggested directory/file structure for your repository. All
+repos must have a `README.md` and `Makefile`. The others are suggested
+namings for particular usages, should your repo require them.
+
+    build/          Built bits.
+    deps/           Git submodules and/or commited 3rd-party deps should go
+                    here. See "node_modules/" for node.js deps.
+    docs/           Project docs. Uses <https://github.com/trentm/restdown>.
+    lib/            JavaScript source files.
+    node_modules/   Node.js deps, either populated at build time or
+                    commited. See
+                    <https://hub.joyent.com/wiki/display/dev/npm+dependencies>
+    src/            C/C++ source files.
+    test/           Test suite. node-tap prefered.
+    tools/          Miscellaneous dev/upgrade/deployment tools and data.
+    Makefile
+    package.json    npm module info, if applicable (holds the project version)
+    README.md       See below.
+
+XXX 'test/' or 'tst/'? --Trent
+
+
+## README.md
+
+Every repository should have in its root a README.md (Markdown) file that
+describes the repo and covers:
+
+* the name of the API or other component(s) contained in the repo and a brief
+  description of what they do
+* the JIRA project for this repo (and any additional instructions, like how JIRA
+  components are used for this project)
+* owners of the project
+* the style and lint configurations used, any additional pre-commit checks, and
+  any non-standard useful Makefile targets
+* some overview of the structure of the project, potentially including
+  descriptions of the subcomponents, directory structure, and basic design
+  principles
+* basic development workflow: how to run the code and start playing with it
+
+It's strongly recommended to start with the template in this repo.
+
+
+## Makefile
+
+All repos should have a Makefile that defines at least the following targets:
+
+* `all`: builds all intermediate objects (e.g., binaries, executables, docs,
+  etc.). This should be the default target.
+* `check-style`: checks all files for adherence to style (see below)
+* `check-lint`: checks all files for adherence to lint (see below)
+* `check`: checks all files for adherence to lint, style, and other
+  repo-specific rules not described here.
+* `prepush`: runs all checks/tests required before pushing changes to the repo
+* `clean`: removes all built files
+* `docs`: builds documentation (restdown)
+* `test`: runs the automated test suite
+* `release`: build releasable artifacts, e.g. a tarball (for projects that
+  generate release packages)
+
+The `check` and `test` targets should fail if they find any 'check'
+violations or failed tests. Both `check` and `test` should pass before any
+push to the repo. They should also be part of the automated build. Any push
+which introduces a check or test failure should be fixed immediately or
+backed out.
+
+The `check` and `test` targets should fail if they find any 'check' violations
+or failed tests. The `prepush` target is intended to cover all pre-commit
+checks. It should run successfully before any push to the repo. It should also
+be part of the automated build. Any commit which introduces a prepush failure
+should be fixed immediately or backed out. A typical prepush target will
+look like the following, but some non-code repositories might differ (e.g.
+not have a test suite):
+
+    prepush: check test
+            @echo "Okay to push."
+
+
+## Coding style
+
+Every repository must have a consistent coding style that is enforced by some
+tool. Existing style-checking tools include:
+
+* C: <https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl>
+* JavaScript: <https://github.com/davepacheco/jsstyle>
+
+Both of these tools (which are 90% the same anyway) support overriding style
+checks on a per-line basis (e.g., for literal regular expressions).
+
+It's not necessary that all projects use the same style, though it's strongly
+suggested to keep differences to a minimum (e.g., only hard vs. soft tabs and
+tabstops). Feel free add options to the above tools to allow for such
+flexibility, or to write new tools. All styles should limit line length to 80
+columns.
+
+Make target: "check-style"
+
+*Note: It is understood that `jsstyle` currently isn't configurable for all
+the current common JavaScript styles in Joyent repositories. Adding support
+for those styles to jsstyle (or a separate tool) should be done, but
+prioritize accordingly with actual product work.*
+
+
+## Lint
+
+Every C repository must run lint and every JavaScript repository must run
+<http://github.com/davepacheco/javascriptlint> and both must be lint-clean.
+(Note that lint is not the same as style; lint covers objectively dangerous
+patterns like undeclared variables, while style covers subjective conventions
+like spacing.)
+
+Both lint and javascriptlint are very configurable. Projects may choose to
+enable and disable particular sets of checks as they deem inappropriate, and
+most checks can be disabled on a per-line basis. As with style, it's
+recommended that we minimize divergence between repositories.
+
+Make target: "check-lint" 
+
+
+## Testing
+
+All repos should include a comprehensive automated test suite, preferably using
+node-tap. Bug fixes and new features should not be integrated without
+considering adding new tests.
+
+Make target: "test"
+
+
+## Documentation
+
+You should use [restdown](https://github.com/trentm/restdown). Please discuss
+with Trent if this isn't workable for your project.
+
+Restdown is a tool for creating docs (and especially REST API docs) using a
+single Markdown file with a few added conventions. You can set it up as
+follows:
 
     git submodule add git://github.com/trentm/restdown.git deps/restdown
     cd deps/restdown/
@@ -70,9 +231,82 @@ Add the following to your Makefile:
     docs:
             $(RESTDOWN) -m docs docs/index.restdown
 
-The default media (css, etc) that comes with the default restdown "ohthejoy"
-brand styles the docs as we want with a couple exceptions: no favicon and
-no Joyent logo. I've added those to "docs/media/img" (the same as used
-for our other API docs).
+    .PHONY: clean
+    clean:
+            -rm -f $(DOC_HTML) $(DOC_JSON)
+
+
+Restdown includes "brands", sets of CSS/JS/images for its generated HTML.
+The default brand, "ohthejoy", styles the docs as we want with a couple
+exceptions: no favicon and no Joyent logo. I've added those to
+"docs/media/img" (the same as used for our other API docs).
 
 TODO: Finish off static serving of the docs in server.js.
+
+
+## Man pages
+
+XXX use ronn. Is ronnjs acceptable now? If so, document then and add examples.
+
+
+## XXX Managing dependencies
+
+## XXX Commit comments
+
+
+## XXX Observability tools
+## XXX Developing on SmartOS? Setup-dev-environment tools
+## XXX Upgrade tools
+## XXX Documentation (design docs, big theory statements, etc.)
+## XXX Checking in derived files
+
+
+
+# REST API Guidelines
+
+## XXX Use `restify`
+
+## XXX Naming Endpoints
+
+TODO: codify some of MarkC's and my discussions on naming of API endpoints.
+
+
+
+# Using JIRA
+
+XXX dap, what kind of things did you want to include here? --Trent
+
+## XXX Information to include
+
+
+
+
+# Boiled Eggs
+
+This shows the API implemented by the example node.js server in this repo.
+The main point here is show a good way to document API endpoints.
+
+An API is often dividable into sections, e.g. one section
+per resource (in this example "eggs" are the resource). Use an `h1` to
+demark those groups and give a reasonable introductory description of this
+resource.
+
+One of restdown's conventions is that API endpoints are marked up with an
+`h2` header. Special handling of `h2`s as API endpoints is only done for
+"apisections" -- note that "Boiled Eggs" is included as an "apisection" in
+the metadata at the top of this file.
+
+## CreateEgg (POST /eggs)
+
+TODO
+
+## ListEggs (GET /eggs)
+
+TODO
+
+## GetEgg (GET /eggs/:uuid)
+
+TODO
+
+
+

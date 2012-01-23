@@ -14,7 +14,7 @@ NPM := npm
 #
 # Files
 #
-DOC_SRCS = index guide
+DOC_SRCS = index
 DOC_HTML = $(DOC_SRCS:%=docs/%.html)
 DOC_JSON = $(DOC_SRCS:%=docs/%.json)
 
@@ -38,5 +38,6 @@ docs/%.html: docs/%.restdown
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
 
+.PHONY: clean
 clean:
 	-rm -f $(DOC_HTML) $(DOC_JSON)
