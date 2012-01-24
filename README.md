@@ -10,22 +10,22 @@ Tickets/bugs: <https://devhub.joyent.com/jira/browse/TOOLS>
 # Overview
 
 This repo serves two purposes: (1) It defines the guidelines and best
-practices for Joyent engineering work, and (2) it also provides boilerplate
-for an SDC project repo, giving you a starting point for many of the
-suggestion practices defined in the guidelines. This is especially true
-for node.js-based REST API projects.
+practices for Joyent engineering work (this is the primary goal), and (2) it
+also provides boilerplate for an SDC project repo, giving you a starting
+point for many of the suggestion practices defined in the guidelines. This is
+especially true for node.js-based REST API projects.
+
+Start with the guidelines: <https://head.no.de/docs/eng>
 
 
 # Repository
 
-    deps/           Git submodules and/or commited 3rd-party deps should go
+    deps/           3rd-party deps
                     here. See "node_modules/" for node.js deps.
-    docs/           Project docs. Uses <https://github.com/trentm/restdown>.
+    docs/           Project docs (restdown)
     lib/            Source files.
-    node_modules/   Node.js deps, either populated at build time or
-                    commited. See
-                    <https://hub.joyent.com/wiki/display/dev/npm+dependencies>
-    test/           Test suite. node-tap prefered.
+    node_modules/   Node.js deps (currently NOT commited)
+    test/           Test suite (using node-tap)
     tools/          Miscellaneous dev/upgrade/deployment tools and data.
     Makefile
     package.json    npm module info (holds the project version)
@@ -34,23 +34,28 @@ for node.js-based REST API projects.
 
 # Development
 
-TODO: describe how to build and run the code (in the various environments,
-Mac/COAL/BH1, if applicable). Describe checklist for commiting, e.g. from CA:
+To run the boilerplate API server:
 
-> Before checking code in:
-> - run "gmake pbchk" to check for lint, style, and automated test errors
-> - make sure that each line in the commit comment contains a JIRA ticket
->   number, the ticket synopsis, and nothing else
-> - if possible, get a code review
+    git clone git@git.joyent.com:eng.git
+    cd eng
+    git submodule update --init
+    make all
+    node server.js
+
+To update the guidelines, edit "docs/index.restdown" and run `make docs`
+to update "docs/index.html".
+
+Before commiting/pushing run `make prepush` and, if possible, get a code
+review.
 
 
 
 # Testing
 
-Notes on how to setup for (if necessary), run and work with the test suite.
-This may be as simple as this:
-
     make test
+
+If you project has setup steps necessary for testing, then describe those
+here.
 
 
 
@@ -63,8 +68,8 @@ development data.
 
 # TODO
 
-Things for dap and I to discuss and add. Also see "TODO" in other places in
-this file and repo.
+Things for dap and I to discuss and add. Also see "TODO" and "XXX" in other
+places in this file and repo.
 
 - CHANGES.md: May be controversial. I maintain a changelog in most of my projects. E.g. 
   <https://github.com/trentm/json/blob/master/CHANGES.md>.

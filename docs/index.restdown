@@ -91,11 +91,18 @@ namings for particular usages, should your repo require them.
     smf/manifests   SMF manifests
     smf/methods     SMF method scripts
     src/            C/C++ source files.
-    test/ (or tst/) Test suite. node-tap prefered.
+    test/           Test suite. node-tap prefered.
     tools/          Miscellaneous dev/upgrade/deployment tools and data.
     Makefile        See below.
     package.json    npm module info, if applicable (holds the project version)
     README.md       See below.
+
+
+"docs" or "doc"? "test" or "tst"? We're not being religious about the
+directory names, however the Makefile target names should use the names
+specified below to allow automated build tools to rely on those names. The
+reason to suggest "docs" and "test" as the directory names is to have the
+same name as the Makefile targets.
 
 
 ### README.md
@@ -132,12 +139,6 @@ All repos should have a Makefile that defines at least the following targets:
 * `test`: runs the automated test suite
 * `release`: build releasable artifacts, e.g. a tarball (for projects that
   generate release packages)
-
-The `check` and `test` targets should fail if they find any 'check'
-violations or failed tests. Both `check` and `test` should pass before any
-push to the repo. They should also be part of the automated build. Any push
-which introduces a check or test failure should be fixed immediately or
-backed out.
 
 The `check` and `test` targets should fail if they find any 'check' violations
 or failed tests. The `prepush` target is intended to cover all pre-commit
@@ -264,6 +265,7 @@ one-off documents for specific projects, even if they become out of date as the
 code evolves, but make clear in the document that the content may be out of
 date. Keep such docs separate from general design documents that are kept up to
 date.
+
 
 ### Man Pages
 
