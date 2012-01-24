@@ -1,0 +1,14 @@
+#
+# Makefile.jsl: Makefile for including javascriptlint as a dependency in
+#     deps/javascriptlint and having "JSL" depend on that
+#
+
+JSL	= python2.6 deps/javascriptlint/build/install/jsl
+
+$(JSL): deps/javascriptlint/.git
+	cd deps/javascriptlint && make install
+
+deps/javascriptlint/.git:
+	git submodule update --init deps/javascriptlint
+
+prereqs: $(JSL)

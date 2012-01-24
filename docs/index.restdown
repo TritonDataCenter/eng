@@ -85,9 +85,11 @@ namings for particular usages, should your repo require them.
                     here. See "node_modules/" for node.js deps.
     docs/           Project docs. Uses <https://github.com/trentm/restdown>.
     lib/            JavaScript source files.
-    node_modules/   Node.js deps, either populated at build time or
-                    commited. See
-                    <https://hub.joyent.com/wiki/display/dev/npm+dependencies>
+    node_modules/   Node.js deps, either populated at build time or commited.
+                    See Managing Dependencies.
+    pkg/            Package lifecycle scripts
+    smf/manifests   SMF manifests
+    smf/methods     SMF method scripts
     src/            C/C++ source files.
     test/ (or tst/) Test suite. node-tap prefered.
     tools/          Miscellaneous dev/upgrade/deployment tools and data.
@@ -122,12 +124,10 @@ All repos should have a Makefile that defines at least the following targets:
 
 * `all`: builds all intermediate objects (e.g., binaries, executables, docs,
   etc.). This should be the default target.
-* `check-style`: checks all files for adherence to style (see below)
-* `check-lint`: checks all files for adherence to lint (see below)
 * `check`: checks all files for adherence to lint, style, and other
   repo-specific rules not described here.
-* `prepush`: runs all checks/tests required before pushing changes to the repo
 * `clean`: removes all built files
+* `prepush`: runs all checks/tests required before pushing changes to the repo
 * `docs`: builds documentation (restdown)
 * `test`: runs the automated test suite
 * `release`: build releasable artifacts, e.g. a tarball (for projects that

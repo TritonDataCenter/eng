@@ -13,14 +13,14 @@ var uuid = require('node-uuid');
 var server = restify.createServer({
   name: 'Boilerplate API'
 });
-server.log4js.setGlobalLogLevel('TRACE')
+server.log4js.setGlobalLogLevel('TRACE');
 
 
 // '/eggs/...' endpoints.
 var eggs = {}; // My lame in-memory database.
 server.get({path: '/eggs', name: 'ListEggs'}, function(req, res, next) {
   var eggsArray = [];
-  Object.keys(eggs).forEach(function (u) { eggsArray.push(eggs[u]) });
+  Object.keys(eggs).forEach(function (u) { eggsArray.push(eggs[u]); });
   res.send(eggsArray);
   return next();
 });
@@ -34,7 +34,7 @@ server.post({path: '/eggs', name: 'CreateEgg'}, function(req, res, next) {
 server.get({path: '/eggs/:uuid', name: 'GetEgg'}, function(req, res, next) {
   var egg = eggs[req.params.uuid];
   if (!egg) {
-    return next(new restify.ResourceNotFoundError("No such egg."))
+    return next(new restify.ResourceNotFoundError("No such egg."));
   }
   res.send(egg);
   return next();

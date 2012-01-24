@@ -1,43 +1,42 @@
+#
+# Makefile: basic Makefile for template API service
+#
 
 #
-# Config
-#
-
 # Directories
-TOP := $(shell pwd)
+#
+TOP		:= $(shell pwd)
 
+#
 # Tools
-TAP := $(TOP)/node_modules/.bin/tap
-RESTDOWN := python2.6 $(TOP)/deps/restdown/bin/restdown
-NPM := npm
+#
+NPM		:= npm
+RESTDOWN	:= python2.6 $(TOP)/deps/restdown/bin/restdown
+TAP		:= $(TOP)/node_modules/.bin/tap
 
 #
-# Files
+# Files: most of these are used as input for targets in Makefile.targ, which
+# provides check, docs, and other targets for these files. See Makefile.targ
+# for details, as well as other targets for checking bash scripts, SMF
+# manifests, etc.
 #
-DOC_SRCS = index
-DOC_HTML = $(DOC_SRCS:%=docs/%.html)
-DOC_JSON = $(DOC_SRCS:%=docs/%.json)
+DOC_FILES	 = docs/index.restdown
+JS_FILES	:= $(shell find lib -name '*.js')
+JSL_CONF_NODE	 = tools/jsl.node.conf
+JSL_FILES_NODE   = server.js $(JS_FILES)
+JSSTYLE_FILES	 = $(JS_FILES)
+# XXX SMF manifests and methods
 
 #
 # Targets
 #
-
 .PHONY: all
 all:
 	$(NPM) install
-
-
-.PHONY: docs
-docs: $(DOC_HTML)
-
-docs/%.html: docs/%.restdown
-	$(RESTDOWN) -m docs $^
-
 
 .PHONY: test
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
 
-.PHONY: clean
-clean:
-	-rm -f $(DOC_HTML) $(DOC_JSON)
+include ./Makefile.jsl
+include ./Makefile.targ
