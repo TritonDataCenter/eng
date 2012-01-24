@@ -20,11 +20,15 @@ Start with the guidelines: <https://head.no.de/docs/eng>
 
 # Repository
 
-    deps/           3rd-party deps
+    deps/           Git submodules and/or commited 3rd-party deps should go
                     here. See "node_modules/" for node.js deps.
     docs/           Project docs (restdown)
     lib/            Source files.
-    node_modules/   Node.js deps (currently NOT commited)
+    node_modules/   Node.js deps, either populated at build time or commited.
+                    See Managing Dependencies.
+    pkg/            Package lifecycle scripts
+    smf/manifests   SMF manifests
+    smf/methods     SMF method scripts
     test/           Test suite (using node-tap)
     tools/          Miscellaneous dev/upgrade/deployment tools and data.
     Makefile
