@@ -268,7 +268,7 @@ date.
 ### Man Pages
 
 XXX use ronn. Is ronnjs acceptable now? If so, document then and add examples.
-
+XXX use normal man page syntax for existing repos (illumos-joyent)
 
 ## Managing Dependencies
 
@@ -346,10 +346,13 @@ given either the commit or the JIRA ticket, one can find the other.
 Historically, some repos (notably illumos-joyent and cloud-analytics) have
 additionally required that tickets should not be reused for multiple commits in
 the same repo except for very minor changes like fixing lint or style
-warnings. For these repos, the git comments for the commit consist of a single
-line per JIRA ticket being resolved in the commit. Each line consists of the
-ticket identifier and the synopsis exactly as it appears in JIRA (optionally
-truncated to 80 characters with "..."):
+warnings. This makes it easier to correlate tickets and commits, since there's
+usually exactly one commit for each resolved ticket. It also makes it easier to
+back out the changes for a particular project. For these repos, the git
+comments for the commit consist of a single line per JIRA ticket being resolved
+in the commit. Each line consists of the ticket identifier and the synopsis
+exactly as it appears in JIRA (optionally truncated to 80 characters with
+"..."):
 
     OS-147 vfsstat command to show VFS activity by zone
     OS-148 Update ziostat to coexist peacefully with vfsstat
