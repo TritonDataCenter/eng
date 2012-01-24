@@ -1,0 +1,43 @@
+#
+# Makefile.deps: Makefile for including common tools as dependencies
+#
+
+#
+# javascriptlint
+#
+JSL_SCRIPT	= deps/javascriptlint/build/install/jsl
+JSL		= python2.6 $(JSL_SCRIPT)
+
+$(JSL_SCRIPT): deps/javascriptlint/.git
+	cd deps/javascriptlint && make install
+
+deps/javascriptlint/.git:
+	git submodule update --init deps/javascriptlint
+
+#
+# jsstyle
+#
+JSSTYLE		= deps/jsstyle/jsstyle
+
+deps/jsstyle/jsstyle:
+	git submodule update --init deps/jsstyle
+
+#
+# restdown
+#
+RESTDOWN	= deps/restdown/bin/restdown
+
+$(RESTDOWN): deps/restdown/.git
+
+deps/restdown/.git:
+	git submodule update --init deps/restdown
+
+#
+# The restdown submod should be updated before we build "docs"
+#
+docs: $(RESTDOWN)
+
+#
+# JSL and JSSTYLE must be around before we build "check"
+#
+check: $(JSL_SCRIPT) $(JSSTYLE)

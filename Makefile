@@ -11,7 +11,6 @@ TOP		:= $(shell pwd)
 # Tools
 #
 NPM		:= npm
-RESTDOWN	:= python2.6 $(TOP)/deps/restdown/bin/restdown
 TAP		:= $(TOP)/node_modules/.bin/tap
 
 #
@@ -38,5 +37,5 @@ all:
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
 
-include ./Makefile.jsl
+include ./Makefile.deps
 include ./Makefile.targ

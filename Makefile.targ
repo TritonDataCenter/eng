@@ -94,9 +94,16 @@ endif
 
 #
 # Targets. For descriptions on what these are supposed to do, see the
-# Joyent Engineering Guide. These targets are protected by ifneq/ifeq for the
-# appropriate Make variables so that they don't do anything if the user hasn't
-# specified input.
+# Joyent Engineering Guide.
+#
+# These recipes make heavy use of dynamically-created phony targets. The parent
+# Makefile defines a list of input files like BASH_FILES. We then say that each
+# of these files depends on a fake target called filename.bashchk, and then we
+# define a pattern rule for those targets that runs bash in check-syntax-only
+# mode. This mechanism has the nice properties that if you specify zero files,
+# the rule becomes a noop (unlike a single rule to check all bash files, which
+# would invoke bash with zero files), and you can check individual files from
+# the command line with "make filename.bashchk".
 #
 .PHONY: check-bash
 check-bash: $(BASH_FILES:%=%.bashchk)
