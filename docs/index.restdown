@@ -67,9 +67,6 @@ name is best. For example:
                         -> network_api.git   # Even less good.
                         -> NAPI.git   # Whoa! Capital letters are crazy here.
 
-(So why isn't this repo called "bapi.git"? Because this repo will more often be
-called the "Boilerplate API" when discussed -- no need to popularize "BAPI".)
-
 
 ## Language
 
@@ -278,6 +275,13 @@ XXX dap, what kind of things did you want to include here? --Trent
 
 ## XXX Information to include
 
+
+# Best Practices
+
+Ideas to consider describing as best practices:
+
+- Use JSON for config data. Not ini files: iniparser module has bugs, there
+  are always questions about encoding non-string values.
 
 
 

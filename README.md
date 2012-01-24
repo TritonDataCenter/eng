@@ -1,16 +1,19 @@
-# Boilerplate API (A start at your real API repo)
+# Joyent Engineering Guide
 
-Repository: <git@git.joyent.com:boilerplateapi.git>
-Browsing: <https://mo.joyent.com/boilerplateapi>
+Repository: <git@git.joyent.com:eng.git>
+Browsing: <https://mo.joyent.com/eng>
 Who: Trent Mick, Dave Pacheco
-Docs: <https://head.no.de/docs/boilerplateapi>
+Docs: <https://head.no.de/docs/eng>
 Tickets/bugs: <https://devhub.joyent.com/jira/browse/TOOLS>
 
 
 # Overview
 
-This repo provides project boilerplate for an SDC project repo, and especially
-for the common case of a project implementing a node.js-based API.
+This repo serves two purposes: (1) It defines the guideslines and best
+practices for Joyent engineering work, and (2) it also provides boilerplate
+for an SDC project repo, giving you a starting point for many of the
+suggestion practices defined in the guidelines. This is especially true
+for node.js-based REST API projects.
 
 
 # Repository
@@ -36,31 +39,8 @@ Mac/COAL/BH1, if applicable). Describe checklist for commiting, e.g. from CA:
 
 > Before checking code in:
 > - run "gmake pbchk" to check for lint, style, and automated test errors
-
-"pbchk"? WTF does that stand for? :) --Trent
-
 > - make sure that each line in the commit comment contains a JIRA ticket
 >   number, the ticket synopsis, and nothing else
-
-The layout I tend to follow is:
-
-    $ticketNumber(s): $shortSummary
-                                            <--- blank line here
-    $optionalDeeperDetailsOnTheChange
-    
-E.g. <https://mo.joyent.com/amon/commit/c5fa4411>
-
-    MON-12: a start at Amon-master caching data from UFDS (*off* by default)
-            
-    Set "ufds.caching = true" in config to turn it on. It is incomplete and
-    not working fully yet.
-
-This "first line should be the full summary" comes from the git community, and
-historically from git usage (for Linux kernel) being centered around email:
-that first line would be the email subject.
-<http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>
-Some of the git commands will show a one-line summary of commits.
-
 > - if possible, get a code review
 
 
