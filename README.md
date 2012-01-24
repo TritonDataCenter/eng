@@ -9,7 +9,7 @@ Tickets/bugs: <https://devhub.joyent.com/jira/browse/TOOLS>
 
 # Overview
 
-This repo serves two purposes: (1) It defines the guideslines and best
+This repo serves two purposes: (1) It defines the guidelines and best
 practices for Joyent engineering work, and (2) it also provides boilerplate
 for an SDC project repo, giving you a starting point for many of the
 suggestion practices defined in the guidelines. This is especially true
