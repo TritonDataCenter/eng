@@ -172,7 +172,7 @@ clean:
 # identify the subdirectories in docs/media, recreate them in
 # $(DOC_BUILD)/media, then do the same with the files.
 #
-DOC_MEDIA_DIRS := $(shell find docs/media -type d)
+DOC_MEDIA_DIRS := $(shell find docs/media -type d | grep -v "^docs/media$$")
 DOC_MEDIA_DIRS := $(DOC_MEDIA_DIRS:docs/media/%=%)
 DOC_MEDIA_DIRS_BUILD := $(DOC_MEDIA_DIRS:%=$(DOC_BUILD)/media/%)
 
@@ -223,6 +223,10 @@ docs/%.json docs/%.html: docs/%.restdown | $(DOC_BUILD)
 
 $(DOC_BUILD):
 	$(MKDIR) $@
+
+info:
+	echo "DOC_MEDIA_FILES is '$(DOC_MEDIA_FILES)'"
+	echo "DOC_MEDIA_FILES_BUILD is '$(DOC_MEDIA_FILES_BUILD)'"
 
 $(DOC_MEDIA_DIRS_BUILD):
 	$(MKDIR) $@
