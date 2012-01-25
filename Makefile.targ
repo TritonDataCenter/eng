@@ -38,8 +38,8 @@
 #			restdown-generated HTML and JSON files.
 #
 #	DOC_FILES	Restdown (documentation source) files. These are
-#			assumed to be contained in "docs/", but (like other
-#			filenames) must contain the "docs/" prefix.
+#			assumed to be contained in "docs/", and must NOT
+#			contain the "docs/" prefix.
 #
 #	JSL_CONF_NODE	Specify JavaScriptLint configuration files
 #	JSL_CONF_WEB	(paths relative to top-level Makefile)
@@ -74,8 +74,11 @@
 # Defaults for the various tools we use.
 #
 BASH		?= bash
+CP		?= cp
 JSL		?= jsl
 JSSTYLE		?= jsstyle
+MKDIR		?= mkdir -p
+MV		?= mv
 RESTDOWN	?= restdown
 RMTREE		?= rm -rf
 XMLLINT		?= xmllint --noout
@@ -85,6 +88,8 @@ JSL_FLAGS  	?= --nologo --nosummary
 # Defaults for other fixed values.
 #
 SMF_DTD		?= tools/service_bundle.dtd.1
+
+DOC_BUILD	= build/docs/public
 
 #
 # Configure JSL_FLAGS_{NODE,WEB} based on JSL_CONF_{NODE,WEB}.
@@ -142,20 +147,85 @@ check-manifests: $(SMF_MANIFESTS:%=%.smfchk)
 	$(XMLLINT) --dtdvalid $(SMF_DTD) $^
 
 .PHONY: check
-check: prereqs check-jsl check-jsstyle check-bash check-manifests
+check: check-jsl check-jsstyle check-bash check-manifests
 	@echo check ok
 
 .PHONY: clean
-clean: prereqs
+clean:
 	-$(RMTREE) $(CLEAN_FILES)
 
+#
+# The "docs" target is complicated because we do several things here:
+#
+#    (1) Use restdown to build HTML and JSON files from each of DOC_FILES.
+#
+#    (2) Copy these files into $(DOC_BUILD) (build/docs/public), which
+#        functions as a complete copy of the documentation that could be
+#        mirrored or served over HTTP.
+#
+#    (3) Then copy any directories and media from docs/media into
+#        $(DOC_BUILD)/media. This allows projects to include their own media,
+#        including files that will override same-named files provided by
+#        restdown.
+#
+# Step (3) is the surprisingly complex part: in order to do this, we need to
+# identify the subdirectories in docs/media, recreate them in
+# $(DOC_BUILD)/media, then do the same with the files.
+#
+DOC_MEDIA_DIRS := $(shell find docs/media -type d)
+DOC_MEDIA_DIRS := $(DOC_MEDIA_DIRS:docs/media/%=%)
+DOC_MEDIA_DIRS_BUILD := $(DOC_MEDIA_DIRS:%=$(DOC_BUILD)/media/%)
+
+DOC_MEDIA_FILES := $(shell find docs/media -type f)
+DOC_MEDIA_FILES := $(DOC_MEDIA_FILES:docs/media/%=%)
+DOC_MEDIA_FILES_BUILD := $(DOC_MEDIA_FILES:%=$(DOC_BUILD)/media/%)
+
+#
+# Like the other targets, "docs" just depends on the final files we want to
+# create in $(DOC_BUILD), leveraging other targets and recipes to define how
+# to get there.
+#
 .PHONY: docs
-docs: prereqs $(DOC_FILES:%.restdown=%.html)
+docs:							\
+    $(DOC_FILES:%.restdown=$(DOC_BUILD)/%.html)		\
+    $(DOC_FILES:%.restdown=$(DOC_BUILD)/%.json)		\
+    $(DOC_MEDIA_FILES_BUILD)
 
-CLEAN_FILES += $(DOC_FILES:%.restdown=%.html) $(DOC_FILES:%.restdown=%.json)
+#
+# We keep the intermediate files so that the next build can see whether the
+# files in DOC_BUILD are up to date.
+#
+.PRECIOUS:					\
+    $(DOC_FILES:%.restdown=docs/%.html)		\
+    $(DOC_FILES:%.restdown=docs/%json)
 
-docs/%.html: docs/%.restdown
-	$(RESTDOWN) -m docs $^
+#
+# We do clean those intermediate files, as well as all of DOC_BUILD.
+#
+CLEAN_FILES +=					\
+    $(DOC_BUILD)				\
+    $(DOC_FILES:%.restdown=docs/%.html)		\
+    $(DOC_FILES:%.restdown=docs/%.json)
+
+#
+# Before installing the files, we must make sure the directories exist. The |
+# syntax tells make that the dependency need only exist, not be up to date.
+# Otherwise, it might try to rebuild spuriously because the directory itself
+# appears out of date.
+#
+$(DOC_MEDIA_FILES_BUILD): | $(DOC_MEDIA_DIRS_BUILD)
+
+$(DOC_BUILD)/%: docs/% | $(DOC_BUILD)
+	$(CP) $< $@
+
+docs/%.json docs/%.html: docs/%.restdown | $(DOC_BUILD)
+	$(RESTDOWN) -m $(DOC_BUILD) $<
+
+$(DOC_BUILD):
+	$(MKDIR) $@
+
+$(DOC_MEDIA_DIRS_BUILD):
+	$(MKDIR) $@
 
 #
 # The default "test" target does nothing. This should usually be overridden by
@@ -167,6 +237,3 @@ test:
 
 .PHONY: prepush
 prepush: check test
-
-.PHONY: prereqs
-prereqs:
