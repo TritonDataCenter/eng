@@ -1,23 +1,25 @@
 #
 # Makefile: basic Makefile for template API service
 #
-
+# This Makefile is a template for new repos. It contains only repo-specific
+# logic and uses included makefiles to supply common targets (javascriptlint,
+# jsstyle, restdown, etc.), which are used by other repos as well. You may well
+# need to rewrite most of this file, but you shouldn't need to touch the
+# included makefiles.
 #
-# Directories
+# If you find yourself adding support for new targets that could be useful for
+# other projects too, you should add these to the original versions of the
+# included Makefiles (in eng.git) so that other teams can use them too.
 #
-TOP		:= $(shell pwd)
 
 #
 # Tools
 #
 NPM		:= npm
-TAP		:= $(TOP)/node_modules/.bin/tap
+TAP		:= ./node_modules/.bin/tap
 
 #
-# Files: most of these are used as input for targets in Makefile.targ, which
-# provides check, docs, and other targets for these files. See Makefile.targ
-# for details, as well as other targets for checking bash scripts, SMF
-# manifests, etc.
+# Files
 #
 DOC_FILES	 = docs/index.restdown
 JS_FILES	:= $(shell find lib -name '*.js')
@@ -27,7 +29,7 @@ JSSTYLE_FILES	 = $(JS_FILES)
 # XXX SMF manifests and methods
 
 #
-# Targets
+# Repo-specific targets
 #
 .PHONY: all
 all:

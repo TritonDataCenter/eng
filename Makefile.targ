@@ -1,6 +1,11 @@
 #
 # Makefile.targ: common targets.
 #
+# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
 # This Makefile defines several useful targets and rules. You can use it by
 # including it from a Makefile that specifies some of the variables below.
 #
