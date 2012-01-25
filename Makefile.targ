@@ -143,6 +143,7 @@ check-manifests: $(SMF_MANIFESTS:%=%.smfchk)
 
 .PHONY: check
 check: prereqs check-jsl check-jsstyle check-bash check-manifests
+	@echo check ok
 
 .PHONY: clean
 clean: prereqs

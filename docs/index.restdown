@@ -1,6 +1,5 @@
 ---
 title: Joyent Engineering Guide
-apisections: Boiled Eggs
 markdown2extras: wiki-tables, code-friendly
 ---
 
@@ -211,35 +210,25 @@ with Trent if this isn't workable for your project.
 
 Restdown is a tool for creating docs (and especially REST API docs) using a
 single Markdown file with a few added conventions. You can set it up as
-follows:
+follows. Get the restdown tool:
 
     git submodule add git://github.com/trentm/restdown.git deps/restdown
     cd deps/restdown/
     git checkout 1.2.15    # let's use a restdown release tag
 
-Add the following to your Makefile:
+Get a starter restdown file:
 
-    RESTDOWN := python2.6 $(TOP)/deps/restdown/bin/restdown
-    
-    ...
-    
-    .PHONY: docs
-    docs:
-            $(RESTDOWN) -m docs docs/index.restdown
+    mkdir -p docs/media/img
+    cp ../eng/docs/boilerplateapi.restdown docs/index.restdown
+    cp ../eng/docs/media/img/favicon.ico docs/media/img/
+    cp ../eng/docs/media/img/logo.png docs/media/img/
 
-    .PHONY: clean
-    clean:
-            -rm -f $(DOC_HTML) $(DOC_JSON)
+Tell the Makefile about it (`make docs`):
 
-
-Restdown includes "brands", sets of CSS/JS/images for its generated HTML.
-The default brand, "ohthejoy", styles the docs as we want with a couple
-exceptions: no favicon and no Joyent logo. I've added those to
-"docs/media/img" (the same as used for our other API docs).
+    DOC_FILES = docs/index.restdown
 
 TODO: Finish off static serving of the docs in server.js.
-TODO: Generalize above Makefile steps for multiple files? Better yet, provide a
-      Makefile of default targets that other projects can use wholesale.
+
 
 ### Code Documentation
 
@@ -272,35 +261,101 @@ date.
 XXX use ronn. Is ronnjs acceptable now? If so, document then and add examples.
 XXX use normal man page syntax for existing repos (illumos-joyent)
 
-## Managing Dependencies
 
-There are several ways of managing Node dependencies, each with notable pros and
-cons:
+## Managing Node Dependencies
 
-* If all of your dependencies are pure JS, "npm install" them and add
-  "node_modules" to the repo. This is simple and relatively easy to manage, but
-  goes against a common best practice of source control which is to avoid
-  checking in non-original versions of files (i.e. derived files). The risk in
-  this case would be that these files could be changed by hand, intentionally or
-  otherwise. This could be good, if you decide that's the best way to float a
-  patch on the package, but it also means the source could become inconsistent
-  with any published version of the package without anyone realizing it. You
-  can't easily tell whether source files have been individually changed this
-  way.
-* Use git submodules to get the source for all dependent packages. This avoids
-  the inconsistency problem described above, but may make it harder to float
-  patches, and it may introduce a build-time dependency on another source (like
-  github). Also, git submodules are somewhat clumsy.
-* List specific versions (e.g., "1.2.3" not "1.2") for all deps **and all deps
-  of deps** in your top-level `package.json`. Then "npm install" to get specific
-  versions of everything. You can check this by making sure there are no
-  "node_modules/*/node_modules" directories. With this method, you must be sure
-  that "npm install" doesn't pull packages in from the public repository, as
-  builds should not depend on external resources.
-
-Choose whatever method works best for you, but try to be consistent within a
-given repo.  Either way, "make all" and other "make" targets should
+There are several ways of managing Node dependencies, each with notable pros
+and cons. Choose whatever method works best for you, but try to be consistent
+within a given repo. Either way, "make all" and other "make" targets should
 automatically take care of setting up dependencies.
+
+*Note: From the length of this section, it should be obvious that this
+isn't full baked yet. We need some more experience.*
+
+
+### Method 1: Commit node_modules to Git
+
+In short: `npm install` to install all your deps, `git add node_modules`,
+and commit. For binary modules: exclude binary bits and use `npm rebuild`
+at build time.
+
+This should be simple and easy to manage. However there are some remaining
+questions on implementing this in general:
+
+- Are there difficulties with the `git add node_modules` due to .gitignore
+  files in the deps? "node_modules" is a common entry in many node modules'
+  .gitignore files. Perhaps just deleting them all is sufficient
+  (.npmignore vs. .gitignore).
+- Do "devDependencies" get in the way here? Presumably we wouldn't commit
+  dev dependencies. Perhaps specific "node_modules/my-dev-dep" entries
+  in ".gitignore" would suffice.
+- TODO: spec the .gitignore entries to facilitate excluding binary bits
+  in the `git add node_modules`.
+
+Lingering debate: This method is a unsavoury because it goes against a common
+best practice to avoid commiting derived files (while not necessarily binary,
+files in a published npm package are 'built' in a sense). The risk is that
+these files could be changed by hand, intentionally or otherwise. This could
+be good, if you decide that's the best way to float a patch on the package,
+but it also means the source could become inconsistent with any published
+version of the package without anyone realizing it. You can't easily tell
+whether source files have been individually changed this way.
+
+Counter argument: The alternative to commiting derived files is to build, or
+otherwise get, them at build time. That needs to be reproducible.
+Unfortunately without support for a type of npm "freeze" command to control
+specific module versions `npm install` isn't reproducible (see method #3
+below). As well, reliance on registry.npmjs.org is a build-time single
+point of failure. On the plus side: all relevant sources are there in your
+repo. Yes there is some noise from that, but having a history of those
+code changes isn't to be sniffed at. A suggestion for the "floating patches"
+is to create a fork of the module (e.g.
+[trentm-datetime](http://search.npmjs.org/#/trentm-datetime)
+for [datetime](http://search.npmjs.org/#/datetime)) until patches are
+released upstream.
+
+
+### Method 2: Git Submodules for Sources
+
+Use git submodules to get the source for all dependent packages,
+`git submodule add git://github.com/bob/my-dep.git deps/my-dep`, and use
+`npm install deps/my-dep` at build time.
+    
+This avoids the inconsistency problem described above, but may make it harder
+to float patches, and it may introduce a build-time dependency on another
+source (like github). Also, git submodules are somewhat clumsy. As well,
+some questions:
+
+- Is there still a sub-dependency issue here? I.e. `npm install deps/my-dep`
+  will still hit the npm registry for its deps (and so on). This makes
+  this method suitable only for modules without their own deps.
+
+
+### Method 3: List Specific Versions
+
+List specific versions (e.g., "1.2.3" not "1.2") for all deps **and all deps
+of deps** in your top-level "package.json". Then `npm install` to get
+specific versions of everything. You can check this by making sure there are
+no "node_modules/*/node_modules" directories. With this method, you must be
+sure that "npm install" doesn't pull packages in from the public repository,
+as builds should not depend on external resources.
+
+The "./tools/npmfreeze.js" tool in this repo can help you put together that
+list of versions.
+
+Questions/Concerns:
+
+- XXX Dap, I'm not sure exactly what you mean by the sentence about the
+  "public repository". Are you saying that using registry.npmjs.org is
+  unacceptable because "foo@1.2.3" tomorrow could differ from "foo@1.2.3"
+  tomorrow? Or more because hitting the internet at build time for this
+  sucks? --Trent
+- If two parts of the node\_modules tree include differnt versions of the
+  same node module, then the higher version wins. It is possible that is
+  a problem.
+- This method requires vigilance and futzing around when adding new
+  dependencies.
+
 
 ## Commit Comments and JIRA Tickets
 
@@ -408,7 +463,8 @@ rather than rolling your own.
 
 ## XXX Naming Endpoints
 
-TODO: codify some of MarkC's and my discussions on naming of API endpoints.
+TODO: codify some of MarkC's and my (mostly mark) discussions on naming of
+API endpoints.
 
 
 
@@ -433,32 +489,9 @@ TODO: codify some of MarkC's and my discussions on naming of API endpoints.
   more likely people will actually test that, and you'll catch environment
   issues in development instead of after pushing.
 
-# Boiled Eggs
 
-This shows the API implemented by the example node.js server in this repo.
-The main point here is show a good way to document API endpoints.
+# Examples
 
-An API is often dividable into sections, e.g. one section
-per resource (in this example "eggs" are the resource). Use an `h1` to
-demark those groups and give a reasonable introductory description of this
-resource.
-
-One of restdown's conventions is that API endpoints are marked up with an
-`h2` header. Special handling of `h2`s as API endpoints is only done for
-"apisections" -- note that "Boiled Eggs" is included as an "apisection" in
-the metadata at the top of this file.
-
-## CreateEgg (POST /eggs)
-
-TODO
-
-## ListEggs (GET /eggs)
-
-TODO
-
-## GetEgg (GET /eggs/:uuid)
-
-TODO
-
-
+- The [boilerplate API](boilerplateapi.html) example in this repo gives you a
+  starter file and some suggestions on how to document a web service.
 
