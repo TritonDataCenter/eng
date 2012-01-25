@@ -85,7 +85,7 @@ namings for particular usages, should your repo require them.
     docs/           Project docs. Uses <https://github.com/trentm/restdown>.
     lib/            JavaScript source files.
     node_modules/   Node.js deps, either populated at build time or commited.
-                    See Managing Dependencies.
+                    See Managing Node Dependencies.
     pkg/            Package lifecycle scripts
     smf/manifests   SMF manifests
     smf/methods     SMF method scripts
@@ -267,11 +267,13 @@ XXX use normal man page syntax for existing repos (illumos-joyent)
 There are several ways of managing Node dependencies, each with notable pros
 and cons. Choose whatever method works best for you, but try to be consistent
 within a given repo. Either way, "make all" and other "make" targets should
-automatically take care of setting up dependencies.
+automatically take care of setting up dependencies as needed.
+
+With any of these methods, beware that the build process must not use external
+resources because they cannot be trusted and may not even be available.
 
 *Note: From the length of this section, it should be obvious that this
 isn't full baked yet. We need some more experience.*
-
 
 ### Method 1: Commit node_modules to Git
 
@@ -292,69 +294,37 @@ questions on implementing this in general:
 - TODO: spec the .gitignore entries to facilitate excluding binary bits
   in the `git add node_modules`.
 
-Lingering debate: This method is a unsavoury because it goes against a common
-best practice to avoid commiting derived files (while not necessarily binary,
-files in a published npm package are 'built' in a sense). The risk is that
-these files could be changed by hand, intentionally or otherwise. This could
-be good, if you decide that's the best way to float a patch on the package,
-but it also means the source could become inconsistent with any published
-version of the package without anyone realizing it. You can't easily tell
-whether source files have been individually changed this way.
+One downside with this approach is that there's nothing to enforce that the
+committed source actually matches what it's supposed to (i.e. and hasn't been
+inadvertently changed). This isn't likely to be an issue as engineers *should*
+know that source in node_modules is not original and should not be modified
+directly.
 
-Counter argument: The alternative to commiting derived files is to build, or
-otherwise get, them at build time. That needs to be reproducible.
-Unfortunately without support for a type of npm "freeze" command to control
-specific module versions `npm install` isn't reproducible (see method #3
-below). As well, reliance on registry.npmjs.org is a build-time single
-point of failure. On the plus side: all relevant sources are there in your
-repo. Yes there is some noise from that, but having a history of those
-code changes isn't to be sniffed at. A suggestion for the "floating patches"
-is to create a fork of the module (e.g.
-[trentm-datetime](http://search.npmjs.org/#/trentm-datetime)
-for [datetime](http://search.npmjs.org/#/datetime)) until patches are
-released upstream.
-
+One suggestion for the "floating patches" is to create a fork of the module
+(e.g.  [trentm-datetime](http://search.npmjs.org/#/trentm-datetime) for
+[datetime](http://search.npmjs.org/#/datetime)) until patches are released
+upstream.
 
 ### Method 2: Git Submodules for Sources
 
 Use git submodules to get the source for all dependent packages,
-`git submodule add git://github.com/bob/my-dep.git deps/my-dep`, and use
-`npm install deps/my-dep` at build time.
-    
-This avoids the inconsistency problem described above, but may make it harder
-to float patches, and it may introduce a build-time dependency on another
-source (like github). Also, git submodules are somewhat clumsy. As well,
-some questions:
-
-- Is there still a sub-dependency issue here? I.e. `npm install deps/my-dep`
-  will still hit the npm registry for its deps (and so on). This makes
-  this method suitable only for modules without their own deps.
-
+`git submodule add git://github.com/bob/my-dep.git deps/my-dep`, and either
+reference the dependency's source directly or use `npm install deps/my-dep` at
+build time.  This avoids the potential inconsistency problem described above,
+but it's unclear how this can be generalized for dependencies with their own dependencies. Also, git submodules are somewhat clumsy.
 
 ### Method 3: List Specific Versions
 
 List specific versions (e.g., "1.2.3" not "1.2") for all deps **and all deps
 of deps** in your top-level "package.json". Then `npm install` to get
 specific versions of everything. You can check this by making sure there are
-no "node_modules/*/node_modules" directories. With this method, you must be
-sure that "npm install" doesn't pull packages in from the public repository,
-as builds should not depend on external resources.
+no "node_modules/*/node_modules" directories.  This method requires vigilance
+when adding new dependencies, though that could be automatically checked as
+part of "make prepush". Another problem is that this method cannot support two different versions of a given module (used by different dependencies).
 
-The "./tools/npmfreeze.js" tool in this repo can help you put together that
-list of versions.
+The "./tools/npmfreeze.js" tool in this repo can help you put together the list
+of versions.
 
-Questions/Concerns:
-
-- XXX Dap, I'm not sure exactly what you mean by the sentence about the
-  "public repository". Are you saying that using registry.npmjs.org is
-  unacceptable because "foo@1.2.3" tomorrow could differ from "foo@1.2.3"
-  tomorrow? Or more because hitting the internet at build time for this
-  sucks? --Trent
-- If two parts of the node\_modules tree include differnt versions of the
-  same node module, then the higher version wins. It is possible that is
-  a problem.
-- This method requires vigilance and futzing around when adding new
-  dependencies.
 
 
 ## Commit Comments and JIRA Tickets
