@@ -144,7 +144,7 @@ check-jsstyle: $(JSSTYLE_FILES:%=%.jsstylechk)
 check-manifests: $(SMF_MANIFESTS:%=%.smfchk)
 
 %.smfchk: %
-	$(XMLLINT) --dtdvalid $(SMF_DTD) $^
+	$(XMLLINT) --path $(dir $(SMF_DTD)) --dtdvalid $(SMF_DTD) $^
 
 .PHONY: check
 check: check-jsl check-jsstyle check-bash check-manifests
