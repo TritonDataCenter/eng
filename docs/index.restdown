@@ -5,9 +5,6 @@ markdown2extras: wiki-tables, code-friendly
 
 # Joyent Engineering Guide
 
-**Note: Despite the tone below, this guide is still a work in progress.
-Everything here is subject to change as we discuss it with the team.**
-
 This document describes standards and best practices for software development at
 Joyent. These standards are intended to maintain product quality and to provide
 consistency across codebases to make it easier for all engineers to learn new
@@ -458,6 +455,127 @@ Of course, much of this information won't make sense for many bugs, so use your
 judgment, but don't assume that you're the only person who will ever look at the
 ticket.
 
+# Logging (DRAFT)
+
+**Note: this section is still under heavy revision.**
+
+For most services, there are three basic kinds of events that should be logged:
+
+- free-form debug messages
+- service activity (i.e. API requests)
+- alerts (structured events that could be consumed by other software components
+  like amon).
+
+Logs intended for humans may be plain text or structured (for processing by
+tools that will present the logs to people). Logs intended for machines **must**
+be formatted in [JSON](http://journal.paul.querna.org/articles/2011/12/26/log-for-machines-in-json/).
+
+For any log entries generated while handling a particular request, the log
+entry **must** include the request id (see "Request Identifiers" under "REST
+API Guidelines" below.
+
+Services **must** use one of three approaches for logging:
+
+1. Debug messages to the SMF log, and both service activity and alerts to a
+   JSON log called `/var/smartdc/<service>/logs/service`. You should almost
+   always use this approach.
+2. Debug messages, service activity, and alerts to a consolidated JSON log
+   called `/var/smartdc/<service>/logs/service`. Emergency events (e.g., crash
+   messages, fatal errors) can still be logged to the SMF log, but most debug
+   output is structured.
+3. Debug messages to the SMF log, service activity to a JSON log called
+   `/var/smartdc/<service>/logs/activity`, and alerts to a JSON log called
+   `/var/smartdc/<service>/logs/alerts`.
+
+Services should almost always use (1). (2) may be used for services that
+require structured debug logging. (3) may be used for services with extremely
+high volumes of requests, but only after demonstrating that this creates
+problems for monitoring the consolidated log for alerts.
+
+All log files in `/var/smartdc/<service>/logs` should be configured for
+appropriate log rotation.
+
+**Note: we will be providing a common logging facility for logging in Node
+programs, but it's not yet available.**
+
+## Debug message format
+
+Most services log free-form text for debugging. Such log messages are
+primarily intended for humans and may be plain text or structured. A structured
+log makes it easier to aggregate multiple logs (often desirable for distributed
+services) and search for specific events when the log entries themselves may
+contain newlines, but they're less discoverable than SMF logs (see "Log File
+Locations" below). If a project chooses to use structured debug logs, the
+following keys must be used (bracketed keys optional, extra keys encouraged):
+
+- "service": the name of the API (e.g., "DAPI")
+- ["component"]: a component identifier for services with multiple components
+- "type": must be "debug"
+- "time", the full date and time of the event in the following [W3C
+  DTF](http://www.hackcraft.net/web/datetime/#w3cdtf) format:
+  `YYYY-MM-DDThh:mm:ss.sssZ` (e.g. `2012-01-26T19:20:30.450Z`).
+- ["request_id"]: as a string, see below (required if applicable)
+- "level": log level, one of "fatal", "error", "warn", "info", or "debug"
+- "message": human readable message
+
+## Request message format
+
+Service activity (i.e. every API request) **must** be logged in a JSON log.
+Each log entry **must** contain at least basic information for debugging. The
+following JSON keys must be used (bracketed keys optional, extra keys okay):
+
+- "service": the name of the API (e.g., "DAPI")
+- ["component"]: a component identifier for services with multiple components
+- "type": must be "request"
+- "time": the full date and time when the server started processing the
+  request in the same format as "time" above
+- "request_id": as a string, see below
+- "latency": the latency of the request, as an integer number of milliseconds
+- "status": HTTP status code
+- "method": the HTTP method, capitalized (e.g., "GET"),
+- "uri": the URL path (not including query string)
+- "q": the URL querystring
+- "headers": the full headers, including at least content-length
+- ["body"]: the full request body
+
+## Alert message format
+
+Alerts are any events that may be of interest to an operator, like creating an
+instrumentation, a user logging in, or provisioning a smart machine. Alerts
+**must** be logged to a JSON log, since they're intended for consumption by
+other software. The following JSON keys must be used (bracketed keys optional,
+extra keys okay):
+
+- "service": the name of the API (e.g., "DAPI")
+- ["component"]: a component identifier for services with multiple components
+- "type": must be "alert"
+- "time": the full date and time when the event occurred, in the same format used for "time" above.
+- ["request_id"]: as a string, see below (required if applicable)
+- ["latency"]: if applicable
+- "event_id": a universally unique identifier for this event
+- "code": unique identifier for this *type* of event (e.g., user_login). See below.
+
+The "code" is a string identifier for this event that consuming software can
+use to figure out what happened. It should *not* be a human-readable string.
+It must only contain alphanumerics and underscores. The code is scoped to the
+service, so for example the portal and adminui could both define a "user_login"
+event, and they would implicitly represent different kinds of events.
+
+There must be a way of translating from codes to human-readable messages,
+possibly using other fields in the event object, but this remains TBD. You will
+likely want to include more structured fields for different types of events.
+Remember, these events will be consumed programmatically and operators may
+configure monitoring based on them. As a result:
+
+- Eventually, each service **must** document the set of codes for events they
+  emit and what they mean. Not all codes need to be publicly documented, but
+  those exposed to the operator must be.
+- The set of additional fields **must** be well-defined for each code so that
+  consumers know what additional information they can expect.
+- Documented codes cannot be changed, since that would break consumers (like
+  amon).
+
+
 # SMF Integration
 
 All services **must** be delivered as SMF services. This means:
@@ -524,12 +642,8 @@ restart your service, so you'll have to manage that somehow.
 SMF maintains a log for each service in /var/svc/log. The system logs restarter
 events here and launches the start method with stderr redirected to the log,
 which often means the service itself will have stderr going to this log as
-well. However, these logs aren't really designed for this. While they are
-rotated occasionally, a running service is not poked when this happens, so you
-end up writing to the old log file.
-
-While many of our services use the SMF logs as the main log, this should be
-discouraged in future work. See "Logging" above.
+well. It's recommended that services either use this log for free-form debug
+output or use the standard logging facility described under "Logging" above.
 
 # REST API Guidelines
 
@@ -540,6 +654,22 @@ features like DTrace observability, debuggability, throttling, and versioning
 out of the box. If it doesn't support something you need, consider adding it
 rather than rolling your own.
 
+## Request Identifiers
+
+A request identifier uniquely identifies an operation across multiple services
+(e.g., portal, cloudapi, ca, ufds). It's essential for debugging issues after
+they've happened. The goal is for issues to be debuggable from the information
+available after their first occurrence, without having to reproduce it to
+gather more information. To facilitate this:
+
+- When an external service receives a request from the outside, it **must**
+  generate a unique request identifier and include it in the "x-request-id"
+  header of any requests made as part of handling the initial request.
+- When any service receives a request with an "x-request-id" header, it
+  **must** include it in the "x-request-id" header of any request made as part
+  of handling that request.
+- When each service logs activity (API requests), alerts, or debug messages
+  related to a particular request, it **must** include the request id.
 
 ## XXX Naming Endpoints
 
