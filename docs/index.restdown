@@ -154,21 +154,24 @@ differ (e.g. not have a test suite):
 ## Coding Style
 
 Every repository **must** have a consistent coding style that is enforced by
-some tool. Existing style-checking tools include:
+some tool. It's not necessary that all projects use the same style, though it's
+strongly suggested to keep differences to a minimum (e.g., only hard vs. soft
+tabs and tabstops). All styles **must** limit line length to 80 columns.
+Existing style-checking tools include:
 
 * C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
-* JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle)
+* JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle), [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html)
 
-Both of these tools (which are 90% the same anyway) support overriding style
-checks on a per-line basis (e.g., for literal regular expressions).
+Both cstyle and jsstyle (which are 90% the same code) support overriding style
+checks on a per-line basis (e.g., for literal regular expressions). Feel free
+to add options to these tools to allow for flexibility, as in tabs vs. spaces.
+You can also write your own tool.
 
-It's not necessary that all projects use the same style, though it's strongly
-suggested to keep differences to a minimum (e.g., only hard vs. soft tabs and
-tabstops). Feel free add options to the above tools to allow for such
-flexibility, or to write new tools. All styles **must** limit line length to 80
-columns.
+Note that gjslint can be used as a style checker, but it is **not** a
+substitute for javascriptlint. And as with all style checkers, it **must** be
+integrated into `make check`.
 
-Make target: "check-style"
+Make target: "check"
 
 *Note: It is understood that `jsstyle` currently isn't configurable for all
 the current common JavaScript styles in Joyent repositories. Adding support
@@ -189,7 +192,7 @@ enable and disable particular sets of checks as they deem appropriate.  Most
 checks can be disabled on a per-line basis. As with style, it's recommended
 that we minimize divergence between repositories.
 
-Make target: "check-lint" 
+Make target: "check" 
 
 
 ## Copyright
@@ -233,6 +236,7 @@ cscope is available for SmartOS in pkgsrc. It's also buildable on MacOS. For
 instructions, see [the
 wiki](https://hub.joyent.com/wiki/display/dev/Snow+Leopard+tips%2C+fixes+and+bugs).
 
+Make target: "xref"
 
 ## Documentation
 
