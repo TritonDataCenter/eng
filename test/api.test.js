@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2012, Joyent, Inc. All rights reserved.
+ */
+
 /* Test the Boilerplate API endpoints */
 
 var test = require('tap').test;

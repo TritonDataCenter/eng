@@ -158,6 +158,8 @@ Existing style-checking tools include:
 
 * C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
 * JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle), [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html)
+* Bash: bashstyle (contained in eng.git:tools/bashstyle)
+* Makefiles: use bashstyle for now
 
 Both cstyle and jsstyle (which are 90% the same code) support overriding style
 checks on a per-line basis (e.g., for literal regular expressions). Feel free
@@ -167,6 +169,9 @@ You can also write your own tool.
 Note that gjslint can be used as a style checker, but it is **not** a
 substitute for javascriptlint. And as with all style checkers, it **must** be
 integrated into `make check`.
+
+Bash scripts and Makefiles must also be checked for style. The only style
+guideline for now is the 80-column limit.
 
 Make target: "check"
 

@@ -1,4 +1,6 @@
 #
+# Copyright (c) 2012, Joyent, Inc. All rights reserved.
+#
 # Makefile.deps: Makefile for including common tools as dependencies
 #
 # NOTE: This makefile comes from the "eng" repo. It's designed to be dropped

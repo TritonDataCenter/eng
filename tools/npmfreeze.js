@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // -*- mode: js -*-
 //
+// Copyright (c) 2012, Joyent, Inc. All rights reserved.
+//
 // Generate a "dependencies" block for a top-level package.json that includes
 // the explicit versions for all recursive npm modules. See "Method 3" in
 // <https://head.no.de/docs/eng> for why this is interesting.

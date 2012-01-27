@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Joyent, Inc.  All rights reserved.
+ * Copyright (c) 2012, Joyent, Inc. All rights reserved.
  *
  * Main entry-point for the Boilerplate API.
  */
@@ -58,4 +58,3 @@ server.on('after', function (req, res, name) {
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);
 });
-

@@ -1,4 +1,6 @@
 #
+# Copyright (c) 2012, Joyent, Inc. All rights reserved.
+#
 # Makefile: basic Makefile for template API service
 #
 # This Makefile is a template for new repos. It contains only repo-specific
