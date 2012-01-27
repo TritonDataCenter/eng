@@ -458,6 +458,78 @@ Of course, much of this information won't make sense for many bugs, so use your
 judgment, but don't assume that you're the only person who will ever look at the
 ticket.
 
+# SMF Integration
+
+All services **must** be delivered as SMF services. This means:
+
+- They deliver an SMF service manifest.
+- The install mechanism imports the manifest.
+- The uninstall mechanism deletes the service.
+- The service is started, stopped, restarted, etc. via SMF.
+
+While SMF itself is grimy and the documentation is far from perfect, the
+documentation *is* extensive and useful. Many common misunderstandings about
+how SMF works are addressed in the documentation. It's strongly recommended
+that you take a pass through the docs before starting the SMF integration for
+your service. In order of importance, check out:
+
+- SMF concepts: smf(5), smf_restarter(5), smf_method(5), svc.startd(1M)
+- Tools: svcs(1), svcadm(1M), svccfg(1M)
+
+Common mistakes include:
+
+- Setting the start method to run the program you care about (e.g., "node
+  foo.js") rather than backgrounding it (e.g., "node foo.js &"). SMF expects
+  the start method to start the service, not *be* the service. It times out
+  start methods that don't complete, so if you do this you'll find that your
+  service is killed after some default timeout interval. After this happens
+  three times, SMF moves the service into maintenance.
+- Using "child" or "wait model" services to avoid the above problem. Read the
+  documentation carefully; this probably doesn't do what you want. In
+  particular, if your "wait model" service fails repeatedly, SMF will never put
+  it into maintenance. It will just loop forever, forking and exiting.
+- Not using "-s" with svcadm enable/disable. Without "-s", these commands are
+  asynchronous, which means the service may not be running when "svcadm enable"
+  returns. If you really care about this, you should check the service itself
+  for liveness, not rely on SMF, since the start method may have completed
+  before the service has opened its TCP socket (for example).
+
+## Managing processes under SMF
+
+SMF manages processes using an OS mechanism called contracts. See contract(4)
+for details. The upshot is that it can reliably tell when a process is no
+longer running, and it can also track child processes.
+
+Quoting svc.startd(1M):
+
+     A contract model service fails if any of the following conditions
+     occur:
+
+         o    all processes in the service exit
+
+         o    any processes in the service produce a core dump
+
+         o    a process outside the service sends a service process a
+              fatal signal (for example, an administrator terminates a
+              service process with the pkill command)
+
+Notice that if your service forks a process and *that* process exits,
+successfully or otherwise, SMF will not consider that a service failure. One
+common mistake here is forking a process that will be part of your service, but
+not considering what happens when that process fails (exits). SMF will not
+restart your service, so you'll have to manage that somehow.
+
+## Service logs
+
+SMF maintains a log for each service in /var/svc/log. The system logs restarter
+events here and launches the start method with stderr redirected to the log,
+which often means the service itself will have stderr going to this log as
+well. However, these logs aren't really designed for this. While they are
+rotated occasionally, a running service is not poked when this happens, so you
+end up writing to the old log file.
+
+While many of our services use the SMF logs as the main log, this should be
+discouraged in future work. See "Logging" above.
 
 # REST API Guidelines
 
@@ -474,9 +546,7 @@ rather than rolling your own.
 TODO: codify some of MarkC's and my (mostly mark) discussions on naming of
 API endpoints.
 
-
-
-# Best Practices
+# Miscellaneous Best Practices
 
 - Use JSON for config data. Not ini files: iniparser module has bugs, there
   are always questions about encoding non-string values.
