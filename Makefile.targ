@@ -161,9 +161,7 @@ CSCOPE_FILES = cscope.in.out cscope.out cscope.po.out
 CLEAN_FILES += $(CSCOPE_FILES)
 
 .PHONY: xref
-xref: $(CSCOPE_FILES)
-
-$(CSCOPE_FILES):
+xref:
 	$(CSCOPE) -bqR
 
 #

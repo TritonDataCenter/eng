@@ -216,14 +216,18 @@ Make target: "test"
 ## cscope
 
 cscope is a terminal-based tool for browsing source. For performance, it's best
-to use it with an index. You can build a basic index in a source tree using
-this invocation:
+to use it with an index. For repos using this repo's Makefile, you can build a
+basic index in a source tree using:
+
+    # make xref
+
+which translates to:
 
     # cscope -bqR
 
-Then, to launch cscope, use:
+To browse the source after the index is built, use:
 
-    # cscope -dqR
+    # cscope -dq
 
 cscope is available for SmartOS in pkgsrc. It's also buildable on MacOS. For
 instructions, see [the
