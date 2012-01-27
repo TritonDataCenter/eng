@@ -34,11 +34,11 @@ working that follows these guidelines.
 ## Rule #1: FCS Quality All the Time
 
 In general, use the "master" branch for development and releases. **"master"
-should be FCS (First Customer Ship) quality at all times.** Although releases
-are technically cut from release-specific branches, these branches are not
-expected to diverge significantly from "master" at the time the branch was cut
-except for fixes backported after the cut. That is, development should not be
-ongoing in the release branches.
+must be FCS (First Customer Ship) quality at all times.** Although releases are
+technically cut from release-specific branches, these branches are not expected
+to diverge significantly from "master" at the time the branch was cut except
+for fixes backported after the cut. That is, development should not be ongoing
+in the release branches.
 
 When working on large features, it's tempting to use development branches that
 eventually get integrated into master. Indeed, this is sometimes necessary.
@@ -69,20 +69,20 @@ name is best. For example:
 
 New server-side projects should almost certainly use Node.js with C/C++
 components as needed. Consolidating onto one language makes it easier for
-everyone to dig into other teams' projects as needed (for development as well as
-debugging) and allows us to share code and tools.
+everyone to dig into other teams' projects as needed (for development as well
+as debugging) and allows us to share code and tools.
 
 
 ## Directory Layout
 
 Here is a suggested directory/file structure for your repository. All
-repos must have a `README.md` and `Makefile`. The others are suggested
+repos **must** have a `README.md` and `Makefile`. The others are suggested
 namings for particular usages, should your repo require them.
 
     build/          Built bits.
     deps/           Git submodules and/or commited 3rd-party deps should go
                     here. See "node_modules/" for node.js deps.
-    docs/           Project docs. Uses <https://github.com/trentm/restdown>.
+    docs/           Project docs. Uses restdown and man.
     lib/            JavaScript source files.
     node_modules/   Node.js deps, either populated at build time or commited.
                     See Managing Node Dependencies.
@@ -106,7 +106,7 @@ same name as the Makefile targets.
 
 ### README.md
 
-Every repository should have in its root a README.md (Markdown) file that
+Every repository **must** have in its root a README.md (Markdown) file that
 describes the repo and covers:
 
 * the name of the API or other component(s) contained in the repo and a brief
@@ -126,7 +126,7 @@ It's strongly recommended to start with the template in this repo.
 
 ### Makefile
 
-All repos should have a Makefile that defines at least the following targets:
+All repos **must** have a Makefile that defines at least the following targets:
 
 * `all`: builds all intermediate objects (e.g., binaries, executables, docs,
   etc.). This should be the default target.
@@ -134,18 +134,18 @@ All repos should have a Makefile that defines at least the following targets:
   repo-specific rules not described here.
 * `clean`: removes all built files
 * `prepush`: runs all checks/tests required before pushing changes to the repo
-* `docs`: builds documentation (restdown)
+* `docs`: builds documentation (restdown, man pages)
 * `test`: runs the automated test suite
 * `release`: build releasable artifacts, e.g. a tarball (for projects that
   generate release packages)
 
-The `check` and `test` targets should fail if they find any 'check' violations
-or failed tests. The `prepush` target is intended to cover all pre-commit
-checks. It should run successfully before any push to the repo. It should also
-be part of the automated build. Any commit which introduces a prepush failure
-should be fixed immediately or backed out. A typical prepush target will
-look like the following, but some non-code repositories might differ (e.g.
-not have a test suite):
+The `check` and `test` targets **must** fail if they find any 'check'
+violations or failed tests. The `prepush` target is intended to cover all
+pre-commit checks.  It **must** run successfully before any push to the repo.
+It **must** also be part of the automated build. Any commit which introduces a
+prepush failure **must** be fixed immediately or backed out. A typical prepush
+target will look like the following, but some non-code repositories might
+differ (e.g. not have a test suite):
 
     prepush: check test
             @echo "Okay to push."
@@ -153,8 +153,8 @@ not have a test suite):
 
 ## Coding Style
 
-Every repository must have a consistent coding style that is enforced by some
-tool. Existing style-checking tools include:
+Every repository **must** have a consistent coding style that is enforced by
+some tool. Existing style-checking tools include:
 
 * C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
 * JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle)
@@ -165,7 +165,7 @@ checks on a per-line basis (e.g., for literal regular expressions).
 It's not necessary that all projects use the same style, though it's strongly
 suggested to keep differences to a minimum (e.g., only hard vs. soft tabs and
 tabstops). Feel free add options to the above tools to allow for such
-flexibility, or to write new tools. All styles should limit line length to 80
+flexibility, or to write new tools. All styles **must** limit line length to 80
 columns.
 
 Make target: "check-style"
@@ -178,11 +178,11 @@ prioritize accordingly with actual product work.*
 
 ## Lint
 
-Every C repository must run "lint" and every JavaScript repository must run
-[javascriptlint](http://github.com/davepacheco/javascriptlint) and both must be
-lint-clean. Note that lint is not the same as style: lint covers objectively
-dangerous patterns like undeclared variables, while style covers subjective
-conventions like spacing.
+Every C repository **must** run "lint" and every JavaScript repository **must**
+run [javascriptlint](http://github.com/davepacheco/javascriptlint) and both
+**must** be lint-clean. Note that lint is not the same as style: lint covers
+objectively dangerous patterns like undeclared variables, while style covers
+subjective conventions like spacing.
 
 Both lint and javascriptlint are very configurable. Projects may choose to
 enable and disable particular sets of checks as they deem appropriate.  Most
@@ -192,20 +192,49 @@ that we minimize divergence between repositories.
 Make target: "check-lint" 
 
 
+## Copyright
+
+All source files (including Makefiles) should have a copyright statement that
+says:
+
+    Copyright (c) [year], Joyent, Inc. All rights reserved.
+
+Year should be exactly the latest year when the file was changed, not a list or
+range of years. For example:
+
+    Copyright (c) 2012, Joyent, Inc. All rights reserved.
+
+
 ## Testing
 
-All repos should include a comprehensive automated test suite, preferably using
-node-tap. Bug fixes and new features should not be integrated without
+All repos **must** include a comprehensive automated test suite, preferably
+using node-tap. Bug fixes and new features should not be integrated without
 considering adding new tests.
 
 Make target: "test"
+
+## cscope
+
+cscope is a terminal-based tool for browsing source. For performance, it's best
+to use it with an index. You can build a basic index in a source tree using
+this invocation:
+
+    # cscope -bqR
+
+Then, to launch cscope, use:
+
+    # cscope -dqR
+
+cscope is available for SmartOS in pkgsrc. It's also buildable on MacOS. For
+instructions, see [the
+wiki](https://hub.joyent.com/wiki/display/dev/Snow+Leopard+tips%2C+fixes+and+bugs).
 
 
 ## Documentation
 
 ### API Documentation
 
-You should use [restdown](https://github.com/trentm/restdown). Please discuss
+You **must** use [restdown](https://github.com/trentm/restdown). Please discuss
 with Trent if this isn't workable for your project.
 
 Restdown is a tool for creating docs (and especially REST API docs) using a
@@ -269,8 +298,9 @@ and cons. Choose whatever method works best for you, but try to be consistent
 within a given repo. Either way, "make all" and other "make" targets should
 automatically take care of setting up dependencies as needed.
 
-With any of these methods, beware that the build process must not use external
-resources because they cannot be trusted and may not even be available.
+With any of these methods, beware that the build process **must not** use
+external resources because they cannot be trusted and may not even be
+available.
 
 *Note: From the length of this section, it should be obvious that this
 isn't full baked yet. We need some more experience.*
@@ -297,7 +327,7 @@ questions on implementing this in general:
 One downside with this approach is that there's nothing to enforce that the
 committed source actually matches what it's supposed to (i.e. and hasn't been
 inadvertently changed). This isn't likely to be an issue as engineers *should*
-know that source in node_modules is not original and should not be modified
+know that source in node_modules is not original and must not be modified
 directly.
 
 One suggestion for the "floating patches" is to create a fork of the module
@@ -335,11 +365,11 @@ whether that's through code comments, git commit comments, or JIRA tickets.
 There are many cases where people other than the original author need to
 examine the git log:
 
-* An engineer in another area tries to understand a bug they've run into (in your
-  repo or not), possibly as a result of a recent change. The easier it is for
-  people to move between repos and understand recent changes, the more quickly
-  bugs in master can be root-caused. This is particularly important to avoid an
-  issue bouncing around between teams where the problem is *not*.
+* An engineer in another area tries to understand a bug they've run into (in
+  your repo or not), possibly as a result of a recent change. The easier it is
+  for people to move between repos and understand recent changes, the more
+  quickly bugs in master can be root-caused. This is particularly important to
+  avoid an issue bouncing around between teams where the problem is *not*.
 * An engineer in another area tries to understand when a feature or bugfix
   was integrated into your repo so that they can pull it down to use it.
 * An engineer working on the same code base, possibly years later, needs to
@@ -353,13 +383,13 @@ examine the git log:
 * Product management wants to determine when a feature or bugfix was integrated.
 * Automated tools want to connect commits to JIRA tickets.
 
-To this end, we require that with every commit there should be a comment that
+To this end, we require that with every commit there **must** be a comment that
 includes the list of JIRA tickets addressed with this commit and a synopsis of
 the changes (*either* for the whole commit *or* for each change, one by one).
-**Between the JIRA ticket and the commit comment itself, there should be
-sufficient information for an engineer that's moderately familiar with the
-code base, possibly years later but with source in hand, to understand how and
-why the change was made.**
+**Between the JIRA ticket and the commit comment itself, there must be
+sufficient information for an engineer that's moderately familiar with the code
+base, possibly years later but with source in hand, to understand how and why
+the change was made.**
 
 The worst case is when the thought process and issue list are nowhere: not in
 the comments and not in the JIRA tickets.
@@ -371,10 +401,10 @@ tickets and that those tickets be listed in the commit comments**. This way,
 given either the commit or the JIRA ticket, one can find the other.
 
 Historically, some repos (notably illumos-joyent and cloud-analytics) have
-additionally required that tickets should not be reused for multiple commits in
-the same repo except for very minor changes like fixing lint or style
-warnings. This makes it easier to correlate tickets and commits, since there's
-usually exactly one commit for each resolved ticket. It also makes it easier to
+additionally required that tickets must not be reused for multiple commits in
+the same repo except for very minor changes like fixing lint or style warnings.
+This makes it easier to correlate tickets and commits, since there's usually
+exactly one commit for each resolved ticket. It also makes it easier to
 back out the changes for a particular project. For these repos, the git
 comments for the commit consist of a single line per JIRA ticket being resolved
 in the commit. Each line consists of the ticket identifier and the synopsis

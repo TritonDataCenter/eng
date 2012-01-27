@@ -23,6 +23,8 @@
 #
 #	test	Does nothing (you should override this)
 #
+#	xref	Generates cscope (source cross-reference index)
+#
 # For details on what these targets are supposed to do, see the Joyent
 # Engineering Guide.
 #
@@ -75,6 +77,7 @@
 #
 BASH		?= bash
 CP		?= cp
+CSCOPE		?= cscope
 JSL		?= jsl
 JSSTYLE		?= jsstyle
 MKDIR		?= mkdir -p
@@ -153,6 +156,15 @@ check: check-jsl check-jsstyle check-bash check-manifests
 .PHONY: clean
 clean:
 	-$(RMTREE) $(CLEAN_FILES)
+
+CSCOPE_FILES = cscope.in.out cscope.out cscope.po.out
+CLEAN_FILES += $(CSCOPE_FILES)
+
+.PHONY: xref
+xref: $(CSCOPE_FILES)
+
+$(CSCOPE_FILES):
+	$(CSCOPE) -bqR
 
 #
 # The "docs" target is complicated because we do several things here:
