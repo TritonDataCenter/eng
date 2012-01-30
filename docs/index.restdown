@@ -464,122 +464,88 @@ ticket.
 
 **Note: this section is still under heavy revision.**
 
-For most services, there are three basic kinds of events that should be logged:
+There are at least three different consumers for a service's logs:
 
-- free-form debug messages
-- service activity (i.e. API requests)
-- alerts (structured events that could be consumed by other software components
-  like amon).
+- engineers debugging issues related to the service (which may not actually be
+  problems with the service)
+- monitoring tools that alert operators based on error events or levels of
+  service activity
+- non real-time analysis tools examining API activity to understand performance
+  and workload characteristics and how people use the service
+
+For the debugging use case, **the goal should be to have enough information
+available after a crash or an individual error to debug the problem from the
+very first occurrence in the field**. It should also be possible for engineers
+to manually dump the same information as needed to debug non-fatal failures.
 
 Logs intended for humans may be plain text or structured (for processing by
-tools that will present the logs to people). Logs intended for machines **must**
-be formatted in [JSON](http://journal.paul.querna.org/articles/2011/12/26/log-for-machines-in-json/).
+tools that will present the logs to people), but logs intended for machines
+**must** be formatted in
+[JSON](http://journal.paul.querna.org/articles/2011/12/26/log-for-machines-in-json/),
+which we'll call sdclog format.
+
+Multiple use cases do not require multiple log files.  Most services should log
+all activity (debugging, errors, and API activity) in JSON to either the SMF
+log or into a separate log file in
+/var/smartdc/&lt;service&gt;/logs/&lt;component&gt;.sdclog. For services with
+extraordinarily high volume for which it makes sense to separate out API
+activity into a separate file, that should be directed to
+/var/smartdc/&lt;service&gt;/logs/requests.sdclog However, don't use separate
+log files unless you're sure you need it.  All log files in
+/var/smartdc/&lt;service&gt;/logs should be configured for appropriate log
+rotation.
 
 For any log entries generated while handling a particular request, the log
-entry **must** include the request id (see "Request Identifiers" under "REST
+entry **must** include the request id. See "Request Identifiers" under "REST
 API Guidelines" below.
-
-Services **must** use one of three approaches for logging:
-
-1. Debug messages to the SMF log, and both service activity and alerts to a
-   JSON log called `/var/smartdc/<service>/logs/service`. You should almost
-   always use this approach.
-2. Debug messages, service activity, and alerts to a consolidated JSON log
-   called `/var/smartdc/<service>/logs/service`. Emergency events (e.g., crash
-   messages, fatal errors) can still be logged to the SMF log, but most debug
-   output is structured.
-3. Debug messages to the SMF log, service activity to a JSON log called
-   `/var/smartdc/<service>/logs/activity`, and alerts to a JSON log called
-   `/var/smartdc/<service>/logs/alerts`.
-
-Services should almost always use (1). (2) may be used for services that
-require structured debug logging. (3) may be used for services with extremely
-high volumes of requests, but only after demonstrating that this creates
-problems for monitoring the consolidated log for alerts.
-
-All log files in `/var/smartdc/<service>/logs` should be configured for
-appropriate log rotation.
 
 **Note: we will be providing a common logging facility for logging in Node
 programs, but it's not yet available.**
 
-## Debug message format
+The following JSON keys should be used in log messages:
 
-Most services log free-form text for debugging. Such log messages are
-primarily intended for humans and may be plain text or structured. A structured
-log makes it easier to aggregate multiple logs (often desirable for distributed
-services) and search for specific events when the log entries themselves may
-contain newlines, but they're less discoverable than SMF logs (see "Log File
-Locations" below). If a project chooses to use structured debug logs, the
-following keys must be used (bracketed keys optional, extra keys encouraged):
+|| **JSON key** || **Description** || **Examples** || **Required** ||
+|| **time** || Date/time of event in [W3C DTF](http://www.hackcraft.net/web/datetime/#w3cdtf) format using UTC: `YYYY-MM-DDThh:mm:ss.sssZ` || "2012-01-26T19:20:30.450Z" || All entries ||
+|| **hostname** || Server hostname || `uname -n` || All entries ||
+|| **facility** || Service name || "ca" (for Cloud Analytics) || All entries ||
+|| **component** || Service component || "aggregator-12" || All entries for services with multiple components ||
+|| **type** || Used for different types of messages from the same service || "debug", "request" || All entries as desired ||
+|| **severity** || Log level. || "fatal", "error", "warn", "info", or "debug" || Entries with "type" == "debug" ||
+|| **request_id** || String request identifier || See "Request Identifiers" under "REST API Guidelines" below. || All entries relating to a particular request ||
+|| **short_message** || Short human- and machine-readable message || "illegal argument error" || Entries with "type" == "debug" ||
+|| **full_message** || Human-readable message || "illegal argument: parameter \'retention-time\' must be numeric" || Entries with "type" == "debug" ||
+|| **latency** || Time of request in milliseconds || 155 || Entries describing the completion of a request or other backend operation ||
+|| **http_method** || HTTP method || "GET" || Entries describing an HTTP request ||
+|| **http_uri** || HTTP URL path (not including querystring) || "/instrumentations/10" || Entries describing an HTTP request ||
+|| **http_qstring** || HTTP URL querystring || "?foo=bar" || Entries describing an HTTP request ||
+|| **http_headers** || HTTP headers || `\{ "content-length": 5278 \}` || Entries describing an HTTP request ||
+|| **http_user** || Authenticated user name || "dap" || Entries describing an HTTP request ||
+|| **http_body** || HTTP request body || arbitrary || Entries describing an HTTP request where the body may be significant (e.g., contain request parameters) and will not be very large (as for most REST services) ||
+|| **http_status** || HTTP status code || 200 || Entries describing the completion of an HTTP request ||
 
-- "service": the name of the API (e.g., "DAPI")
-- ["component"]: a component identifier for services with multiple components
-- "type": must be "debug"
-- "time", the full date and time of the event in the following [W3C
-  DTF](http://www.hackcraft.net/web/datetime/#w3cdtf) format:
-  `YYYY-MM-DDThh:mm:ss.sssZ` (e.g. `2012-01-26T19:20:30.450Z`).
-- ["request_id"]: as a string, see below (required if applicable)
-- "level": log level, one of "fatal", "error", "warn", "info", or "debug"
-- "message": human readable message
+The hostname and facility should be included in all entries so that logs are
+self-contained. This makes them substantially easier to move (e.g., via support
+bundles) and then aggregate.
 
-## Request message format
+We use these definitions for log severity levels:
 
-Service activity (i.e. every API request) **must** be logged in a JSON log.
-Each log entry **must** contain at least basic information for debugging. The
-following JSON keys must be used (bracketed keys optional, extra keys okay):
+- "fatal": the service is going to stop or become unusable now
+- "error": fatal for a particular request, but the service continues servicing other requests
+- "warn": a note on something that should probably be looked at by an operator
+- "info": detail on regular operation
+- "debug": anything else, i.e. too verbose to be included in "info" level.
 
-- "service": the name of the API (e.g., "DAPI")
-- ["component"]: a component identifier for services with multiple components
-- "type": must be "request"
-- "time": the full date and time when the server started processing the
-  request in the same format as "time" above
-- "request_id": as a string, see below
-- "latency": the latency of the request, as an integer number of milliseconds
-- "status": HTTP status code
-- "method": the HTTP method, capitalized (e.g., "GET"),
-- "uri": the URL path (not including query string)
-- "q": the URL querystring
-- "headers": the full headers, including at least content-length
-- ["body"]: the full request body
+"debug" should be used sparingly. Information that will be useful to debug
+errors *post mortem* should usually be included in "info" messages if it's
+generally relevant or else with the corresponding "error" event. Don't rely on
+spewing mostly irrelevant debug messages all the time and sifting through them
+when an error occurs.
 
-## Alert message format
-
-Alerts are any events that may be of interest to an operator, like creating an
-instrumentation, a user logging in, or provisioning a smart machine. Alerts
-**must** be logged to a JSON log, since they're intended for consumption by
-other software. The following JSON keys must be used (bracketed keys optional,
-extra keys okay):
-
-- "service": the name of the API (e.g., "DAPI")
-- ["component"]: a component identifier for services with multiple components
-- "type": must be "alert"
-- "time": the full date and time when the event occurred, in the same format used for "time" above.
-- ["request_id"]: as a string, see below (required if applicable)
-- ["latency"]: if applicable
-- "event_id": a universally unique identifier for this event
-- "code": unique identifier for this *type* of event (e.g., user_login). See below.
-
-The "code" is a string identifier for this event that consuming software can
-use to figure out what happened. It should *not* be a human-readable string.
-It must only contain alphanumerics and underscores. The code is scoped to the
-service, so for example the portal and adminui could both define a "user_login"
-event, and they would implicitly represent different kinds of events.
-
-There must be a way of translating from codes to human-readable messages,
-possibly using other fields in the event object, but this remains TBD. You will
-likely want to include more structured fields for different types of events.
-Remember, these events will be consumed programmatically and operators may
-configure monitoring based on them. As a result:
-
-- Eventually, each service **must** document the set of codes for events they
-  emit and what they mean. Not all codes need to be publicly documented, but
-  those exposed to the operator must be.
-- The set of additional fields **must** be well-defined for each code so that
-  consumers know what additional information they can expect.
-- Documented codes cannot be changed, since that would break consumers (like
-  amon).
-
+Most of the time, different services should log to different files. But in some
+cases it's desirable for multiple consumers to log to the same file, as for
+vmadm and vmadmd. For such cases, syslog is an appropriate choice for logging
+since it handles synchronization automatically. Care must be taken to support
+entries longer than 1024 characters.
 
 # SMF Integration
 
