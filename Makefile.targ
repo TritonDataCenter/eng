@@ -137,17 +137,17 @@ check-jsl-node: $(JSL_FILES_NODE:%=%.jslnodechk)
 
 check-jsl-web: $(JSL_FILES_WEB:%=%.jslwebchk)
 
-%.jslnodechk: %
-	$(JSL) $(JSL_FLAGS) $(JSL_FLAGS_NODE) $^
+%.jslnodechk: % $(JSL_SCRIPT)
+	$(JSL) $(JSL_FLAGS) $(JSL_FLAGS_NODE) $<
 
-%.jslwebchk: %
-	$(JSL) $(JSL_FLAGS) $(JSL_FLAGS_WEB) $^
+%.jslwebchk: % $(JSL_SCRIPT)
+	$(JSL) $(JSL_FLAGS) $(JSL_FLAGS_WEB) $<
 
 .PHONY: check-jsstyle
 check-jsstyle: $(JSSTYLE_FILES:%=%.jsstylechk)
 
-%.jsstylechk: %
-	$(JSSTYLE) $(JSSTYLE_FLAGS) $^
+%.jsstylechk: % $(JSSTYLE_SCRIPT)
+	$(JSSTYLE) $(JSSTYLE_FLAGS) $<
 
 .PHONY: check-manifests
 check-manifests: $(SMF_MANIFESTS:%=%.smfchk)

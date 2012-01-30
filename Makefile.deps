@@ -28,7 +28,8 @@ deps/javascriptlint/.git:
 #
 # jsstyle
 #
-JSSTYLE		= deps/jsstyle/jsstyle
+JSSTYLE_SCRIPT  = deps/jsstyle/jsstyle
+JSSTYLE		= $(JSSTYLE_SCRIPT)
 
 deps/jsstyle/jsstyle:
 	git submodule update --init deps/jsstyle
