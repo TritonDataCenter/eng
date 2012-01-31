@@ -714,7 +714,8 @@ You can also use this with variable assignments
     echo "about to list contents of a directory that may not exist"
     foo=$(ls -1 $tmpdir) || fail "failed to list contents of '$tmpdir'"
 
-It's also important to remember the effects of pipefail. From the Bash manual:
+It's also important to remember how error handling works with pipelines. From
+the Bash manual:
 
     The exit status of a pipeline is the exit status of the last command in the
     pipeline, unless the pipefail option is enabled (see The Set Builtin). If
@@ -727,7 +728,10 @@ This means that if you run this to look for compressed datasets:
     # zfs list -oname,compression | grep on
 
 If the "zfs" command bails out partway through, that pipeline will still
-succeed (unless pipefail is set) because "grep" will succeed.
+succeed (unless pipefail is set) because "grep" will succeed. To set pipefail,
+use:
+
+    set -o pipefail
 
 ## Running subcommands
 
