@@ -533,6 +533,7 @@ We use these definitions for log levels:
 - "warn": a note on something that should probably be looked at by an operator
 - "info": detail on regular operation
 - "debug": anything else, i.e. too verbose to be included in "info" level.
+- "trace": logging from external libraries used by your app
 
 "debug" should be used sparingly. Information that will be useful to debug
 errors *post mortem* should usually be included in "info" messages if it's
