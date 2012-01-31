@@ -647,6 +647,205 @@ gather more information. To facilitate this:
 TODO: codify some of MarkC's and my (mostly mark) discussions on naming of
 API endpoints.
 
+# Bash programming guidelines
+
+## xtrace
+
+Bash has a very useful feature called "xtrace" that causes it to emit
+information about each expression that it evaluates. You can enable it for a
+script with:
+
+    set -o xtrace
+
+With newer versions, you can redirect this output somewhere other than stderr
+by setting
+[BASH_XTRACEFD](https://www.gnu.org/software/bash/manual/bashref.html#Bash-Variables).
+
+This is incredibly useful for several situations:
+
+- debugging non-interactive system scripts (e.g., SMF start methods) *post
+  mortem*. Such scripts should leave xtrace on all the time, since they're not
+  run frequently enough for the extra logging to become a problem and the
+  xtrace output makes it significantly easier to understand what happened when
+  these scripts go wrong.
+- debugging interactive scripts in development. You can run bash with "-x" to
+  enable xtrace for a single run. You usually don't want to leave xtrace on for
+  interactive scripts, unless you redirect the xtrace output:
+- debugging interactive scripts *post mortem* by enabling the xtrace output and
+  redirecting it to a temporary file. Be sure to remove the file when the
+  script exits successfully.
+
+## Error handling
+
+It's absolutely possible to write robust shell scripts, but the default shell
+behavior to ignore errors means you have to consider how to handle errors in
+order to avoid creating brittle scripts that are difficult to debug.
+
+The biggest hammer is the "errexit" option, which you can enable with:
+
+    set -o errexit
+
+This will cause the program to exit when simple commands, pipelines, and
+subshells return non-zero. Commands invoked in a conditional test, a loop test,
+or as part of an `&&` or `||` list do not get this special treatment. While this
+approach is nice because the default is that errors are fatal (so it's harder to
+forget to handle them), it's not a silver bullet and doesn't let you forget
+about error handling completely. For example, many commands *can* reasonably
+fail with no ill effects and so must be explicitly modified with the unfortunate
+` || true` to keep errexit happy.
+
+A more fine-grained approach is to explicitly check for failure of invocations
+that may reasonably fail. A concise pattern is to define a `fail` function
+which emits its arguments to stderr and exits with failure:
+
+    function fail()
+    {
+        echo "$*" >&2
+        exit 1
+    }
+
+and then use it like this:
+
+    echo "about to do something that might fail"
+    zfs create zones/myfilesystem || fail "failed to create zones"
+
+You can also use this with variable assignments
+
+    echo "about to list contents of a directory that may not exist"
+    foo=$(ls -1 $tmpdir) || fail "failed to list contents of '$tmpdir'"
+
+It's also important to remember the effects of pipefail. From the Bash manual:
+
+    The exit status of a pipeline is the exit status of the last command in the
+    pipeline, unless the pipefail option is enabled (see The Set Builtin). If
+    pipefail is enabled, the pipeline's return status is the value of the last
+    (rightmost) command to exit with a non-zero status, or zero if all commands
+    exit successfully.
+
+This means that if you run this to look for compressed datasets:
+
+    # zfs list -oname,compression | grep on
+
+If the "zfs" command bails out partway through, that pipeline will still
+succeed (unless pipefail is set) because "grep" will succeed.
+
+## Running subcommands
+
+Prefer `$(subcommand)` to `` `subcommand` ``, since it can be nested:
+
+    type_of_grep=$(file $(which grep))
+
+## Automatic Checks
+
+See "Coding Style" above for style checks. Currently, the only enforced check
+is an 80-column limit on line length.
+
+It's also worth using "bash -n" to check the syntax of bash scripts as part of
+your Makefile's "check" target. The Makefiles in eng.git automatically check
+both syntax and style.
+
+## Temporary Files
+
+Put temporary files in /var/tmp/`$(dirname $0)`.`$$`. This will generally be
+unique but also allows people to figure out what script left this output
+around.
+
+On successful invocations, remove any such temporary directories or files,
+though consider supporting a `-k` flag (or similar) to keep the temporary files
+from a successful run.
+
+## Parsing command line options
+
+By convention, illumos scripts tend to use `opt_X` variables to store the value
+of the `-X` option (e.g., `opt_d` for `-d`). Options are best parsed with
+getopts(1) (not to be confused with getopt(1)) using a block like this:
+
+    function usage
+    {
+        [[ $# -gt 0 ]] && echo "$(dirname $0): $*" >&2
+
+        cat <<-USAGE >&2
+        Usage: $(dirname $0) [-fn] [-d argument] args ...
+        
+        Frobs args (optionally with argument <argument>).
+        
+        -f    force frobnification in the face of errors
+        -n    dry-run (don't actually do anything)
+        -d    specify temporary directory
+        USAGE
+    
+        exit 2
+    }
+    
+    opt_f=false
+    opt_n=false
+    opt_d=
+    
+    while getopts ":fnd:" c; do
+            case "$c" in
+            f|n)    eval opt_$c=true                                ;;
+            d)      eval opt_$c=$OPTARG                             ;;
+            :)      usage "option requires an argument -- $OPTARG"  ;;
+            *)      usage "illegal option -- $OPTARG"               ;;
+            esac
+    done
+    
+    # Set $1, $2, ... to the rest of the arguments.
+    shift $((OPTIND - 1))
+
+Below are common command line options. If you're implementing the functionality
+below, try to stick to the same option letters to maintain consistency. Of
+course, many of these options won't apply to most tools.
+
+    -?          Display usage message.
+    -d dir      Use directory "dir" for temporary files
+    -i          Interactive mode (force confirmation)
+    -f          Barrel on in the face of errors
+    -k          Keep temporary files (for debugging)
+    -n          Dry-run: print out what would be done, but don't do it
+    -o file     Specify output file
+    -p pid      Specify process identifiers
+    -r          Recursive mode
+    -y          Non-interactive mode (override confirmations with "yes")
+    -z          Generate (or extract) a compressed artifact
+
+## Command-line scripts that perform multiple complex tasks
+
+With xpg_echo, you can use "\c" with "echo" to avoid printing a newline.
+Combined with the above error handling pattern, you can write clean scripts
+that perform a bunch of tasks in series:
+
+    shopt -s xpg_echo
+    
+    echo "Setting nodename to 'devel' ... \c"
+    hostname devel || fail "failed to set hostname"
+    echo "done."
+    
+    echo "Testing DNS ... \c"
+    ping example.com || fail "failed"
+    
+    echo "Restarting ssh ... \c"
+    svcadm disable -s ssh || fail "failed to disable service"
+    svcadm enable -s ssh || fail "failed to enable service"
+    echo "done."
+
+The output is clean both when it succeeds:
+
+    # ./setup.sh
+    Setting nodename to 'devel' ... done.
+    Testing DNS ... example.com is alive
+    Restarting ssh ... done.
+
+and when it fails:
+
+    # ./setup.sh
+    Setting nodename to 'devel' ... done.
+    Testing DNS ... ping: unknown host example.com
+    failed
+
+This is primarily useful for complex scripts that people run interactively
+rather than system scripts whose output goes to a log.
+
 # Miscellaneous Best Practices
 
 - Use JSON for config data. Not ini files: iniparser module has bugs, there
@@ -658,7 +857,9 @@ API endpoints.
 - Consider doing development inside a SmartOS zone rather than on your Macbook
   or a COAL global zone. That forces us to use our product the way customers
   might, and it eliminates classes of problems where the dev environment doesn't
-  match production.
+  match production (e.g., because you've inadvertently picked up a
+  globally-installed library instead of checking it in, or resource limits
+  differ between MacOS and a SmartOS zone.
 - Whether you develop in COAL or on your Macbook, document what's necessary to
   get from scratch to a working development environment so that other people can
   try it out. Ideally, automate it. Having a script is especially useful if you
