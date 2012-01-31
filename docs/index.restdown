@@ -462,7 +462,11 @@ ticket.
 
 # Logging (DRAFT)
 
-**Note: this section is still under heavy revision.**
+**Note: this section is still under heavy revision.  We're currently attempting
+to standardize on [Bunyan](https://github.com/trentm/node-bunyan) for node JSON
+logging support.  Bunyan provides a module for simple logging, a `bunyan` tool
+for pretty-printing and filtering JSON logs, and a spec for the JSON log
+format.**
 
 There are at least three different consumers for a service's logs:
 
@@ -478,39 +482,38 @@ available after a crash or an individual error to debug the problem from the
 very first occurrence in the field**. It should also be possible for engineers
 to manually dump the same information as needed to debug non-fatal failures.
 
-Logs intended for humans may be plain text or structured (for processing by
-tools that will present the logs to people), but logs intended for machines
-**must** be formatted in
-[JSON](http://journal.paul.querna.org/articles/2011/12/26/log-for-machines-in-json/),
-which we'll call sdclog format.
+SDC service logs **must** be formatted in JSON (which comes automatically
+if using Bunyan, see above). Exceptions: (a) you are using syslog (another
+structured format), see use case for syslog below; (b) your service is
+legacy or just hasn't migrated to Bunyan yet (which is fine, JSON log output
+is not a top-priority make work project). If you have an example of a log for
+which JSON format gets in the way, please bring it up for discussion).
 
 Multiple use cases do not require multiple log files.  Most services should log
 all activity (debugging, errors, and API activity) in JSON to either the SMF
 log or into a separate log file in
-/var/smartdc/&lt;service&gt;/logs/&lt;component&gt;.sdclog. For services with
+"/var/smartdc/&lt;service&gt;/log/&lt;component&gt;.log". For services with
 extraordinarily high volume for which it makes sense to separate out API
 activity into a separate file, that should be directed to
-/var/smartdc/&lt;service&gt;/logs/requests.sdclog However, don't use separate
+"/var/smartdc/&lt;service&gt;/log/requests.log". However, don't use separate
 log files unless you're sure you need it.  All log files in
-/var/smartdc/&lt;service&gt;/logs should be configured for appropriate log
-rotation.
+"/var/smartdc/&lt;service&gt;/log" should be configured for appropriate log
+rotation. (TODO: How? One common logadm conf, right?)
 
 For any log entries generated while handling a particular request, the log
 entry **must** include the request id. See "Request Identifiers" under "REST
 API Guidelines" below.
 
-**Note: we will be providing a common logging facility for logging in Node
-programs, but it's not yet available.**
-
-The following JSON keys should be used in log messages:
+Currently proposed JSON keys for log messages are as follows. This will be
+changed somewhat and formalized with Bunyan releases.
 
 || **JSON key** || **Description** || **Examples** || **Required** ||
 || **time** || Date/time of event in [W3C DTF](http://www.hackcraft.net/web/datetime/#w3cdtf) format using UTC: `YYYY-MM-DDThh:mm:ss.sssZ` || "2012-01-26T19:20:30.450Z" || All entries ||
-|| **hostname** || Server hostname || `uname -n` || All entries ||
-|| **facility** || Service name || "ca" (for Cloud Analytics) || All entries ||
+|| **hostname** || Server hostname. Somewhat redundant, but helpful when collating logs. || `uname -n` || All entries ||
+|| **service** || Service name. Can be implied by the file path, but helpful when collating logs. || "ca" (for Cloud Analytics) || All entries ||
 || **component** || Service component || "aggregator-12" || All entries for services with multiple components ||
 || **type** || Used for different types of messages from the same service || "debug", "request" || All entries as desired ||
-|| **severity** || Log level. || "fatal", "error", "warn", "info", or "debug" || Entries with "type" == "debug" ||
+|| **level** || Log level. || "fatal", "error", "warn", "info", or "debug" || All entries ||
 || **request_id** || String request identifier || See "Request Identifiers" under "REST API Guidelines" below. || All entries relating to a particular request ||
 || **short_message** || Short human- and machine-readable message || "illegal argument error" || Entries with "type" == "debug" ||
 || **full_message** || Human-readable message || "illegal argument: parameter \'retention-time\' must be numeric" || Entries with "type" == "debug" ||
@@ -523,11 +526,7 @@ The following JSON keys should be used in log messages:
 || **http_body** || HTTP request body || arbitrary || Entries describing an HTTP request where the body may be significant (e.g., contain request parameters) and will not be very large (as for most REST services) ||
 || **http_status** || HTTP status code || 200 || Entries describing the completion of an HTTP request ||
 
-The hostname and facility should be included in all entries so that logs are
-self-contained. This makes them substantially easier to move (e.g., via support
-bundles) and then aggregate.
-
-We use these definitions for log severity levels:
+We use these definitions for log levels:
 
 - "fatal": the service is going to stop or become unusable now
 - "error": fatal for a particular request, but the service continues servicing other requests
@@ -546,6 +545,7 @@ cases it's desirable for multiple consumers to log to the same file, as for
 vmadm and vmadmd. For such cases, syslog is an appropriate choice for logging
 since it handles synchronization automatically. Care must be taken to support
 entries longer than 1024 characters.
+
 
 # SMF Integration
 
