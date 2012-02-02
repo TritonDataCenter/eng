@@ -35,7 +35,7 @@ SMF_MANIFESTS	 = smf/manifests/bapi.xml
 #
 .PHONY: all
 all:
-	$(NPM) install
+	$(NPM) rebuild
 
 .PHONY: test
 test: $(TAP)
