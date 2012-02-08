@@ -167,8 +167,13 @@ CSCOPE_FILES = cscope.in.out cscope.out cscope.po.out
 CLEAN_FILES += $(CSCOPE_FILES)
 
 .PHONY: xref
-xref:
+xref: cscope.files
 	$(CSCOPE) -bqR
+
+.PHONY: cscope.files
+cscope.files:
+	find . -name '*.c' -o -name '*.h' -o -name '*.cc' -o -name '*.js' \
+	    -o -name '*.s' -o -name '*.cpp' > $@
 
 #
 # The "docs" target is complicated because we do several things here:

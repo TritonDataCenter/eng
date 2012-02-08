@@ -16,7 +16,7 @@ var log = new Logger({
   serializers: {
     err: Logger.stdSerializers.err,
     req: Logger.stdSerializers.req,
-    res: restify.bunyan.serializers.response,
+    res: restify.bunyan.serializers.response
   }
 });
 
