@@ -306,12 +306,6 @@ date. Keep such docs separate from general design documents that are kept up to
 date.
 
 
-### Man Pages
-
-XXX use ronn. Is ronnjs acceptable now? If so, document then and add examples.
-XXX use normal man page syntax for existing repos (illumos-joyent)
-
-
 ## Managing Node Dependencies
 
 There are several ways of managing Node dependencies, each with notable pros
