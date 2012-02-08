@@ -7,18 +7,33 @@
 var filed = require('filed');
 var restify = require('restify');
 var uuid = require('node-uuid');
+var Logger = require('bunyan');
+
+
+var log = new Logger({
+  name: 'boilerplateapi',
+  level: 'debug',
+  serializers: {
+    err: Logger.stdSerializers.err,
+    req: Logger.stdSerializers.req,
+    res: restify.bunyan.serializers.response,
+  }
+});
 
 
 
 var server = restify.createServer({
-  name: 'Boilerplate API'
+  name: 'Boilerplate API',
+  log: log
 });
-server.log4js.setGlobalLogLevel('TRACE');
+
+//TODO: Add usage of the restify auditLog plugin.
 
 
 // '/eggs/...' endpoints.
 var eggs = {}; // My lame in-memory database.
 server.get({path: '/eggs', name: 'ListEggs'}, function(req, res, next) {
+  req.log.info("ListEggs start");
   var eggsArray = [];
   Object.keys(eggs).forEach(function (u) { eggsArray.push(eggs[u]); });
   res.send(eggsArray);
@@ -49,12 +64,6 @@ server.get("/favicon.ico", function (req, res, next) {
 });
 
 
-// Pseudo-W3C (not quite) logging.
-server.on('after', function (req, res, name) {
-  console.log('[%s] %s "%s %s" (%s)', new Date(), res.statusCode,
-    req.method, req.url, name);
-});
-
 server.listen(8080, function() {
-  console.log('%s listening at %s', server.name, server.url);
+  log.info({url: server.url}, '%s listening', server.name);
 });

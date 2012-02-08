@@ -482,10 +482,10 @@ available after a crash or an individual error to debug the problem from the
 very first occurrence in the field**. It should also be possible for engineers
 to manually dump the same information as needed to debug non-fatal failures.
 
-SDC service logs **must** be formatted in JSON (which comes automatically
-if using Bunyan, see above). Exceptions: (a) you are using syslog (another
-structured format), see use case for syslog below; (b) your service is
-legacy or just hasn't migrated to Bunyan yet (which is fine, JSON log output
+SDC service logs **must** be formatted in JSON. Node.js services **must**
+use [Bunyan](https://github.com/trentm/node-bunyan). Exceptions: (a) you are
+using syslog (see use case for syslog below); (b) your service is legacy; or,
+(c) you just haven't migrated to Bunyan yet (which is fine, JSON log output
 is not a top-priority make work project). If you have an example of a log for
 which JSON format gets in the way, please bring it up for discussion).
 
@@ -498,33 +498,26 @@ activity into a separate file, that should be directed to
 "/var/smartdc/&lt;service&gt;/log/requests.log". However, don't use separate
 log files unless you're sure you need it.  All log files in
 "/var/smartdc/&lt;service&gt;/log" should be configured for appropriate log
-rotation. (TODO: How? One common logadm conf, right?)
+rotation.
 
 For any log entries generated while handling a particular request, the log
 entry **must** include the request id. See "Request Identifiers" under "REST
 API Guidelines" below.
 
-Currently proposed JSON keys for log messages are as follows. This will be
-changed somewhat and formalized with Bunyan releases.
+Log record fields **must** conform to the following (most of which comes
+for free with Bunyan usage):
 
 || **JSON key** || **Description** || **Examples** || **Required** ||
-|| **time** || Date/time of event in [W3C DTF](http://www.hackcraft.net/web/datetime/#w3cdtf) format using UTC: `YYYY-MM-DDThh:mm:ss.sssZ` || "2012-01-26T19:20:30.450Z" || All entries ||
-|| **hostname** || Server hostname. Somewhat redundant, but helpful when collating logs. || `uname -n` || All entries ||
-|| **service** || Service name. Can be implied by the file path, but helpful when collating logs. || "ca" (for Cloud Analytics) || All entries ||
-|| **component** || Service component || "aggregator-12" || All entries for services with multiple components ||
-|| **type** || Used for different types of messages from the same service || "debug", "request" || All entries as desired ||
+|| **name** || Service name. || "ca" (for Cloud Analytics) || All entries ||
+|| **hostname** || Server hostname. || `uname -n`, `os.hostname()` || All entries ||
+|| **time** || `YYYY-MM-DDThh:mm:ss.sssZ` || "2012-01-26T19:20:30.450Z" || All entries ||
 || **level** || Log level. || "fatal", "error", "warn", "info", or "debug" || All entries ||
-|| **request_id** || String request identifier || See "Request Identifiers" under "REST API Guidelines" below. || All entries relating to a particular request ||
-|| **short_message** || Short human- and machine-readable message || "illegal argument error" || Entries with "type" == "debug" ||
-|| **full_message** || Human-readable message || "illegal argument: parameter \'retention-time\' must be numeric" || Entries with "type" == "debug" ||
-|| **latency** || Time of request in milliseconds || 155 || Entries describing the completion of a request or other backend operation ||
-|| **http_method** || HTTP method || "GET" || Entries describing an HTTP request ||
-|| **http_uri** || HTTP URL path (not including querystring) || "/instrumentations/10" || Entries describing an HTTP request ||
-|| **http_qstring** || HTTP URL querystring || "?foo=bar" || Entries describing an HTTP request ||
-|| **http_headers** || HTTP headers || `\{ "content-length": 5278 \}` || Entries describing an HTTP request ||
-|| **http_user** || Authenticated user name || "dap" || Entries describing an HTTP request ||
-|| **http_body** || HTTP request body || arbitrary || Entries describing an HTTP request where the body may be significant (e.g., contain request parameters) and will not be very large (as for most REST services) ||
-|| **http_status** || HTTP status code || 200 || Entries describing the completion of an HTTP request ||
+|| **msg** || The log message || "illegal argument: parameter 'foo' must be an integer" || All entries ||
+|| **component** || Service component. A sub-name on the Logger "name". || "aggregator-12" || Optional ||
+|| **req_id** || Request UUID || See "Request Identifiers" section below. Restify simplifies this. || All entries relating to a particular request ||
+|| **latency** || Time of request in milliseconds || 155 || Strongly suggested for entries describing the completion of a request or other backend operation ||
+|| **req** || HTTP request || -- || At least once as per Restify's or [Bunyan's serializer](https://github.com/trentm/node-bunyan/blob/master/lib/bunyan.js#L856-870) for each request. ||
+|| **res** || HTTP response || -- || At least once as per Restify's or [Bunyan's serializer](https://github.com/trentm/node-bunyan/blob/master/lib/bunyan.js#L872-878) for each response. ||
 
 We use these definitions for log levels:
 
@@ -641,12 +634,18 @@ gather more information. To facilitate this:
   **must** include it in the "x-request-id" header of any request made as part
   of handling that request.
 - When each service logs activity (API requests), alerts, or debug messages
-  related to a particular request, it **must** include the request id.
+  related to a particular request, it **must** include the request id as
+  the "req_id" field (as described in the [Bunyan
+  docs](https://github.com/trentm/bunyan)).
 
-## XXX Naming Endpoints
+
+## Naming Endpoints
+
+Service API endpoints **should** be named.
 
 TODO: codify some of MarkC's and my (mostly mark) discussions on naming of
-API endpoints.
+API endpoints. See cloudapi and amon api for examples.
+
 
 # Bash programming guidelines
 
