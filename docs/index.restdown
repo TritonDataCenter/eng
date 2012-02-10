@@ -470,13 +470,7 @@ Of course, much of this information won't make sense for many bugs, so use your
 judgment, but don't assume that you're the only person who will ever look at the
 ticket.
 
-# Logging (DRAFT)
-
-**Note: this section is still under heavy revision.  We're currently attempting
-to standardize on [Bunyan](https://github.com/trentm/node-bunyan) for node JSON
-logging support.  Bunyan provides a module for simple logging, a `bunyan` tool
-for pretty-printing and filtering JSON logs, and a spec for the JSON log
-format.**
+# Logging
 
 There are at least three different consumers for a service's logs:
 
@@ -520,6 +514,7 @@ for free with Bunyan usage):
 || **JSON key** || **Description** || **Examples** || **Required** ||
 || **name** || Service name. || "ca" (for Cloud Analytics) || All entries ||
 || **hostname** || Server hostname. || `uname -n`, `os.hostname()` || All entries ||
+|| **pid** || Process id. || 1234 || All entries ||
 || **time** || `YYYY-MM-DDThh:mm:ss.sssZ` || "2012-01-26T19:20:30.450Z" || All entries ||
 || **level** || Log level. || "fatal", "error", "warn", "info", or "debug" || All entries ||
 || **msg** || The log message || "illegal argument: parameter 'foo' must be an integer" || All entries ||
