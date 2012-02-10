@@ -8,10 +8,10 @@
     "restify": "git://github.com/mcavage/node-restify.git",
     "node-uuid": "1.2.0",
     "filed": "0.0.5",
-    "bunyan": "git://github.com/trentm/node-bunyan.git",
+    "bunyan": "0.5.3"
   },
   "devDependencies": {
-    "tap": "0.1"
+    "tap": "0.2"
   },
   "scripts": {
     "start": "node ./server.js"

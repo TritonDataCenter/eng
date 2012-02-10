@@ -55,7 +55,7 @@ For repositories representing an API, the repo name that matches how the API is
 discussed (spoken, chatted and emailed) means you'll get the repo name right on
 first guess. If you can get away with it, a repo named after the abbreviate API
 name is best. For example:
-    
+
     Network API -> NAPI -> napi.git          # Good.
                         -> network-api.git   # Less good.
                         -> network_api.git   # Even less good.
@@ -157,14 +157,22 @@ tabs and tabstops). All styles **must** limit line length to 80 columns.
 Existing style-checking tools include:
 
 * C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
-* JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle), [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html)
+* JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle),
+  [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html)
 * Bash: bashstyle (contained in eng.git:tools/bashstyle)
 * Makefiles: use bashstyle for now
 
 Both cstyle and jsstyle (which are 90% the same code) support overriding style
-checks on a per-line basis (e.g., for literal regular expressions). Feel free
-to add options to these tools to allow for flexibility, as in tabs vs. spaces.
-You can also write your own tool.
+checks on a per-line and block basis. `jsstyle` also now supports
+configuration options for indent style and few other things. E.g., you
+might like this in your Makefile:
+
+    JSSTYLE_FLAGS = -o indent=4,doxygen,unparenthesized-return=0
+
+Options can also be put in a "tools/jsstyle.conf" and passed in with '-f
+tools/jsstyle.conf'. See the [jsstyle
+README](https://github.com/davepacheco/jsstyle)) for details on
+JSSTYLED-comments and configuration options.
 
 Note that gjslint can be used as a style checker, but it is **not** a
 substitute for javascriptlint. And as with all style checkers, it **must** be
@@ -174,11 +182,6 @@ Bash scripts and Makefiles must also be checked for style. The only style
 guideline for now is the 80-column limit.
 
 Make target: "check"
-
-*Note: It is understood that `jsstyle` currently isn't configurable for all
-the current common JavaScript styles in Joyent repositories. Adding support
-for those styles to jsstyle (or a separate tool) should be done, but
-prioritize accordingly with actual product work.*
 
 
 ## Lint
@@ -194,7 +197,7 @@ enable and disable particular sets of checks as they deem appropriate.  Most
 checks can be disabled on a per-line basis. As with style, it's recommended
 that we minimize divergence between repositories.
 
-Make target: "check" 
+Make target: "check"
 
 
 ## Copyright
@@ -231,7 +234,7 @@ which translates to a make recipe something like this:
     .PHONY: xref
     xref: cscope.files
     	$(CSCOPE) -bqR
-    
+
     .PHONY: cscope.files
     cscope.files:
     	find . -name '*.c' -o -name '*.h' -o -name '*.cc' -o -name '*.js' \
@@ -250,6 +253,7 @@ instructions, see [the
 wiki](https://hub.joyent.com/wiki/display/dev/Snow+Leopard+tips%2C+fixes+and+bugs).
 
 Make target: "xref"
+
 
 ## Documentation
 
@@ -775,21 +779,21 @@ getopts(1) (not to be confused with getopt(1)) using a block like this:
 
         cat <<-USAGE >&2
         Usage: $(dirname $0) [-fn] [-d argument] args ...
-        
+
         Frobs args (optionally with argument <argument>).
-        
+
         -f    force frobnification in the face of errors
         -n    dry-run (don't actually do anything)
         -d    specify temporary directory
         USAGE
-    
+
         exit 2
     }
-    
+
     opt_f=false
     opt_n=false
     opt_d=
-    
+
     while getopts ":fnd:" c; do
             case "$c" in
             f|n)    eval opt_$c=true                                ;;
@@ -798,7 +802,7 @@ getopts(1) (not to be confused with getopt(1)) using a block like this:
             *)      usage "illegal option -- $OPTARG"               ;;
             esac
     done
-    
+
     # Set $1, $2, ... to the rest of the arguments.
     shift $((OPTIND - 1))
 
@@ -825,14 +829,14 @@ Combined with the above error handling pattern, you can write clean scripts
 that perform a bunch of tasks in series:
 
     shopt -s xpg_echo
-    
+
     echo "Setting nodename to 'devel' ... \c"
     hostname devel || fail "failed to set hostname"
     echo "done."
-    
+
     echo "Testing DNS ... \c"
     ping example.com || fail "failed"
-    
+
     echo "Restarting ssh ... \c"
     svcadm disable -s ssh || fail "failed to disable service"
     svcadm enable -s ssh || fail "failed to enable service"
@@ -883,4 +887,3 @@ rather than system scripts whose output goes to a log.
 
 - The [boilerplate API](boilerplateapi.html) example in this repo gives you a
   starter file and some suggestions on how to document a web service.
-

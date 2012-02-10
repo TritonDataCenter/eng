@@ -24,10 +24,11 @@ TAP		:= ./node_modules/.bin/tap
 # Files
 #
 DOC_FILES	 = index.restdown boilerplateapi.restdown
-JS_FILES	:= $(shell find lib -name '*.js')
+JS_FILES	:= $(shell ls *.js) $(shell find lib test -name '*.js')
 JSL_CONF_NODE	 = tools/jsl.node.conf
-JSL_FILES_NODE   = server.js $(JS_FILES)
+JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
+JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 SMF_MANIFESTS	 = smf/manifests/bapi.xml
 
 #
