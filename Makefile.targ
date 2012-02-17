@@ -95,7 +95,9 @@ JSL_FLAGS  	?= --nologo --nosummary
 #
 SMF_DTD		?= tools/service_bundle.dtd.1
 
-DOC_BUILD	= build/docs/public
+BUILD		= build
+CLEAN_FILES	+= $(BUILD)
+DOC_BUILD	= $(BUILD)/docs/public
 
 #
 # Configure JSL_FLAGS_{NODE,WEB} based on JSL_CONF_{NODE,WEB}.
