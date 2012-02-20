@@ -86,6 +86,7 @@ JSSTYLE		?= jsstyle
 MKDIR		?= mkdir -p
 MV		?= mv
 RESTDOWN	?= restdown
+RESTDOWN_FLAGS	?=
 RMTREE		?= rm -rf
 XMLLINT		?= xmllint --noout
 JSL_FLAGS  	?= --nologo --nosummary
@@ -242,7 +243,7 @@ $(DOC_BUILD)/%: docs/% | $(DOC_BUILD)
 	$(CP) $< $@
 
 docs/%.json docs/%.html: docs/%.restdown | $(DOC_BUILD)
-	$(RESTDOWN) -m $(DOC_BUILD) $<
+	$(RESTDOWN) $(RESTDOWN_FLAGS) -m $(DOC_BUILD) $<
 
 $(DOC_BUILD):
 	$(MKDIR) $@
