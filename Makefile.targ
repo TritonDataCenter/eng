@@ -248,10 +248,6 @@ docs/%.json docs/%.html: docs/%.restdown | $(DOC_BUILD)
 $(DOC_BUILD):
 	$(MKDIR) $@
 
-info:
-	echo "DOC_MEDIA_FILES is '$(DOC_MEDIA_FILES)'"
-	echo "DOC_MEDIA_FILES_BUILD is '$(DOC_MEDIA_FILES_BUILD)'"
-
 $(DOC_MEDIA_DIRS_BUILD):
 	$(MKDIR) $@
 
