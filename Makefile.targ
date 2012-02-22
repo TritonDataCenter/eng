@@ -163,7 +163,7 @@ check: check-jsl check-jsstyle check-bash check-manifests
 	@echo check ok
 
 .PHONY: clean
-clean:
+clean::
 	-$(RMTREE) $(CLEAN_FILES)
 
 CSCOPE_FILES = cscope.in.out cscope.out cscope.po.out
