@@ -14,6 +14,8 @@
 # included Makefiles (in eng.git) so that other teams can use them too.
 #
 
+include ./Makefile.defs
+
 #
 # Tools
 #
