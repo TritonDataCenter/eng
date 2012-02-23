@@ -216,9 +216,16 @@ range of years. For example:
 
 ## Testing
 
-All repos **must** include a comprehensive automated test suite, preferably
-using node-tap. Bug fixes and new features should not be integrated without
-considering adding new tests.
+All repos **must** be tested by a comprehensive automated test suite,
+preferably using node-tap. These tests may be repo-specific, or may be part of
+a broader system test suite (ideally both). In either case, bug fixes and new
+features should not be integrated without adding new tests, and the tests
+**must** be run automatically (as via jenkins) either with every commit or
+daily.
+
+Understanding and fixing failures in the automated test run **must** be
+considered the top development priority for that repo's team. Persistent
+failures are not acceptable.
 
 Make target: "test"
 
