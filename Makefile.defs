@@ -13,6 +13,7 @@
 #
 # Definitions in this Makefile:
 #
+#	BRANCH 		The current git branch.
 #	TIMESTAMP	The timestamp for the build. This can be set via
 #			the TIMESTAMP envvar (used by MG-based builds).
 #	STAMP		A build stamp to use in built package names.
@@ -27,9 +28,9 @@
 _AWK := $(shell (which gawk >/dev/null && echo gawk) \
 	|| (which nawk >/dev/null && echo nawk) \
 	|| echo awk)
-_BRANCH := $(shell git symbolic-ref HEAD | $(_AWK) -F/ '{print $$3}')
+BRANCH := $(shell git symbolic-ref HEAD | $(_AWK) -F/ '{print $$3}')
 ifeq ($(TIMESTAMP),)
 	TIMESTAMP := $(shell date -u "+%Y%m%dT%H%M%SZ")
 endif
 _GITDESCRIBE := g$(shell git describe --all --long --dirty | $(_AWK) -F'-g' '{print $$NF}')
-STAMP := $(_BRANCH)-$(TIMESTAMP)-$(_GITDESCRIBE)
+STAMP := $(BRANCH)-$(TIMESTAMP)-$(_GITDESCRIBE)
