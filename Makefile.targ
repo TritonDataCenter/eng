@@ -57,8 +57,6 @@
 #	JSL_FILES_NODE	JavaScript files to check with Node config file.
 #	JSL_FILES_WEB	JavaScript files to check with Web config file.
 #
-#	SMF_MANIFESTS	XML files to check for validity using the SMF DTD.
-#
 # You can also override these variables:
 #
 #	BASH		Path to bash (default: bash)
@@ -88,14 +86,11 @@ MV		?= mv
 RESTDOWN	?= restdown
 RESTDOWN_FLAGS	?=
 RMTREE		?= rm -rf
-XMLLINT		?= xmllint --noout
 JSL_FLAGS  	?= --nologo --nosummary
 
 #
 # Defaults for other fixed values.
 #
-SMF_DTD		?= tools/service_bundle.dtd.1
-
 BUILD		= build
 CLEAN_FILES	+= $(BUILD)
 DOC_BUILD	= $(BUILD)/docs/public
@@ -152,14 +147,8 @@ check-jsstyle: $(JSSTYLE_FILES:%=%.jsstylechk)
 %.jsstylechk: % $(JSSTYLE_SCRIPT)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $<
 
-.PHONY: check-manifests
-check-manifests: $(SMF_MANIFESTS:%=%.smfchk)
-
-%.smfchk: %
-	$(XMLLINT) --path $(dir $(SMF_DTD)) --dtdvalid $(SMF_DTD) $^
-
 .PHONY: check
-check: check-jsl check-jsstyle check-bash check-manifests
+check: check-jsl check-jsstyle check-bash
 	@echo check ok
 
 .PHONY: clean

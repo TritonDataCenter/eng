@@ -14,12 +14,9 @@
 # included Makefiles (in eng.git) so that other teams can use them too.
 #
 
-include ./Makefile.defs
-
 #
 # Tools
 #
-NPM		:= npm
 TAP		:= ./node_modules/.bin/tap
 
 #
@@ -31,18 +28,27 @@ JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
-SMF_MANIFESTS	 = smf/manifests/bapi.xml
+SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
+
+include ./Makefile.defs
+include ./Makefile.node.defs
+include ./Makefile.smf.defs
 
 #
 # Repo-specific targets
 #
 .PHONY: all
-all:
+all: $(SMF_MANIFESTS) | $(TAP)
 	$(NPM) rebuild
+
+$(TAP): | $(NPM)
+	$(NPM) install
 
 .PHONY: test
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
 
 include ./Makefile.deps
+include ./Makefile.node.targ
+include ./Makefile.smf.targ
 include ./Makefile.targ
