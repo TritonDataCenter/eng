@@ -92,7 +92,7 @@ JSL_FLAGS  	?= --nologo --nosummary
 ifeq ($(shell uname -s),SunOS)
 	TAR	?= gtar
 else
-	TAR		?= tar
+	TAR	?= tar
 endif
 
 
