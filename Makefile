@@ -41,7 +41,7 @@ include ./tools/mk/Makefile.smf.defs
 all: $(SMF_MANIFESTS) | $(TAP)
 	$(NPM) rebuild
 
-$(TAP): | $(NPM)
+$(TAP): | $(NPM_EXEC)
 	$(NPM) install
 
 .PHONY: test

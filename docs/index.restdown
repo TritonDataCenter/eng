@@ -892,7 +892,7 @@ lift.  Here's an example from eng.git:
     include ./Makefile.smf.defs
     
     .PHONY: all
-    all: $(SMF_MANIFESTS) | $(NPM)
+    all: $(SMF_MANIFESTS) | $(NPM_EXEC)
     	$(NPM) install
     
     include ./Makefile.deps
