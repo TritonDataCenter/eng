@@ -148,6 +148,8 @@ differ (e.g. not have a test suite):
     prepush: check test
             @echo "Okay to push."
 
+There are several modular Makefiles you can use to implement most of this. See
+"Writing Makefiles" (below) for details.
 
 ## Coding Style
 
@@ -320,68 +322,45 @@ date.
 
 ## Managing Node Dependencies
 
-There are several ways of managing Node dependencies, each with notable pros
-and cons. Choose whatever method works best for you, but try to be consistent
-within a given repo. Either way, "make all" and other "make" targets should
-automatically take care of setting up dependencies as needed.
+There are three cases for Node dependencies:
 
-With any of these methods, beware that the build process **must not** use
-external resources because they cannot be trusted and may not even be
-available.
+* external public dependencies (e.g., restify, express): specify these in
+  package.json as usual and shrinkwrap them.
+* internal (Joyent-private) dependencies (e.g., ca-vis): either specify these in
+  package.json using git URLs instead of version numbers, or use git submodules
+  and treat these as local (repo-private) dependencies (see below). All things
+  being equal, prefer git URLs in package.json to git submodules. In all cases,
+  use shrinkwrap.
+* local, repo-private dependencies (e.g., ca-native in cloud-analytics or amon
+  modules): During the build process, run "npm install path/to/dep". **This
+  approach should only be used for code that lives inside the repo but is
+  installed as a separate package for whatever reason. This does not apply to
+  most dependencies. Most dependencies should not be checked into git.**
 
-*Note: From the length of this section, it should be obvious that this
-isn't full baked yet. We need some more experience.*
+Shrinkwrapping: all dependendencies that come from outside the repo should be
+shrinkwrapped. See [npm shrinkwrap](http://npmjs.org/doc/shrinkwrap.html) for
+details.
 
-### Method 1: Commit node_modules to Git
+Shrinkwrap is available in npm 1.1.2, which is bundled with node 0.6.12.
+However, proper support for git SHAs in shrinkwrap didn't land until the next
+version. If you're stuck on 1.1.2, you can still use git SHAs in the shrinkwrap
+file, but you'll have to specify them by hand.
 
-In short: `npm install` to install all your deps, `git add node_modules`,
-and commit. For binary modules: exclude binary bits and use `npm rebuild`
-at build time.
 
-This should be simple and easy to manage. However there are some remaining
-questions on implementing this in general:
+## Node add-ons (binary modules)
 
-- Are there difficulties with the `git add node_modules` due to .gitignore
-  files in the deps? "node_modules" is a common entry in many node modules'
-  .gitignore files. Perhaps just deleting them all is sufficient
-  (.npmignore vs. .gitignore).
-- Do "devDependencies" get in the way here? Presumably we wouldn't commit
-  dev dependencies. Perhaps specific "node_modules/my-dev-dep" entries
-  in ".gitignore" would suffice.
-- TODO: spec the .gitignore entries to facilitate excluding binary bits
-  in the `git add node_modules`.
+Because C++ does not define a useful compiler- or platform-dependent
+[binary](http://stackoverflow.com/questions/7492180/c-abi-issues-list)
+[interface](http://developers.sun.com/solaris/articles/CC_abi/CC_abi_content.html),
+and we have seen breakage resulting from changing compiler versions, any repo
+that uses add-ons (binary modules) **must** bundle its own copy of "node" and
+use that copy at runtime. And almost every repo will fall into this bucket,
+since we use the native node-dtrace-provider heavily for observability.
 
-One downside with this approach is that there's nothing to enforce that the
-committed source actually matches what it's supposed to (i.e. and hasn't been
-inadvertently changed). This isn't likely to be an issue as engineers *should*
-know that source in node_modules is not original and must not be modified
-directly.
-
-One suggestion for the "floating patches" is to create a fork of the module
-(e.g.  [trentm-datetime](http://search.npmjs.org/#/trentm-datetime) for
-[datetime](http://search.npmjs.org/#/datetime)) until patches are released
-upstream.
-
-### Method 2: Git Submodules for Sources
-
-Use git submodules to get the source for all dependent packages,
-`git submodule add git://github.com/bob/my-dep.git deps/my-dep`, and either
-reference the dependency's source directly or use `npm install deps/my-dep` at
-build time.  This avoids the potential inconsistency problem described above,
-but it's unclear how this can be generalized for dependencies with their own dependencies. Also, git submodules are somewhat clumsy.
-
-### Method 3: List Specific Versions
-
-List specific versions (e.g., "1.2.3" not "1.2") for all deps **and all deps
-of deps** in your top-level "package.json". Then `npm install` to get
-specific versions of everything. You can check this by making sure there are
-no "node_modules/*/node_modules" directories.  This method requires vigilance
-when adding new dependencies, though that could be automatically checked as
-part of "make prepush". Another problem is that this method cannot support two different versions of a given module (used by different dependencies).
-
-The "./tools/npmfreeze.js" tool in this repo can help you put together the list
-of versions.
-
+The recommended way to do this is to add the official node repo as a git
+submodule and build it during the build process. There are existing modular
+Makefiles in this repo (eng.git) to do all the work. All you need to do is
+include them and then add the appropriate dependencies on `$(NODE)`.
 
 
 ## Commit Comments and JIRA Tickets
@@ -861,6 +840,74 @@ and when it fails:
 
 This is primarily useful for complex scripts that people run interactively
 rather than system scripts whose output goes to a log.
+
+# Writing Makefiles
+
+This repo (eng.git) provides a number of modular Makefiles which you can use
+(perhaps even by direct reference using submodules) to provide the required
+targets described above, as well as several other useful pieces (like building
+Node in your repo).  These are designed to be dropped in without modification:
+they consume Make variables as input and either export other variables or define
+rules. You should use these existing Makefiles wherever possible.
+
+Importantly:
+
+* If you find yourself adding anything other than a repo-specific variable
+  definition or a repo-specific rule to your Makefile, consider creating a
+  new Makefile with a crisp interface and adding it to the existing ones in
+  eng.git. We want to avoid Makefile code duplication just as we would
+  JavaScript code duplication.
+* Do **not** modify a copy of any of the existing sub Makefiles from eng.git.
+  Feel free to generalize or improve the original, but don't fork it.
+* We do not use recursive Make. Avoid it within a project if at all possible.
+
+Top level Makefiles should generally have the following structure:
+
+1. Repo-specific definitions. These serve as inputs for included Makefiles. For
+   example, you might define the list of JavaScript files that should be
+   style-checked here.
+2. Includes for Makefiles that define variables based on the repo-specific
+   variables (e.g., repo specifies input files, and the included Makefile
+   defines a list of output files, or modifies the list of files that will be
+   removed with "make clean").
+3. Repo-specific rules. These must be the first rules that appear in the
+   Makefile so that the repo can control the default target and the order of
+   dependencies for common targets.
+4. Includes for Makefiles that define other rules.
+
+The goal is that most top-level Makefiles only specify their parameters, the
+repo-specific rules, and which other Makefiles get included to do the heavy
+lift.  Here's an example from eng.git:
+
+    DOC_FILES        = index.restdown boilerplateapi.restdown
+    JS_FILES        := $(shell ls *.js) $(shell find lib test -name '*.js')
+    JSL_CONF_NODE    = tools/jsl.node.conf
+    JSL_FILES_NODE   = $(JS_FILES)
+    JSSTYLE_FILES    = $(JS_FILES)
+    JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
+    SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
+
+    include ./Makefile.defs
+    include ./Makefile.node.defs
+    include ./Makefile.smf.defs
+    
+    .PHONY: all
+    all: $(SMF_MANIFESTS) | $(NPM)
+    	$(NPM) install
+    
+    include ./Makefile.deps
+    include ./Makefile.node.targ
+    include ./Makefile.smf.targ
+    include ./Makefile.targ
+
+All of the included Makefiles are modular and know nothing about this repo, but
+this Makefile provides all of the required targets: "docs" to build HTML from
+restdown, "check" to check SMF manifests as well as JavaScript style and lint,
+"all" to build node and npm and then use that npm to rebuild local dependencies,
+"clean" to remove built files, and so on.
+
+See the top-level Makefile in eng.git for the complete details.
+
 
 # Miscellaneous Best Practices
 
