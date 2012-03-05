@@ -72,6 +72,9 @@
 #				(default: "--with-dtrace" on SmartOS; empty
 #				otherwise.)
 #
+#	NPM_FLAGS		extra flags to pass to npm invocations
+#				(default: empty)
+#
 
 BUILD		?= build
 NODE_INSTALL 	?= $(BUILD)/node
@@ -91,4 +94,4 @@ NPM_EXEC	= $(NODE_INSTALL)/bin/npm
 
 NODE		= $(NODE_EXEC)
 NODE_WAF	= $(NODE_WAF_EXEC)
-NPM		= $(NPM_EXEC)
+NPM		= $(NPM_EXEC) $(NPM_FLAGS)
