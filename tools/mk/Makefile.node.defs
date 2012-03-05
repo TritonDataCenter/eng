@@ -1,3 +1,4 @@
+# -*- mode: makefile -*-
 #
 # Copyright (c) 2012, Joyent, Inc. All rights reserved.
 #
@@ -79,7 +80,9 @@ CLEAN_FILES	+= $(NODE_INSTALL)
 NODE_CONFIG_FLAGS += --prefix=$(shell pwd)/$(NODE_INSTALL)
 
 ifeq ($(shell uname -s),SunOS)
-	NODE_CONFIG_FLAGS += --with-dtrace
+	NODE_CONFIG_FLAGS += 	--with-dtrace \
+				--openssl-libpath=/opt/local/lib \
+				--openssl-includes=/opt/local/include
 endif
 
 NODE_EXEC	= $(NODE_INSTALL)/bin/node

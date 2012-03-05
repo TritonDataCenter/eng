@@ -1,3 +1,4 @@
+# -*- mode: makefile -*-
 #
 # Copyright (c) 2012, Joyent, Inc. All rights reserved.
 #
@@ -81,12 +82,20 @@ CP		?= cp
 CSCOPE		?= cscope
 JSL		?= jsl
 JSSTYLE		?= jsstyle
+MAKE		?= make
 MKDIR		?= mkdir -p
 MV		?= mv
 RESTDOWN	?= restdown
 RESTDOWN_FLAGS	?=
 RMTREE		?= rm -rf
 JSL_FLAGS  	?= --nologo --nosummary
+TAR		?= tar
+
+ifeq ($(shell uname -s),SunOS)
+	MAKE	= gmake
+	TAR	= gtar
+endif
+
 
 #
 # Defaults for other fixed values.

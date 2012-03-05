@@ -30,9 +30,9 @@ JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
 
-include ./Makefile.defs
-include ./Makefile.node.defs
-include ./Makefile.smf.defs
+include ./tools/mk/Makefile.defs
+include ./tools/mk/Makefile.node.defs
+include ./tools/mk/Makefile.smf.defs
 
 #
 # Repo-specific targets
@@ -48,7 +48,7 @@ $(TAP): | $(NPM)
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
 
-include ./Makefile.deps
-include ./Makefile.node.targ
-include ./Makefile.smf.targ
-include ./Makefile.targ
+include ./tools/mk/Makefile.deps
+include ./tools/mk/Makefile.node.targ
+include ./tools/mk/Makefile.smf.targ
+include ./tools/mk/Makefile.targ
