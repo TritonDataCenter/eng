@@ -82,18 +82,17 @@ CP		?= cp
 CSCOPE		?= cscope
 JSL		?= jsl
 JSSTYLE		?= jsstyle
-MAKE		?= make
 MKDIR		?= mkdir -p
 MV		?= mv
 RESTDOWN	?= restdown
 RESTDOWN_FLAGS	?=
 RMTREE		?= rm -rf
 JSL_FLAGS  	?= --nologo --nosummary
-TAR		?= tar
 
 ifeq ($(shell uname -s),SunOS)
-	MAKE	= gmake
-	TAR	= gtar
+	TAR	?= gtar
+else
+	TAR		?= tar
 endif
 
 
