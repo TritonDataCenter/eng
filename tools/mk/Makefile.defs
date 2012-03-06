@@ -14,11 +14,14 @@
 #
 # Definitions in this Makefile:
 #
+#	TOP 		The absolute path to the project directory. The top dir.
 #	BRANCH 		The current git branch.
 #	TIMESTAMP	The timestamp for the build. This can be set via
 #			the TIMESTAMP envvar (used by MG-based builds).
 #	STAMP		A build stamp to use in built package names.
 #
+
+TOP := $(shell pwd)
 
 #
 # Mountain Gorilla-spec'd versioning.

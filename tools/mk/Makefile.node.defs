@@ -74,11 +74,13 @@
 #				(default: empty)
 #
 
+TOP ?= $(error You must include Makefile.defs before this makefile)
+
 BUILD		?= build
 NODE_INSTALL 	?= $(BUILD)/node
 DISTCLEAN_FILES	+= $(NODE_INSTALL)
 
-NODE_CONFIG_FLAGS += --prefix=$(shell pwd)/$(NODE_INSTALL)
+NODE_CONFIG_FLAGS += --prefix=$(TOP)/$(NODE_INSTALL)
 
 ifeq ($(shell uname -s),SunOS)
 	NODE_CONFIG_FLAGS += 	--with-dtrace \
@@ -90,6 +92,8 @@ NODE_EXEC	= $(NODE_INSTALL)/bin/node
 NODE_WAF_EXEC	= $(NODE_INSTALL)/bin/node-waf
 NPM_EXEC	= $(NODE_INSTALL)/bin/npm
 
-NODE		:= $(shell pwd)/$(NODE_EXEC)
-NODE_WAF	:= $(shell pwd)/$(NODE_WAF_EXEC)
-NPM		:= $(shell pwd)/$(NPM_EXEC) $(NPM_FLAGS)
+# Ensure these use absolute paths to the executables to allow running
+# from a dir other than the project top.
+NODE		:= $(TOP)/$(NODE_EXEC)
+NODE_WAF	:= $(TOP)/$(NODE_WAF_EXEC)
+NPM		:= $(TOP)/$(NPM_EXEC) $(NPM_FLAGS)
