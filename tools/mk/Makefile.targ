@@ -100,7 +100,7 @@ endif
 # Defaults for other fixed values.
 #
 BUILD		= build
-CLEAN_FILES	+= $(BUILD)
+DISTCLEAN_FILES += $(BUILD)
 DOC_BUILD	= $(BUILD)/docs/public
 
 #
@@ -162,6 +162,10 @@ check: check-jsl check-jsstyle check-bash
 .PHONY: clean
 clean::
 	-$(RMTREE) $(CLEAN_FILES)
+
+.PHONY: distclean
+distclean:: clean
+	-$(RMTREE) $(DISTCLEAN_FILES)
 
 CSCOPE_FILES = cscope.in.out cscope.out cscope.po.out
 CLEAN_FILES += $(CSCOPE_FILES)
