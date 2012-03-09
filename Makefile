@@ -44,6 +44,8 @@ all: $(SMF_MANIFESTS) | $(TAP)
 $(TAP): | $(NPM_EXEC)
 	$(NPM) install
 
+CLEAN_FILES += $(TAP) ./node_modules/tap
+
 .PHONY: test
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
