@@ -841,6 +841,121 @@ and when it fails:
 This is primarily useful for complex scripts that people run interactively
 rather than system scripts whose output goes to a log.
 
+# JIRA best practices for Customer Issues
+
+## Overview
+
+We have all noticed that there are a lot more JIRA tickets originating from customers than there were 6 months ago.
+
+We need to refine the process of opening, updating, and resolving bugs so that we maximize productivity, and reduce the time that bugs sit idle with not enough information to act on.
+
+## JIRA Updates
+
+Providing regular updates to JIRA tickets is the best way to keep stakeholders informed on the progress of the issue.
+
+### Assigning Tickets
+
+![Assign To Me](media/img/assign_to_me.jpg)
+
+It’s important to make sure that active tickets (tickets that someone is working on) have an Assignee. The way that the triage teams decide if something needs to be escalated to engineering triage is using this field. If there is no one assigned to an issue, Ben and Deniz will continue to ask for a triage in scrum. So if you’re working on an issue, even if you don’t intend to be the final owner, click the “Assign to me” button in the top nav. This will indicate that we’ve had eyes on this issue and it’s not sitting idle. You can always reassign the issue if something changes.
+
+### Needs More Info
+
+![Needs More Info](media/img/needs_more_info.jpg)
+
+Needs More Info is a custom status that we added last year to indicate that there is not enough information to proceed on an issue. This could be used both for development, when there is not enough info to troubleshoot, or by the customer teams, if there is not enough info to resolve the issue with the customer. Whenever you put a ticket into this state, make sure to assign the ticket to whoever needs to provide the info. In your case, this will often be the reporter. It is important to force a ticket into this status if you are blocked on proceeding with diagnostics due to lack of information.
+
+### Comments
+
+![Comments](media/img/comments.jpg)
+
+Commenting is important to keep our cross-functional teams aware of progress made (or not made) on the resolution of a customer issue. Commenting best practices:
+
+* Comment often, even if you don’t have all of the details worked out yet. The more information provided the more informed we can make the customers.
+* Comment instructionally, as if you were explaining to someone else how you diagnosed the issue. This will help the Ops and Support teams to be able to recognize, categorize and help diagnose issues on their own in the future, saving everyone time and energy.
+* Comment consistently, at the end of the work day, for instance. Even if the comment is that you made little progress, it keeps the customer facing teams informed of what’s going on, so that they can make an informed decision on what to communicate back to the customer.
+
+### Moving Tickets
+
+Often a ticket will come in through the JPC project, but logically belongs in another, as the problem needs to be resolved in SDC.
+
+For issues like this, please use the Move feature to move the ticket into the appropriate project. The JPC ticket will then automatically redirect users to the new location.
+
+![Move Ticket](media/img/move_ticket.jpg)
+
+### Linking Tickets
+
+When an issue is either related to, or a duplicate of , or depends on a ticket that is already in the system, it’s valuable to link the 2 tickets in JIRA. You can do this using the Link feature:
+
+![Linking Tickets](media/img/linking_tickets.jpg)
+
+The linked issue(s) will then show up in the ticket as a separate section:
+
+![Issue Links](media/img/issue_links.jpg)
+
+### Target Fix Version
+
+If you are working on an issue, it is important to know what release you are targeting for the fix. Typically, you will either be targeting a Simpsons version (meaning that the release to the customer would be the next major), or a dot release. Bryan and Laurel can help clarify which release your fix should go into if you are unsure.
+
+Note: The JPC project only contains dot release versions. If something is more suited for a Simpsons release version, you should move the ticket to another project.
+
+The customer teams will use this information to decide whether they can wait for the fix in the next release, or if they’ll need to find a short term work around.
+
+![Target Fix Version](media/img/fix_version.jpg)
+
+### Summary
+
+A little more effort spent updating JIRA issues will create a valuable knowledge base full of information for the Ops and Support teams to use. The result will be:
+
+1. Fewer issues coming through to the Dev team, as issues that have been worked through before will be able to be triaged before they are passed to engineering. We are are shooting for a 10:1 ratio of issues opened to issues passed to engineering. Currently we’re well over 10:5.
+
+2. Issues that are passed to engineering have had more diagnostic information in them, as the Ops and Support teams learn from example on how to troubleshoot issues. This will reduce the time it takes for you to resolve issues, leaving you more time to work on more interesting projects.
+
+3. Better customer relations, as the customer teams will be able to explain to the customers what steps are being taken to find them a solution to their problem.
+
+## Resolving JIRA Tickets
+
+### Issue Resolution (Public)
+
+The Issue Resolution field is the field that the customer teams are going to use to communicate information back to their customers about the bug fix.
+
+This field must be filled out upon resolution if the ticket has originated from a customer (either coming from the JPC project or having a customer label attached to it).
+
+When you are filling in this field, try to word it as though you are talking to the customer. The customer doesn’t need to know every detail of how the issue was resolved, but they do want to know how it will impact them.
+
+![Resolution](media/img/resolution.jpg)
+
+#### Resolution
+
+Resolving a ticket once you’ve committed code indicates to the customer teams that they can deliver a solution (or estimated release date) to the customer. It is important to resolve your issues so that we continue to rotate bugs out of the queue, and keep our customers happy.
+
+##### Fixed/Implemented
+
+Indicates that a development solution has been implemented and can be communicated to the customer. Release date can be deduced from the fix version.
+
+##### Duplicate
+
+Indicates that this is already being worked on (or has been fixed) by another bug. Please Link the duplicate issue to the ticket.
+
+##### Won't Fix
+
+There are certain circumstances under which we will decline to resolve a customer issue. A couple examples of this are if the issue being raised occurs by design, if we are refactoring a part of the code base that will eliminate the bug once released, or if there is a sufficient workaround. Bryan and Laurel should be consulted if you think a bug is a “won’t fix”, and always include an explanation for the customer teams if you use this resolution on a ticket that originated from a customer.
+
+#### Fix Version
+
+Fix version is the version in which you actually committed the code that fixed the bug. It differs from Target Fix Version in that it should only be added to the ticket after resolution. The fix version is what the customer teams will use to decide whether or not a patch is required on the current operating version.
+
+![Fix Version](media/img/fix_version.jpg)
+
+### Summary
+
+Issue resolutions should provide valuable information to the customer teams, allowing them to communicate solutions back to our customers, as well as make decisions on patches and workarounds.
+
+In addition, the support team is starting to build a knowledge base of issues that they can use to search when new issues are raised, helping to reduce the number of tickets that make it down to engineering.
+
+Please spend some extra time when resolving bugs that originated from a customer.
+
+
 # Writing Makefiles
 
 This repo (eng.git) provides a number of modular Makefiles which you can use
