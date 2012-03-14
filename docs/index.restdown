@@ -857,7 +857,23 @@ enough information to act on.
 ## JIRA Updates
 
 Providing regular updates to JIRA tickets is the best way to keep stakeholders
-informed on the progress of the issue.
+informed on the progress of the issue. A little more effort spent updating
+JIRA issues will create a valuable knowledge base full of information for the
+Ops and Support teams to use. The result will be:
+
+1.  Fewer issues coming through to the Dev team, as issues that have been worked
+    through before will be able to be triaged before they are passed to
+    engineering. We are are shooting for a 10:1 ratio of issues opened to
+    issues passed to engineering. Currently we’re well over 10:5.
+
+2.  Issues that are passed to engineering have had more diagnostic information
+    in them, as the Ops and Support teams learn from example on how to
+    troubleshoot issues. This will reduce the time it takes for you to resolve
+    issues, leaving you more time to work on more interesting projects.
+
+3.  Better customer relations, as the customer teams will be able to explain to
+    the customers what steps are being taken to find them a solution to their
+    problem.
 
 
 ### Assigning Tickets
@@ -933,7 +949,7 @@ The linked issue(s) will then show up in the ticket as a separate section:
 ![Issue Links](media/img/issue_links.jpg)
 
 
-### Target Fix Version
+### Field: `Target Fix Version`
 
 If you are working on an issue, it is important to know what release you are
 targeting for the fix. Typically, you will either be targeting a Simpsons
@@ -952,31 +968,17 @@ around.
 ![Target Fix Version](media/img/fix_version.jpg)
 
 
-### Summary
-
-A little more effort spent updating JIRA issues will create a valuable
-knowledge base full of information for the Ops and Support teams to use. The
-result will be:
-
-1.  Fewer issues coming through to the Dev team, as issues that have been worked
-    through before will be able to be triaged before they are passed to
-    engineering. We are are shooting for a 10:1 ratio of issues opened to
-    issues passed to engineering. Currently we’re well over 10:5.
-
-2.  Issues that are passed to engineering have had more diagnostic information
-    in them, as the Ops and Support teams learn from example on how to
-    troubleshoot issues. This will reduce the time it takes for you to resolve
-    issues, leaving you more time to work on more interesting projects.
-
-3.  Better customer relations, as the customer teams will be able to explain to
-    the customers what steps are being taken to find them a solution to their
-    problem.
-
-
-
 ## Resolving JIRA Tickets
 
-### Issue Resolution (Public)
+Issue resolutions should provide valuable information to the customer teams,
+allowing them to communicate solutions back to our customers, as well as make
+decisions on patches and workarounds.
+
+Please spend some extra time when resolving bugs that originated from a
+customer.
+
+
+### Field: `Issue Resolution (Public)`
 
 The Issue Resolution field is the field that the customer teams are going to
 use to communicate information back to their customers about the bug fix.
@@ -991,34 +993,19 @@ was resolved, but they do want to know how it will impact them.
 
 ![Resolution](media/img/resolution.jpg)
 
-#### Resolution
+### Field: `Resolution`
 
 Resolving a ticket once you’ve committed code indicates to the customer teams
 that they can deliver a solution (or estimated release date) to the customer.
 It is important to resolve your issues so that we continue to rotate bugs out
 of the queue, and keep our customers happy.
 
-##### Fixed/Implemented
+|| **Fixed/Implemented** || Indicates that a development solution has been implemented and can be communicated to the customer. Release date can be deduced from the fix version. ||
+|| **Duplicate** || Indicates that this is already being worked on (or has been fixed) by another bug. Please Link the duplicate issue to the ticket. ||
+|| **Won't Fix** || There are certain circumstances under which we will decline to resolve a customer issue. A couple examples of this are if the issue being raised occurs by design, if we are refactoring a part of the code base that will eliminate the bug once released, or if there is a sufficient workaround. Bryan and Laurel should be consulted if you think a bug is a "won't fix", and always include an explanation for the customer teams if you use this resolution on a ticket that originated from a customer. ||
 
-Indicates that a development solution has been implemented and can be
-communicated to the customer. Release date can be deduced from the fix version.
 
-##### Duplicate
-
-Indicates that this is already being worked on (or has been fixed) by another
-bug. Please Link the duplicate issue to the ticket.
-
-##### Won't Fix
-
-There are certain circumstances under which we will decline to resolve a
-customer issue. A couple examples of this are if the issue being raised occurs
-by design, if we are refactoring a part of the code base that will eliminate
-the bug once released, or if there is a sufficient workaround. Bryan and Laurel
-should be consulted if you think a bug is a “won’t fix”, and always include an
-explanation for the customer teams if you use this resolution on a ticket that
-originated from a customer.
-
-#### Fix Version
+### Field: `Fix Version/s`
 
 Fix version is the version in which you actually committed the code that fixed
 the bug. It differs from Target Fix Version in that it should only be added to
@@ -1027,19 +1014,6 @@ use to decide whether or not a patch is required on the current operating
 version.
 
 ![Fix Version](media/img/fix_version.jpg)
-
-### Summary
-
-Issue resolutions should provide valuable information to the customer teams,
-allowing them to communicate solutions back to our customers, as well as make
-decisions on patches and workarounds.
-
-In addition, the support team is starting to build a knowledge base of issues
-that they can use to search when new issues are raised, helping to reduce the
-number of tickets that make it down to engineering.
-
-Please spend some extra time when resolving bugs that originated from a
-customer.
 
 
 
