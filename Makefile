@@ -28,17 +28,19 @@ JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
+REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
 
 include ./tools/mk/Makefile.defs
 include ./tools/mk/Makefile.node.defs
+include ./tools/mk/Makefile.node_deps.defs
 include ./tools/mk/Makefile.smf.defs
 
 #
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(TAP)
+all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS)
 	$(NPM) rebuild
 
 $(TAP): | $(NPM_EXEC)
@@ -52,5 +54,6 @@ test: $(TAP)
 
 include ./tools/mk/Makefile.deps
 include ./tools/mk/Makefile.node.targ
+include ./tools/mk/Makefile.node_deps.targ
 include ./tools/mk/Makefile.smf.targ
 include ./tools/mk/Makefile.targ
