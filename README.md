@@ -3,7 +3,7 @@
 Repository: <git@git.joyent.com:eng.git>
 Browsing: <https://mo.joyent.com/eng>
 Who: Trent Mick, Dave Pacheco
-Docs: <https://head.no.de/docs/eng>
+Docs: <https://mo.joyent.com/docs/eng>
 Tickets/bugs: <https://devhub.joyent.com/jira/browse/TOOLS>
 
 
@@ -62,26 +62,17 @@ If you project has setup steps necessary for testing, then describe those
 here.
 
 
+# Starting a Repo Based on eng.git
 
-# Other Sections Here
+Create a new repo called "some-cool-fish" in your "~/work" dir based on "eng.git":
+
+    .../eng/tools/mkrepo $HOME/work/some-cool-fish
+
+
+# Your Other Sections Here
 
 Add other sections to your README as necessary. E.g. Running a demo, adding
 development data.
 
 
-
-# TODO
-
-Remaining work for this repo:
-
-- any "TODO" or "XXX" in the repo
-- review from engineering group
-- [Trent] Finish the restdown "public" dir and other work as discussed with
-  Philip. `git rm docs/media/css`
-- Give a little starter guide on using this repo as a starter template for the
-  new repos (for NAPI, CNAPI, FWAPI, DAPI, Workflow API, ZAPI). Include
-  getting on mo.joyent.com and head.no.de/docs for this.
-- Should we spec JIRA projects for the new APIs?
-- Add the node/npm local build support a la Amon and DSAPI. I.e. deps/node
-  and deps/npm git submodules and build handling in the Makefile.
 
