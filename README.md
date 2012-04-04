@@ -65,8 +65,9 @@ here.
 # Starting a Repo Based on eng.git
 
 Create a new repo called "some-cool-fish" in your "~/work" dir based on "eng.git":
+Note: run this inside the eng dir.
 
-    .../eng/tools/mkrepo $HOME/work/some-cool-fish
+    ./tools/mkrepo $HOME/work/some-cool-fish
 
 
 # Your Other Sections Here
