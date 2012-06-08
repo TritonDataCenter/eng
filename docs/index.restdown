@@ -88,7 +88,7 @@ namings for particular usages, should your repo require them.
     smf/manifests   SMF manifests
     smf/methods     SMF method scripts
     src/            C/C++ source files.
-    test/           Test suite. node-tap prefered.
+    test/           Test suite (able to generate TAP output).
     tools/          Miscellaneous dev/upgrade/deployment tools and data.
     Makefile        See below.
     package.json    npm module info, if applicable (holds the project version)
@@ -133,7 +133,9 @@ All repos **must** have a Makefile that defines at least the following targets:
 * `clean`: removes all built files
 * `prepush`: runs all checks/tests required before pushing changes to the repo
 * `docs`: builds documentation (restdown, man pages)
-* `test`: runs the automated test suite
+* `test`: Runs the test suite. Specifically, this runs the subset of the
+  tests that are runnable in a dev environment. See the "Testing" section
+  below.
 * `release`: build releasable artifacts, e.g. a tarball (for projects that
   generate release packages)
 
@@ -218,18 +220,52 @@ range of years. For example:
 
 ## Testing
 
-All repos **must** be tested by a comprehensive automated test suite,
-preferably using node-tap. These tests may be repo-specific, or may be part of
-a broader system test suite (ideally both). In either case, bug fixes and new
-features should not be integrated without adding new tests, and the tests
-**must** be run automatically (as via jenkins) either with every commit or
-daily.
+`make test` for dev environment tests. 'test/runtests' driver script for
+in-SDC systems tests.
 
+All repos **must** be tested by a comprehensive automated test suite and must
+be able to generate TAP output. (No particular node.js test framework is
+required, but all things being equal, use "nodeunit" or "node-tap".)
+These tests may be repo-specific, or may be part of a broader system test
+suite (ideally both). In either case, bug fixes and new features should not
+be integrated without adding new tests, and the tests **must** be run
+automatically (as via jenkins) either with every commit or daily.
 Understanding and fixing failures in the automated test run **must** be
 considered the top development priority for that repo's team. Persistent
 failures are not acceptable.
 
-Make target: "test"
+All installed components **should** provide a "runtests" driver script
+(preferably in the "test" subdirectory) and the necessary test files
+for running system tests (and unit tests are fine too) against your
+running service -- as opposed to starting up parallel dev versions of your
+service. The goal here is to provide a common, simple, and "just works"
+entry point for test components as they are deployed in the product,
+for the benefit of QA, continuous-integration testing, and devs not
+familiar with a given component. Dev environment != production environment.
+
+Q&A:
+
+- Why not just "make test"?
+
+  Not all components install (or should install) their Makefile. For example
+  `make` isn't available in the headnode GZ. So "runtests" is a lowest common
+  denominator in this regard. Also dev env != production env -- separate
+  "make test" and "runtests" entry points can facilitate different test
+  setup and test case selection, if necessary.
+
+- What about a customer running tests and blowing away production data?!
+
+  Each runtests will be prefixed with a kill switch so that 'runtests' will
+  not be accidentally run on production systems. Details to come (TODO).
+
+- What's a "system" test? "unit" test?
+
+    - unit tests: Tesing local code, no parts of the "system" are required
+      to run, and no mocking.
+    - integration tests: Local code, no "system", parts of the system are
+      mocked out as required.
+    - system tests: Testing the service(s) in a deployed environment.
+
 
 ## cscope
 
