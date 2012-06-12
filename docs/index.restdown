@@ -356,6 +356,25 @@ date. Keep such docs separate from general design documents that are kept up to
 date.
 
 
+## Node Build
+
+If your deployed service or tool uses node, then it **must** provide its own
+node build. The exception is services whose upgrade is tied to the SDC
+platform, and hence can be tested against a known node build (the platform's
+node build). There are two ways you can get a node build for your repo:
+
+1. Build your own from sources. Read and use "tools/mk/Makefile.node.defs" and
+   "tools/mk/Makefile.node.targ". You'll also need a git submodule of the node
+   sources:
+
+        $ git submodule add git://github.com/joyent/node.git deps/node
+        $ cd deps/node
+        $ git checkout v0.6.18   # select whichever version you want
+
+2. Use a prebuilt node. Read and use "tools/mk/Makefile.node_prebuilt.defs"
+   and "tools/mk/Makefile.node_prebuilt.targ".
+
+
 ## Managing Node Dependencies
 
 There are three cases for Node dependencies:
