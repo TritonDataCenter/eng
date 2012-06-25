@@ -15,7 +15,7 @@ also provides boilerplate for an SDC project repo, giving you a starting
 point for many of the suggestion practices defined in the guidelines. This is
 especially true for node.js-based REST API projects.
 
-Start with the guidelines: <https://head.no.de/docs/eng>
+Start with the guidelines: <https://mo.joyent.com/docs/eng>
 
 
 # Repository
