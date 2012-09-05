@@ -24,7 +24,7 @@ $(JSL_EXEC): | deps/javascriptlint/.git
 	cd deps/javascriptlint && make install
 
 distclean::
-	if [[ -d deps/javascriptlint/Makefile ]]; then \
+	if [[ -f deps/javascriptlint/Makefile ]]; then \
 		cd deps/javascriptlint && make clean; \
 	fi
 
