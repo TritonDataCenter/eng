@@ -220,8 +220,8 @@ range of years. For example:
 
 ## Testing
 
-`make test` for dev environment tests. 'test/runtests' driver script for
-in-SDC systems tests.
+tl;dr: `make test` for dev environment tests. 'test/runtests' driver script
+for in-SDC systems tests (see boilerplate 'tools/runtests.in').
 
 All repos **must** be tested by a comprehensive automated test suite and must
 be able to generate TAP output. (No particular node.js test framework is
@@ -229,10 +229,13 @@ required, but all things being equal, use "nodeunit" or "node-tap".)
 These tests may be repo-specific, or may be part of a broader system test
 suite (ideally both). In either case, bug fixes and new features should not
 be integrated without adding new tests, and the tests **must** be run
-automatically (as via jenkins) either with every commit or daily.
-Understanding and fixing failures in the automated test run **must** be
-considered the top development priority for that repo's team. Persistent
-failures are not acceptable.
+automatically (as via jenkins) either with every commit or daily. Currently
+this is handled by the [staging
+environment](https://mo.joyent.com/docs/globe-theatre/master/) and the
+"stage-test-\*" Jenkins jobs. IOW, your project should have some sort of
+"stage-test-\*" job. Understanding and fixing failures in the automated test
+run **must** be considered the top development priority for that repo's team.
+Persistent failures are not acceptable.
 
 All installed components **should** provide a "runtests" driver script
 (preferably in the "test" subdirectory) and the necessary test files
@@ -242,6 +245,8 @@ service. The goal here is to provide a common, simple, and "just works"
 entry point for test components as they are deployed in the product,
 for the benefit of QA, continuous-integration testing, and devs not
 familiar with a given component. Dev environment != production environment.
+All "runtests" scripts **must** exit non-zero if any tests failed.
+
 
 Q&A:
 
@@ -256,7 +261,9 @@ Q&A:
 - What about a customer running tests and blowing away production data?!
 
   Each runtests will be prefixed with a kill switch so that 'runtests' will
-  not be accidentally run on production systems. Details to come (TODO).
+  not be accidentally run on production systems. The kill switch is the
+  presence of the '/lib/sdc/.sdc-test-no-production-data' file. See
+  handling in 'tools/runtests.in' boilerplate.
 
 - What's a "system" test? "unit" test?
 
