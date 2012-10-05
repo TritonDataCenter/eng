@@ -775,7 +775,7 @@ in each of the resource errors should also be CamelCased):
         {
           "resource": "VM",
           "field": "ram",
-          "code": "RamNotANumber"
+          "code": "NotANumber"
         }
       ]
     }
