@@ -723,97 +723,122 @@ and **should** follow the lead of
 
 ## Error Handling
 
-APIs must provide meaningful error responses, especially for requests that
-involve submitting data (i.e. non-GET requests). When a client submits data
-with an HTTP request, it is expected that on failure the server will inform
-the client with an error response that allows it to handle exceptions in a
-programmatic way. Although *node-restify* provides a reusable RestError object
-with *code* and *message* attributes, clients often need more information
-about the failure of a request. For instance, API clients that implement user
-interfaces need to give users feedback about the errors produced after
-submitting a form, where a message such as "RAM must be greater than 1024" is
-more useful than "Arguments are invalid" messages produced by generic *node
-restify* server implementations.
+APIs must provide meaningful and actionable error responses, especially for
+requests that involve submitting data (i.e. non-GET requests). "Actionable"
+here means that enough information is provided for programmatic handling of
+errors.
 
+### Motivation
 
-### Error Object Format
+[Node-restify error support](http://mcavage.github.com/node-restify/#Error-handling)
+provides a set of `RestError` classes with a typical response like:
 
-The default *node-restify* Error object looks like this:
+    HTTP/1.1 409 Conflict
+    ...
 
     {
       "code": "InvalidArgument",
-      "message": "Parameter is not a number",
+      "message": "I just don't like you"
     }
 
-This is the basic Error message format that APIs must implement. Both *code*
-and *message* are required. By default, *node-restify* provides the following
-REST error codes:
+However, API clients often need more information about the failure of a
+request. This scheme does not provide a way to programmatically match a
+failure to one of multiple input parameters. E.g., consider a client
+attempting to present errors in a form for a "CreateFoo" endpoint.
 
-    * RestError
-    * BadDigestError
-    * BadMethodError
-    * InternalError
-    * InvalidArgumentError
-    * InvalidContentError
-    * InvalidCredentialsError
-    * InvalidHeaderError
-    * InvalidVersionError
-    * MissingParameterError
-    * NotAuthorizedError
-    * RequestExpiredError
-    * RequestThrottledError
-    * ResourceNotFoundError
-    * WrongAcceptError
+E.g., API clients that implement user interfaces need to give users
+feedback about the errors produced after submitting a form, where a message
+such as "RAM must be greater than 1024" is more useful than "Arguments are
+invalid" messages produced by generic *node restify* server implementations.
 
-The value of *code* should be a CamelCased string that denotes the kind of
-error produced in the request. This string should not refer to errors in
-specific fields of the submitted data such as "RamNotANumber", as we will see
-later.
+### Error Response Format
 
-The value of *message* must be a human readable string that allows users to
-understand the nature of the error *code*, as the same error *code* can be
-produced with two different *messages*. An example of this might be an
-"InternalError" *code* that could return "Database if offline" or "Cache not
-running" as its *message*.
-
-
-### Resource Errors
-
-In addition to the *code* and *message* attributes of the Error object, API
-implementors should include an additional *errors* attribute in order to be
-more explicit about the reasons an HTTP request has failed. A complete Error
-object that includes resource errors looks like this (note that the *code* key
-in each of the resource errors should also be CamelCased):
+    HTTP/1.1 <statusCode> ...
+    ...
 
     {
-      "code": "InvalidArgument",
-      "message": "VM parameters are not valid",
+      "code": "<restCode>",
+      "message": "<message>",
       "errors": [
         {
-          "resource": "VM",
+          "field": "<errorField>",
+          "code": "<errorCode>",
+          "message": "<errorMessage>"
+        },
+        ...
+      ]
+    }
+
+JEG-based API error response guidelines:
+
+- **must** use a meaningful HTTP `statusCode`. See
+  <http://en.wikipedia.org/wiki/List_of_HTTP_status_codes>.
+- **must** include a `code` CamelCase string code field
+- **must** include a `message` string description of the error. The
+  message must be a human readable string that allows users to understand
+  the nature of the error *code*, as the same error *code* can be produced
+  with two different *messages*. An example of this might be an
+  "InternalError" *code* that could return "Database if offline" or "Cache
+  not running" as its *message*.
+- **may** include an `errors` array. Each element of that array **must**
+  include a `field` name, **must** include a `code` CamelCase string code
+  field and **may** include a `message` string field.
+
+Suggested `errors.*.code` fields are:
+
+||Missing||The resource does not exist.||
+||MissingParameter||A required parameter was not provided.||
+||Invalid||The formatting of the field is invalid.||
+
+### Example:
+
+    HTTP/1.1 422 Unprocessable Entity
+    ...
+
+    {
+      "code": "InvalidParameters",
+      "message": "Invalid paramaters to create a VM",
+      "errors": [
+        {
           "field": "ram",
-          "code": "NotANumber"
+          "code": "Invalid",
+          "message": "RAM is not a number"
+        },
+        {
+          "field": "brand",
+          "code": "MissingParameter"
+        },
+        {
+          "field": "image_uuid",
+          "code": "Missing",
+          "message": "Image '6b288017-2c2d-354b-83d4-69748d50284d' does not exist"
         }
       ]
     }
 
-As we can see in the example above, the error accurately states that a VM
-payload with a value of RAM that is not a number was submitted. Both library
-clients and user interfaces should have this kind of detail when dealing with
-errors produced by APIs.
 
-### Documentation Guidelines
+### Best Practice
 
-APIs must document all Error *codes* that can ever be returned, especially
-resource error *codes*. Suffices to say, each error code should be listed
-along an explanation of what it means. Additionally, for each endpoint section
-for an API documentation, all Error objects that the particular endpoint can
-produce must be listed in a similar way to the following example for a VMs
-endpoint:
+TODO: Trent is working on code to use with restify v2.0 to facilitate
+subclassing restify.RestError to make the above simpler.
 
-||**Error Code**||**Description**||
-||InvalidArgument||If VM UUID is not valid||
-||ResourceNotFound||If VM does not exist||
+
+### Documenting Errors
+
+An API **must** document all of the `restCodes` it can produce. An "Errors"
+section near the top of the API's restdown docs is suggested. For example:
+
+    ||**HTTP Status Code**||**JSON Code**||**Description**||
+    ||400||OperationNotAllowedOnRootDirectory||Trying to call PUT on `/`||
+    ||404||ResourceNotFound||If `:account` does not exist||
+    ||409||EntityExists||If the specifed path already exists and is not a directory||
+    ||409||ParentNotDirectory||Trying to create a directory under an object||
+
+Additionally, each endpoint **must** document all custom `errors.*.code`
+values it can produce. If just a stock set of error codes is used, then
+it is sufficient to document those in the "Errors" section at the top
+of the API docs.
+
 
 
 # Bash programming guidelines
