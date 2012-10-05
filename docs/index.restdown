@@ -698,10 +698,27 @@ gather more information. To facilitate this:
 
 ## Naming Endpoints
 
-Service API endpoints **should** be named.
+Service API endpoints **should** be named. Endpoint names **must** be
+CamelCase, **should** include the name of resource being operated on,
+and **should** follow the lead of
+[cloudapi](https://mo.joyent.com/docs/cloudapi/master/) for verb usage, e.g.:
 
-TODO: codify some of MarkC's and my (mostly mark) discussions on naming of
-API endpoints. See cloudapi and amon api for examples.
+    # CRUD examples:
+    ListMachines
+    GetMachine
+    CreateMachine
+    DeleteMachine
+
+    # Other actions, if applicable:
+    StopMachine
+    StartMachine
+    RebootMachine
+    ResizeMachine
+
+    # Example using "Put" verb from
+    # <https://mo.joyent.com/docs/muskie/master/#PutObject> when the action
+    # is idempotent.
+    PutObject
 
 
 ## Error Handling
