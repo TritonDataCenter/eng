@@ -42,7 +42,7 @@ When working on large features, it's tempting to use development branches that
 eventually get integrated into master. Indeed, this is sometimes necessary.
 However, it should be avoided when possible, as it means people are running dev
 branches rather than "master", which can lead to a [quality death spiral
-(QDS)](http://hub.opensolaris.org/bin/view/Community+Group+on/qual_death_spiral)
+(QDS)](http://wiki.illumos.org/display/illumos/On+the+Quality+Death+Spiral)
 as fewer people actually run the mainline tree. Where possible, consider
 whether larger projects can be split into reasonably-sized chunks that can
 individually be integrated into "master" without breaking existing
