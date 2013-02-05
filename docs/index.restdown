@@ -1291,8 +1291,7 @@ See the top-level Makefile in eng.git for the complete details.
 
 Joyent leverages Agile methodologies for our development proccesses. We maintain the highest quality engineering principles. Team syncronization begins daily with our morning scrum over XMPP. We use continuous integration with Git. All bugs, issues, and user stories are tracked in Jira.
 
-For more details on Joyent's morning scrum please read: [Engineering Process]
-[Engineering Process]: https://hub.joyent.com/wiki/display/dev/Engineering+Process
+For more details on Joyent's morning scrum please read: [Engineering Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process)
 
 # Security Statement and Best Practices
 
@@ -1317,8 +1316,7 @@ For the Joyent Public Cloud, Jira change tickets should include the following be
 - Confirmation of the code's functionality and proof that vulnerablity testing was performed. A log or screenshot from a security scanner is sufficient
 - Steps to undo this change if necessary.
 
-For reference, read the [OWASP top 10] vulnerabilities.
-[owasp top 10]: https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project
+For reference, read the [owasp top 10](https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project) vulnerabilities.
 
 # Miscellaneous Best Practices
 
