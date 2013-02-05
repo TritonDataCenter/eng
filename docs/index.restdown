@@ -1307,7 +1307,7 @@ Common vulnerabilities to watch out for:
 - Wrap all routes in security checks to verify user passes ACLs.
 - Prevent cross-site-request-forgery(CSRF)
 
-# Production code deployment process
+## Production code deployment process
 
 For the Joyent Public Cloud, Jira change tickets should include the following before the code is promoted to production:
 
