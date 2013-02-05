@@ -1289,7 +1289,7 @@ See the top-level Makefile in eng.git for the complete details.
 
 # Software Development Life Cycle
 
-Joyent leverages Agile methodologies for our development proccesses. We maintain the highest quality engineering principles. Team syncronization begins daily with our morning scrum over XMPP. We use continuous integration with Git. All bugs, issues, and user stories are tracked in Jira.
+Joyent leverages Agile methodologies for our development proccesses. Team syncronization begins daily with our morning scrum over XMPP. We use continuous integration with Git. All bugs, issues, and user stories are tracked in Jira.
 
 For more details on Joyent's morning scrum please read: [Engineering Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process)
 
