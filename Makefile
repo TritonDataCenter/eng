@@ -27,12 +27,12 @@ JS_FILES	:= $(shell ls *.js) $(shell find lib test -name '*.js')
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
-JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
+JSSTYLE_FLAGS    = -f tools/jsstyle.conf
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
 
 
-NODE_PREBUILT_VERSION=v0.8.14
+NODE_PREBUILT_VERSION=v0.8.18
 NODE_PREBUILT_TAG=zone
 
 

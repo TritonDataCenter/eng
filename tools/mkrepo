@@ -25,7 +25,6 @@ var DIRS = [
 var SUBMODULES = {
     'javascriptlint': 'git://github.com/davepacheco/javascriptlint.git',
     'jsstyle': 'git://github.com/davepacheco/jsstyle.git',
-    'node': 'git://github.com/joyent/node.git',
     'restdown': 'git://github.com/trentm/restdown.git'
 };
 
