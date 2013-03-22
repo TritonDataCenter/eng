@@ -168,7 +168,7 @@ check-bash: $(BASH_FILES:%=%.bashchk) $(BASH_FILES:%=%.bashstyle)
 check-json: $(JSON_FILES:%=%.jsonchk)
 
 %.jsonchk: %
-	$(JSON) < $^ > /dev/null
+	$(JSON) --validate -f $^
 
 #
 # The above approach can be slow when there are many files to check because it
