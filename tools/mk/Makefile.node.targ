@@ -31,4 +31,4 @@ endif
 DISTCLEAN_FILES += $(NODE_INSTALL) $(BUILD)/src-node
 
 distclean::
-	-([[ -d deps/node ]] && cd deps/node && $(MAKE) distclean)
+	-([[ ! -d deps/node ]] || (cd deps/node && $(MAKE) distclean))
