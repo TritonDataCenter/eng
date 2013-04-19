@@ -16,16 +16,16 @@ endif
 
 ifeq ($(shell uname -s),SunOS)
 $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC): | deps/node/.git
-    (cd deps/node; ./configure $(NODE_CONFIG_FLAGS) && $(MAKE) && $(MAKE) install)
+	(cd deps/node; ./configure $(NODE_CONFIG_FLAGS) && $(MAKE) && $(MAKE) install)
 else
 $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC):
 	(mkdir -p $(BUILD) \
-        && cd $(BUILD) \
-        && git clone git://github.com/joyent/node.git src-node \
-        && cd src-node \
-        && git checkout $(NODE_PREBUILT_VERSION) \
-        && ./configure $(NODE_CONFIG_FLAGS) \
-        && $(MAKE) && $(MAKE) install)
+		&& cd $(BUILD) \
+		&& git clone git://github.com/joyent/node.git src-node \
+		&& cd src-node \
+		&& git checkout $(NODE_PREBUILT_VERSION) \
+		&& ./configure $(NODE_CONFIG_FLAGS) \
+		&& $(MAKE) && $(MAKE) install)
 endif
 
 DISTCLEAN_FILES += $(NODE_INSTALL) $(BUILD)/src-node
