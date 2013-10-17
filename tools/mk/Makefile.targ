@@ -81,6 +81,10 @@
 #
 #	JSSTYLE_FLAGS	Additional flags to pass through to jsstyle
 #
+#	RESTDOWN_EXT	By default '.restdown' is required for DOC_FILES
+#			(see above). If you want to use, say, '.md' instead, then
+#			set 'RESTDOWN_EXT=.md' in your Makefile.
+#
 
 #
 # Defaults for the various tools we use.
@@ -96,6 +100,7 @@ JSSTYLE		?= jsstyle
 MKDIR		?= mkdir -p
 MV		?= mv
 RESTDOWN_FLAGS	?=
+RESTDOWN_EXT	?= .restdown
 RMTREE		?= rm -rf
 JSL_FLAGS  	?= --nologo --nosummary
 
@@ -252,8 +257,8 @@ DOC_MEDIA_FILES_BUILD := $(DOC_MEDIA_FILES:%=$(DOC_BUILD)/media/%)
 #
 .PHONY: docs
 docs:							\
-	$(DOC_FILES:%.restdown=$(DOC_BUILD)/%.html)		\
-	$(DOC_FILES:%.restdown=$(DOC_BUILD)/%.json)		\
+	$(DOC_FILES:%$(RESTDOWN_EXT)=$(DOC_BUILD)/%.html)		\
+	$(DOC_FILES:%$(RESTDOWN_EXT)=$(DOC_BUILD)/%.json)		\
 	$(DOC_MEDIA_FILES_BUILD)
 
 #
@@ -261,16 +266,16 @@ docs:							\
 # files in DOC_BUILD are up to date.
 #
 .PRECIOUS:					\
-	$(DOC_FILES:%.restdown=docs/%.html)		\
-	$(DOC_FILES:%.restdown=docs/%json)
+	$(DOC_FILES:%$(RESTDOWN_EXT)=docs/%.html)		\
+	$(DOC_FILES:%$(RESTDOWN_EXT)=docs/%json)
 
 #
 # We do clean those intermediate files, as well as all of DOC_BUILD.
 #
 CLEAN_FILES +=					\
 	$(DOC_BUILD)				\
-	$(DOC_FILES:%.restdown=docs/%.html)		\
-	$(DOC_FILES:%.restdown=docs/%.json)
+	$(DOC_FILES:%$(RESTDOWN_EXT)=docs/%.html)		\
+	$(DOC_FILES:%$(RESTDOWN_EXT)=docs/%.json)
 
 #
 # Before installing the files, we must make sure the directories exist. The |
@@ -283,7 +288,7 @@ $(DOC_MEDIA_FILES_BUILD): | $(DOC_MEDIA_DIRS_BUILD)
 $(DOC_BUILD)/%: docs/% | $(DOC_BUILD)
 	$(CP) $< $@
 
-docs/%.json docs/%.html: docs/%.restdown | $(DOC_BUILD) $(RESTDOWN_EXEC)
+docs/%.json docs/%.html: docs/%$(RESTDOWN_EXT) | $(DOC_BUILD) $(RESTDOWN_EXEC)
 	$(RESTDOWN) $(RESTDOWN_FLAGS) -m $(DOC_BUILD) $<
 
 $(DOC_BUILD):
