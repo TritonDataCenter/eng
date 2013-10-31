@@ -18,8 +18,10 @@ be followed blindly. However, these guidelines represent the best practices
 agreed upon by the team. If you feel it necessary to diverge from them, that's
 okay, but be prepared to explain why.
 
-Note: In this document, services implementing an API are referred to as APIs.
-For example, "MAPI" denotes the service implementing the MAPI API.
+Note: In this document (and elsewhere at Joyent), a service implementing an API
+is referred to by the API name itself.  For example, "SAPI" denotes both the
+"Services API" in the abstract as well as the software component that implements
+that API.
 
 
 # Repository Guidelines
@@ -48,6 +50,21 @@ whether larger projects can be split into reasonably-sized chunks that can
 individually be integrated into "master" without breaking existing
 functionality. This allows you to continue developing on "master" while still
 being able to commit frequently.
+
+
+## Repositories and documentation
+
+Open-source projects and components live at github.com/joyent.  These include
+Node.js, SmartOS, and a large number of smaller Node modules and other
+components.  Some components still live under individuals' github accounts, but
+new components should generally be created under the "joyent" organization.
+
+Note that just because a repo is on github doesn't mean its issues are tracked
+there.  That's decided on a per-project basis.
+
+Proprietary components, including most of SDC and Manta, are managed by gitosis
+running on git.joyent.com.  Files, commits, and documentation for these projects
+can be browsed at mo.joyent.com.
 
 
 ## Repository Naming
@@ -1287,15 +1304,22 @@ restdown, "check" to check SMF manifests as well as JavaScript style and lint,
 
 See the top-level Makefile in eng.git for the complete details.
 
-# Software Development Life Cycle
 
-Joyent leverages Agile methodologies for our development proccesses. Team syncronization begins daily with our morning scrum over XMPP. We use continuous integration with Git. All bugs, issues, and user stories are tracked in Jira.
+# Software development process
 
-For more details on Joyent's morning scrum please read: [Engineering Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process)
+Team synchronization begins daily with our morning scrum over XMPP. We use
+continuous integration with Git. Bugs and feature requests are tracked in Jira.
+For more details on Joyent's morning scrum please read: [Engineering
+Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process).  
+
+In general, process is shrink-to-fit: we adopt process that help us work better,
+but process for process's sake is avoided.  Any resemblance to formalized
+methodologies, living or dead, is purely coincidental.
+
 
 # Security Statement and Best Practices
 
-Joyent Engineering makes security a top priority for all of our projects. All engineers must take security sensitivity training to ensure that their work follows industry best practices. All new changes are reviewed by a developer other than the person who wrote the new code. Both developers test that these changes are not vulnerable to the OWASP top 10 security, pass PCI DSS, and are safe.
+Joyent Engineering makes security a top priority for all of our projects. All engineering work is expected to follow industry best practices. New changes affecting security are reviewed by a developer other than the person who wrote the new code. Both developers test that these changes are not vulnerable to the OWASP top 10 security, pass PCI DSS, and are safe.
 
 Common vulnerabilities to watch out for:
 
