@@ -7,8 +7,9 @@
  *
  *    o no lines longer than 80 characters
  *    o file does not end with a blank line
- *    o Do not use 'local' and var initialization in the same statement.
- *      See <http://www.tldp.org/LDP/abs/html/localvar.html#EXITVALANOMALY01>
+ *    o Do not use 'local' and var initialization *using a subshell* in the
+ *      same statement. See
+ *      <http://www.tldp.org/LDP/abs/html/localvar.html#EXITVALANOMALY01>
  *      for why not. Arguably this belongs in a separate 'bashlint'.
  *
  * Future enhancements could include:
@@ -77,11 +78,12 @@ function checkFile(filename)
 			styled = false;
 		}
 
-		if (!styled && line.match(/^\s*local (\w+)=/)) {
+		if (!styled && line.match(/^\s*local\s+(\w+)\s*=.*\$\(/)) {
 			nerrors++;
-			var m = line.match(/^\s*local\s*(\w+)\s*=/);
-			console.log('%s: %d: local+initialization in the ' +
-				'same statement is dangerous ' +
+			var m = line.match(/^\s*local\s+(\w+)\s*=/);
+			console.log('%s: %d: declaring and setting a "local" ' +
+				'var in the same statement ' +
+				'ignores a subshell return code ' +
 				'<http://www.tldp.org/LDP/abs/html/localvar.html#EXITVALANOMALY01>: ' +
 				'local %s=...',
 				filename, i, m[1]);
