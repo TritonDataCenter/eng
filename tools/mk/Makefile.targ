@@ -201,7 +201,7 @@ check-jsstyle:  $(JSSTYLE_EXEC)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $(JSSTYLE_FILES)
 
 .PHONY: check
-check: check-jsl check-json $(JSSTYLE_TARGET) check-bash
+check:: check-jsl check-json $(JSSTYLE_TARGET) check-bash
 	@echo check ok
 
 .PHONY: clean
