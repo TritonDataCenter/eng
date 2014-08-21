@@ -224,13 +224,21 @@ Make target: "check"
 
 ## Copyright
 
-All source files (including Makefiles) should have a copyright statement that
-says:
+All source files (including Makefiles) should have the MPL 2.0 header and a
+copyright statement. These statements should match the entries in the
+`prototypes` directory. For an easy way to ensure that new files have the right
+MPL 2.0 header and copyright statement, you can copy the corresponding file out
+of the `prototypes` directory in `eng.git`.
 
-    Copyright (c) [year], Joyent, Inc. All rights reserved.
+The contents of the MPL 2.0 header must be:
 
-Year should be exactly the latest year when the file was changed, not a list or
-range of years. For example:
+    This Source Code Form is subject to the terms of the Mozilla Public
+    License, v. 2.0. If a copy of the MPL was not distributed with this
+    file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+When modifying existing code, the year should be updated to be the
+current year that the file was modified. There should only be a single
+year, not a list. For example:
 
     Copyright (c) 2012, Joyent, Inc. All rights reserved.
 
