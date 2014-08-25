@@ -16,5 +16,6 @@
   "scripts": {
     "start": "node ./server.js",
     "test": "./node_modules/.bin/tap test/*.test.js"
-  }
+  },
+  "license": "MPL-2.0"
 }
