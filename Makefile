@@ -40,7 +40,7 @@ JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
 
-NODE_PREBUILT_VERSION=v0.8.22
+NODE_PREBUILT_VERSION=v0.8.28
 
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_CC_VERSION=4.6.2
