@@ -64,16 +64,17 @@ being able to commit frequently.
 ## Repositories and documentation
 
 Open-source projects and components live at github.com/joyent.  These include
-Node.js, SmartOS, and a large number of smaller Node modules and other
-components.  Some components still live under individuals' github accounts, but
-new components should generally be created under the "joyent" organization.
+Node.js, SmartOS, SDC, Manta, and a large number of smaller Node modules and
+other components.  Some components still live under individuals' github
+accounts, but new components should generally be created under the "joyent"
+organization.
 
 Note that just because a repo is on github doesn't mean its issues are tracked
 there.  That's decided on a per-project basis.
 
-Proprietary components, including most of SDC and Manta, are managed by gitosis
-running on git.joyent.com.  Files, commits, and documentation for these projects
-can be browsed at mo.joyent.com.
+Some older components (and a few proprietary ones that are still used) are
+managed by gitosis running on the internal Joyent git server.  Files, commits,
+and documentation for these projects can be browsed at mo.joyent.com.
 
 
 ## Repository Naming

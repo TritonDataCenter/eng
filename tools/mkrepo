@@ -81,7 +81,8 @@ function mkdir(d) {
 
 function gitify(dir, repo) {
     exec('git init', dir, function () {
-        exec('git remote add origin git@git.joyent.com:' + repo + '.git', dir);
+        exec('git remote add origin git@github.com:joyent/' + repo + '.git',
+	    dir);
 
         Object.keys(SUBMODULES).forEach(function (k) {
             // stub out the git submodule call

@@ -10,22 +10,11 @@
 
 # Joyent Engineering Guide
 
-Repository: <git@git.joyent.com:eng.git>
-Browsing: <https://mo.joyent.com/eng>
-Who: Trent Mick, Dave Pacheco
-Docs: <https://mo.joyent.com/docs/eng>
-Tickets/bugs: <https://devhub.joyent.com/jira/browse/TOOLS>
-
-
-# Overview
-
 This repo serves two purposes: (1) It defines the guidelines and best
 practices for Joyent engineering work (this is the primary goal), and (2) it
 also provides boilerplate for an SDC project repo, giving you a starting
 point for many of the suggestion practices defined in the guidelines. This is
 especially true for node.js-based REST API projects.
-
-Start with the guidelines: <https://mo.joyent.com/docs/eng>
 
 
 # Repository
@@ -50,7 +39,7 @@ Start with the guidelines: <https://mo.joyent.com/docs/eng>
 
 To run the boilerplate API server:
 
-    git clone git@git.joyent.com:eng.git
+    git clone git@github.com:joyent/eng.git
     cd eng
     git submodule update --init
     make all
