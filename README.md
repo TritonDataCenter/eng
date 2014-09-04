@@ -8,7 +8,7 @@
     Copyright (c) 2014, Joyent, Inc.
 -->
 
-# Joyent Engineering Guide
+# eng: Joyent Engineering Guide
 
 This repo serves two purposes: (1) It defines the guidelines and best
 practices for Joyent engineering work (this is the primary goal), and (2) it
@@ -16,23 +16,8 @@ also provides boilerplate for an SDC project repo, giving you a starting
 point for many of the suggestion practices defined in the guidelines. This is
 especially true for node.js-based REST API projects.
 
-
-# Repository
-
-    deps/           Git submodules and/or commited 3rd-party deps should go
-                    here. See "node_modules/" for node.js deps.
-    docs/           Project docs (restdown)
-    lib/            Source files.
-    node_modules/   Node.js deps, either populated at build time or commited.
-                    See Managing Dependencies.
-    pkg/            Package lifecycle scripts
-    smf/manifests   SMF manifests
-    smf/methods     SMF method scripts
-    test/           Test suite (using node-tap)
-    tools/          Miscellaneous dev/upgrade/deployment tools and data.
-    Makefile
-    package.json    npm module info (holds the project version)
-    README.md
+**You probably want to be looking at the actual guide in docs/index.restdown.**
+This README.md is just a template for repos to use.
 
 
 # Development
