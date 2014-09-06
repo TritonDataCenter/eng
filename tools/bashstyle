@@ -96,6 +96,13 @@ function checkFile(filename)
 				filename, i, m[1]);
 		}
 
+		// Regexplanation: non-[, [, space (contents) space, ], non-]
+		// groups before and after brackets to ease search/replace.
+		if (!styled && line.match(/(^|[^\[])\[(\s.+\s)\]([^\]])/)) {
+			nerrors++;
+			console.log('%s: %d: prefer [[ to [ for tests.', filename, i);
+		}
+
 		if (!styled && line.length > 80) {
 			nerrors++;
 			console.log('%s: %d: line exceeds 80 columns',
