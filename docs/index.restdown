@@ -31,12 +31,11 @@ working that follows these guidelines.
 
 ## Rule #1: FCS Quality All the Time
 
-In general, use the "master" branch for development and releases. **"master"
-must be FCS (First Customer Ship) quality at all times.** Although releases are
-technically cut from release-specific branches, these branches are not expected
-to diverge significantly from "master" at the time the branch was cut except
-for fixes backported after the cut. That is, development should not be ongoing
-in the release branches.
+In general, use the "master" branch for development. Development should not be
+ongoing in the release branches. "master" must be
+**FCS quality all the times**. The deliverables should always be of
+high enough quality to ship to a first customer, FCS (first customer ship).
+
 
 When working on large features, it's tempting to use development branches that
 eventually get integrated into master. Indeed, this is sometimes necessary.
