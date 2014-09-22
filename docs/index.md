@@ -1,6 +1,6 @@
 ---
 title: Joyent Engineering Guide
-markdown2extras: wiki-tables, code-friendly
+markdown2extras: tables, code-friendly
 apisections:
 ---
 <!--
@@ -593,18 +593,19 @@ API Guidelines" below.
 Log record fields **must** conform to the following (most of which comes
 for free with Bunyan usage):
 
-|| **JSON key** || **Description** || **Examples** || **Required** ||
-|| **name** || Service name. || "ca" (for Cloud Analytics) || All entries ||
-|| **hostname** || Server hostname. || `uname -n`, `os.hostname()` || All entries ||
-|| **pid** || Process id. || 1234 || All entries ||
-|| **time** || `YYYY-MM-DDThh:mm:ss.sssZ` || "2012-01-26T19:20:30.450Z" || All entries ||
-|| **level** || Log level. || "fatal", "error", "warn", "info", or "debug" || All entries ||
-|| **msg** || The log message || "illegal argument: parameter 'foo' must be an integer" || All entries ||
-|| **component** || Service component. A sub-name on the Logger "name". || "aggregator-12" || Optional ||
-|| **req_id** || Request UUID || See "Request Identifiers" section below. Restify simplifies this. || All entries relating to a particular request ||
-|| **latency** || Time of request in milliseconds || 155 || Strongly suggested for entries describing the completion of a request or other backend operation ||
-|| **req** || HTTP request || -- || At least once as per Restify's or [Bunyan's serializer](https://github.com/trentm/node-bunyan/blob/master/lib/bunyan.js#L856-870) for each request. ||
-|| **res** || HTTP response || -- || At least once as per Restify's or [Bunyan's serializer](https://github.com/trentm/node-bunyan/blob/master/lib/bunyan.js#L872-878) for each response. ||
+| JSON key | Description | Examples | Required |
+| -------- | ----------- | -------- | -------- |
+| **name** | Service name. | "ca" (for Cloud Analytics) | All entries |
+| **hostname** | Server hostname. | `uname -n`, `os.hostname()` | All entries |
+| **pid** | Process id. | 1234 | All entries |
+| **time** | `YYYY-MM-DDThh:mm:ss.sssZ` | "2012-01-26T19:20:30.450Z" | All entries |
+| **level** | Log level. | "fatal", "error", "warn", "info", or "debug" | All entries |
+| **msg** | The log message | "illegal argument: parameter 'foo' must be an integer" | All entries |
+| **component** | Service component. A sub-name on the Logger "name". | "aggregator-12" | Optional |
+| **req_id** | Request UUID | See "Request Identifiers" section below. Restify simplifies this. | All entries relating to a particular request |
+| **latency** | Time of request in milliseconds | 155 | Strongly suggested for entries describing the completion of a request or other backend operation |
+| **req** | HTTP request | -- | At least once as per Restify's or [Bunyan's serializer](https://github.com/trentm/node-bunyan/blob/master/lib/bunyan.js#L856-870) for each request. |
+| **res** | HTTP response | -- | At least once as per Restify's or [Bunyan's serializer](https://github.com/trentm/node-bunyan/blob/master/lib/bunyan.js#L872-878) for each response. |
 
 We use these definitions for log levels:
 
@@ -820,9 +821,12 @@ JEG-based API error response guidelines:
 
 Suggested `errors.*.code` fields are:
 
-||Missing||The resource does not exist.||
-||MissingParameter||A required parameter was not provided.||
-||Invalid||The formatting of the field is invalid.||
+| Code | Description |
+| ---- | ----------- |
+| Missing | The resource does not exist. |
+| MissingParameter | A required parameter was not provided. |
+| Invalid | The formatting of the field is invalid. |
+
 
 ### Example:
 
@@ -1237,9 +1241,11 @@ that they can deliver a solution (or estimated release date) to the customer.
 It is important to resolve your issues so that we continue to rotate bugs out
 of the queue, and keep our customers happy.
 
-|| **Fixed/Implemented** || Indicates that a development solution has been implemented and can be communicated to the customer. Release date can be deduced from the fix version. ||
-|| **Duplicate** || Indicates that this is already being worked on (or has been fixed) by another bug. Please Link the duplicate issue to the ticket. ||
-|| **Won't Fix** || There are certain circumstances under which we will decline to resolve a customer issue. A couple examples of this are if the issue being raised occurs by design, if we are refactoring a part of the code base that will eliminate the bug once released, or if there is a sufficient workaround. Bryan and Laurel should be consulted if you think a bug is a "won't fix", and always include an explanation for the customer teams if you use this resolution on a ticket that originated from a customer. ||
+| Resolution | Description |
+| ---------- | ----------- |
+| Fixed/Implemented | Indicates that a development solution has been implemented and can be communicated to the customer. Release date can be deduced from the fix version. |
+| Duplicate | Indicates that this is already being worked on (or has been fixed) by another bug. Please Link the duplicate issue to the ticket. |
+| Won't Fix | There are certain circumstances under which we will decline to resolve a customer issue. A couple examples of this are if the issue being raised occurs by design, if we are refactoring a part of the code base that will eliminate the bug once released, or if there is a sufficient workaround. Bryan and Laurel should be consulted if you think a bug is a "won't fix", and always include an explanation for the customer teams if you use this resolution on a ticket that originated from a customer. |
 
 
 ### Field: `Fix Version/s`
@@ -1327,7 +1333,7 @@ See the top-level Makefile in eng.git for the complete details.
 Team synchronization begins daily with our morning scrum over XMPP. We use
 continuous integration with Git. Bugs and feature requests are tracked in Jira.
 For more details on Joyent's morning scrum please read: [Engineering
-Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process).  
+Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process).
 
 In general, process is shrink-to-fit: we adopt process that help us work better,
 but process for process's sake is avoided.  Any resemblance to formalized

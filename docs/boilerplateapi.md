@@ -1,7 +1,7 @@
 ---
 title: Boilerplate API (BAPI)
 apisections: Boiled Eggs
-markdown2extras: wiki-tables, code-friendly
+markdown2extras: tables, code-friendly
 ---
 <!--
     This Source Code Form is subject to the terms of the Mozilla Public
