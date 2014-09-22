@@ -89,9 +89,9 @@
 #
 #	JSSTYLE_FLAGS	Additional flags to pass through to jsstyle
 #
-#	RESTDOWN_EXT	By default '.restdown' is required for DOC_FILES
-#			(see above). If you want to use, say, '.md' instead, then
-#			set 'RESTDOWN_EXT=.md' in your Makefile.
+#	RESTDOWN_EXT	By default '.md' is required for DOC_FILES (see above).
+#			If you want to use, say, '.restdown' instead, then set
+#			'RESTDOWN_EXT=.restdown' in your Makefile.
 #
 
 #
@@ -108,7 +108,7 @@ JSSTYLE		?= jsstyle
 MKDIR		?= mkdir -p
 MV		?= mv
 RESTDOWN_FLAGS	?=
-RESTDOWN_EXT	?= .restdown
+RESTDOWN_EXT	?= .md
 RMTREE		?= rm -rf
 JSL_FLAGS  	?= --nologo --nosummary
 
