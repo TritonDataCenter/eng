@@ -21,11 +21,7 @@ var Logger = require('bunyan');
 var log = new Logger({
     name: 'boilerplateapi',
     level: 'debug',
-    serializers: {
-        err: Logger.stdSerializers.err,
-        req: Logger.stdSerializers.req,
-        res: restify.bunyan.serializers.response
-    }
+    serializers: restify.bunyan.serializers
 });
 
 
