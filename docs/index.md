@@ -98,7 +98,7 @@ everyone to dig into other teams' projects as needed (for development as well
 as debugging) and allows us to share code and tools.
 
 
-## Directory Layout
+## Code Layout
 
 Here is a suggested directory/file structure for your repository. All
 repos **must** have a `README.md` and `Makefile`. The others are suggested
@@ -107,7 +107,7 @@ namings for particular usages, should your repo require them.
     build/          Built bits.
     deps/           Git submodules and/or commited 3rd-party deps should go
                     here. See "node_modules/" for node.js deps.
-    docs/           Project docs. Uses restdown and man.
+    docs/           Project docs. Uses markdown and man.
     lib/            JavaScript source files.
     node_modules/   Node.js deps, either populated at build time or commited.
                     See Managing Node Dependencies.
@@ -159,7 +159,7 @@ All repos **must** have a Makefile that defines at least the following targets:
   repo-specific rules not described here.
 * `clean`: removes all built files
 * `prepush`: runs all checks/tests required before pushing changes to the repo
-* `docs`: builds documentation (restdown, man pages)
+* `docs`: builds documentation (restdown markdown, man pages)
 * `test`: Runs the test suite. Specifically, this runs the subset of the
   tests that are runnable in a dev environment. See the "Testing" section
   below.
