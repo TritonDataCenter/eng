@@ -28,7 +28,7 @@ agreed upon by the team. If you feel it necessary to diverge from them, that's
 okay, but be prepared to explain why.
 
 Note: In this document (and elsewhere at Joyent), a service implementing an API
-is referred to by the API name itself.  For example, "SAPI" denotes both the
+is referred to by the API name itself. For example, "SAPI" denotes both the
 "Services API" in the abstract as well as the software component that implements
 that API.
 
@@ -62,17 +62,17 @@ being able to commit frequently.
 
 ## Repositories and documentation
 
-Open-source projects and components live at github.com/joyent.  These include
+Open-source projects and components live at github.com/joyent. These include
 Node.js, SmartOS, SDC, Manta, and a large number of smaller Node modules and
-other components.  Some components still live under individuals' github
+other components. Some components still live under individuals' github
 accounts, but new components should generally be created under the "joyent"
 organization.
 
 Note that just because a repo is on github doesn't mean its issues are tracked
-there.  That's decided on a per-project basis.
+there. That's decided on a per-project basis.
 
 Some older components (and a few proprietary ones that are still used) are
-managed by gitosis running on the internal Joyent git server.  Files, commits,
+managed by gitosis running on the internal Joyent git server. Files, commits,
 and documentation for these projects can be browsed at mo.joyent.com.
 
 
@@ -167,7 +167,7 @@ All repos **must** have a Makefile that defines at least the following targets:
 
 The `check` and `test` targets **must** fail if they find any 'check'
 violations or failed tests. The `prepush` target is intended to cover all
-pre-commit checks.  It **must** run successfully before any push to the repo.
+pre-commit checks. It **must** run successfully before any push to the repo.
 It **must** also be part of the automated build. Any commit which introduces a
 prepush failure **must** be fixed immediately or backed out. A typical prepush
 target will look like the following, but some non-code repositories might
@@ -224,7 +224,7 @@ objectively dangerous patterns like undeclared variables, while style covers
 subjective conventions like spacing.
 
 Both lint and javascriptlint are very configurable. Projects may choose to
-enable and disable particular sets of checks as they deem appropriate.  Most
+enable and disable particular sets of checks as they deem appropriate. Most
 checks can be disabled on a per-line basis. As with style, it's recommended
 that we minimize divergence between repositories.
 
@@ -379,7 +379,7 @@ high level the component that's implemented in the file. For example:
     /*
      * ca-profile.js: profile support
      *
-     * Profiles are sets of metrics.  They can be used to limit visibility of
+     * Profiles are sets of metrics. They can be used to limit visibility of
      * metrics based on module, stat, or field names, or to suggest a group of
      * metrics to a user for a particular use case.
      */
@@ -575,14 +575,14 @@ using syslog (see use case for syslog below); (b) your service is legacy; or,
 is not a top-priority make work project). If you have an example of a log for
 which JSON format gets in the way, please bring it up for discussion).
 
-Multiple use cases do not require multiple log files.  Most services should log
+Multiple use cases do not require multiple log files. Most services should log
 all activity (debugging, errors, and API activity) in JSON to either the SMF
 log or into a separate log file in
 "/var/smartdc/&lt;service&gt;/log/&lt;component&gt;.log". For services with
 extraordinarily high volume for which it makes sense to separate out API
 activity into a separate file, that should be directed to
 "/var/smartdc/&lt;service&gt;/log/requests.log". However, don't use separate
-log files unless you're sure you need it.  All log files in
+log files unless you're sure you need it. All log files in
 "/var/smartdc/&lt;service&gt;/log" should be configured for appropriate log
 rotation.
 
@@ -1102,19 +1102,19 @@ informed on the progress of the issue. A little more effort spent updating
 JIRA issues will create a valuable knowledge base full of information for the
 Ops and Support teams to use. The result will be:
 
-1.  Fewer issues coming through to the Dev team, as issues that have been worked
-    through before will be able to be triaged before they are passed to
-    engineering. We are are shooting for a 10:1 ratio of issues opened to
-    issues passed to engineering. Currently we’re well over 10:5.
+1. Fewer issues coming through to the Dev team, as issues that have been worked
+   through before will be able to be triaged before they are passed to
+   engineering. We are are shooting for a 10:1 ratio of issues opened to
+   issues passed to engineering. Currently we’re well over 10:5.
 
-2.  Issues that are passed to engineering have had more diagnostic information
-    in them, as the Ops and Support teams learn from example on how to
-    troubleshoot issues. This will reduce the time it takes for you to resolve
-    issues, leaving you more time to work on more interesting projects.
+2. Issues that are passed to engineering have had more diagnostic information
+   in them, as the Ops and Support teams learn from example on how to
+   troubleshoot issues. This will reduce the time it takes for you to resolve
+   issues, leaving you more time to work on more interesting projects.
 
-3.  Better customer relations, as the customer teams will be able to explain to
-    the customers what steps are being taken to find them a solution to their
-    problem.
+3. Better customer relations, as the customer teams will be able to explain to
+   the customers what steps are being taken to find them a solution to their
+   problem.
 
 
 ### Assigning Tickets
@@ -1265,7 +1265,7 @@ version.
 This repo (eng.git) provides a number of modular Makefiles which you can use
 (perhaps even by direct reference using submodules) to provide the required
 targets described above, as well as several other useful pieces (like building
-Node in your repo).  These are designed to be dropped in without modification:
+Node in your repo). These are designed to be dropped in without modification:
 they consume Make variables as input and either export other variables or define
 rules. You should use these existing Makefiles wherever possible.
 
@@ -1296,7 +1296,7 @@ Top level Makefiles should generally have the following structure:
 
 The goal is that most top-level Makefiles only specify their parameters, the
 repo-specific rules, and which other Makefiles get included to do the heavy
-lift.  Here's an example from eng.git:
+lift. Here's an example from eng.git:
 
     DOC_FILES        = index.restdown boilerplateapi.restdown
     JS_FILES        := $(shell ls *.js) $(shell find lib test -name '*.js')
@@ -1336,7 +1336,7 @@ For more details on Joyent's morning scrum please read: [Engineering
 Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process).
 
 In general, process is shrink-to-fit: we adopt process that help us work better,
-but process for process's sake is avoided.  Any resemblance to formalized
+but process for process's sake is avoided. Any resemblance to formalized
 methodologies, living or dead, is purely coincidental.
 
 
@@ -1374,15 +1374,15 @@ For reference, read the [owasp top 10](https://www.owasp.org/index.php/Category:
   information about each one. Think of the SmartOS proc(1) tools (see man pages
   for pgrep, pstack, pfiles, pargs).
 - Consider doing development inside a SmartOS zone rather than on your Macbook
-  or a COAL global zone. That forces us to use our product the way customers
+  or a CoaL global zone. That forces us to use our product the way customers
   might, and it eliminates classes of problems where the dev environment doesn't
   match production (e.g., because you've inadvertently picked up a
   globally-installed library instead of checking it in, or resource limits
   differ between MacOS and a SmartOS zone.
-- Whether you develop in COAL or on your Macbook, document what's necessary to
+- Whether you develop in CoaL or on your Macbook, document what's necessary to
   get from scratch to a working development environment so that other people can
   try it out. Ideally, automate it. Having a script is especially useful if you
-  do develop on COAL, which also forces you to keep it up to date.
+  do develop on CoaL, which also forces you to keep it up to date.
 - Similarly, build tools to automate deploying bits to a test system (usually a
   SmartOS headnode zone). The easier it is to test the actual deployment, the
   more likely people will actually test that, and you'll catch environment
