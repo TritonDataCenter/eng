@@ -360,15 +360,14 @@ follows. Get the restdown tool:
 Get a starter restdown file:
 
     mkdir -p docs/media/img
-    cp ../eng/docs/boilerplateapi.restdown docs/index.restdown
+    cp ../eng/docs/boilerplateapi.md docs/index.md
     cp ../eng/docs/media/img/favicon.ico docs/media/img/
     cp ../eng/docs/media/img/logo.png docs/media/img/
 
 Tell the Makefile about it (`make docs`):
 
-    DOC_FILES = docs/index.restdown
+    DOC_FILES = index.md
 
-TODO: Finish off static serving of the docs in server.js.
 
 
 ### Code Documentation
@@ -1298,7 +1297,7 @@ The goal is that most top-level Makefiles only specify their parameters, the
 repo-specific rules, and which other Makefiles get included to do the heavy
 lift.  Here's an example from eng.git:
 
-    DOC_FILES        = index.restdown boilerplateapi.restdown
+    DOC_FILES        = index.md boilerplateapi.md
     JS_FILES        := $(shell ls *.js) $(shell find lib test -name '*.js')
     JSL_CONF_NODE    = tools/jsl.node.conf
     JSL_FILES_NODE   = $(JS_FILES)
