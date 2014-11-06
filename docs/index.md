@@ -73,7 +73,8 @@ there.  That's decided on a per-project basis.
 
 Some older components (and a few proprietary ones that are still used) are
 managed by gitosis running on the internal Joyent git server.  Files, commits,
-and documentation for these projects can be browsed at mo.joyent.com.
+and documentation for these projects can be browsed at mo.joyent.com by Joyent
+employees.
 
 
 ## Repository Naming
@@ -249,7 +250,7 @@ When modifying existing code, the year should be updated to be the
 current year that the file was modified. There should only be a single
 year, not a list. For example:
 
-    Copyright (c) 2012, Joyent, Inc.
+    Copyright (c) 2014, Joyent, Inc.
 
 
 ## Testing
@@ -264,12 +265,12 @@ These tests may be repo-specific, or may be part of a broader system test
 suite (ideally both). In either case, bug fixes and new features should not
 be integrated without adding new tests, and the tests **must** be run
 automatically (as via jenkins) either with every commit or daily. Currently
-this is handled by the [staging
-environment](https://mo.joyent.com/docs/globe-theatre/master/) and the
-"stage-test-\*" Jenkins jobs. IOW, your project should have some sort of
-"stage-test-\*" job. Understanding and fixing failures in the automated test
-run **must** be considered the top development priority for that repo's team.
-Persistent failures are not acceptable.
+this is handled by the [staging environment](https://mo.joyent.com/docs/globe-theatre/master/)
+and the "stage-test-\*" Jenkins jobs. In other words, your project should
+have some sort of "stage-test-\*" job. Understanding and fixing failures in
+the automated test run **must** be considered the top development priority for
+that repo's team.  Persistent failures are not acceptable. Currently, these
+staging and CI environments can only be accessed by Joyent employees. 
 
 All installed components **should** provide a "runtests" driver script
 (preferably in the "test" subdirectory) and the necessary test files
@@ -735,7 +736,7 @@ gather more information. To facilitate this:
 Service API endpoints **should** be named. Endpoint names **must** be
 CamelCase, **should** include the name of resource being operated on,
 and **should** follow the lead of
-[cloudapi](https://mo.joyent.com/docs/cloudapi/master/) for verb usage, e.g.:
+[CloudAPI](https://apidocs.joyent.com/cloudapi/) for verb usage, e.g.:
 
     # CRUD examples:
     ListMachines
@@ -750,7 +751,7 @@ and **should** follow the lead of
     ResizeMachine
 
     # Example using "Put" verb from
-    # <https://mo.joyent.com/docs/muskie/master/#PutObject> when the action
+    # <https://apidocs.joyent.com/manta/api.html#PutObject> when the action
     # is idempotent.
     PutObject
 
