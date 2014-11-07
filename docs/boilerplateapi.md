@@ -17,7 +17,7 @@ markdown2extras: tables, code-friendly
 
 *This shows the API implemented by the example node.js server in this repo.
 The main point here is show a good way to document API endpoints. You
-can copy this file to "docs/index.restdown" in your repo as a starting
+can copy this file to "docs/index.md" in your repo as a starting
 point. Replace this section with an overview of the whole API.*
 
 An API is often dividable into sections, e.g. one section
