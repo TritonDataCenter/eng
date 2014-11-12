@@ -16,13 +16,9 @@ also provides boilerplate for a SmartDataCenter (SDC) project repo, giving you
 a starting point for many of the suggestion practices defined in the guidelines.
 This is especially true for node.js-based REST API projects.
 
-## Overview
-
 **You probably want to be looking at the
 [actual Joyent engineering guide at docs/index.md](docs/index.md).**
 This README.md is a template for repos to use.
-
-Environment: SmartOS
 
 
 ## Development
