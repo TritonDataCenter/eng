@@ -23,30 +23,14 @@ This README.md is a template for repos to use.
 
 ## Development
 
-Previously this repo had a file "server.js". We haven't created new API
-services in a while and "server.js" fell too far behind the
-dependencies' APIs, so "server.js" has been removed for now.
+Describe steps necessary for development here.
 
-The build of an SDC service starts with compiling Node.js, so symbol
-information is correct. The makefiles include building node from source.
-
-Before pushing run `make prepush` and, if possible, get a code review.
-
-### Build
-
-    git clone git@github.com:joyent/eng.git
-    cd eng
     make all
-
-### Run
-
-    node <server.js>
 
 
 ## Test
 
-If you project has setup steps necessary for testing, then describe those
-here.
+Describe steps necessary for testing here.
 
     make test
 
