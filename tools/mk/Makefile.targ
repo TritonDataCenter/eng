@@ -264,7 +264,7 @@ DOC_MEDIA_FILES_BUILD := $(DOC_MEDIA_FILES:%=$(DOC_BUILD)/media/%)
 # to get there.
 #
 .PHONY: docs
-docs:							\
+docs::							\
 	$(DOC_FILES:%$(RESTDOWN_EXT)=$(DOC_BUILD)/%.html)		\
 	$(DOC_FILES:%$(RESTDOWN_EXT)=$(DOC_BUILD)/%.json)		\
 	$(DOC_MEDIA_FILES_BUILD)
