@@ -270,7 +270,7 @@ and the "stage-test-\*" Jenkins jobs. In other words, your project should
 have some sort of "stage-test-\*" job. Understanding and fixing failures in
 the automated test run **must** be considered the top development priority for
 that repo's team.  Persistent failures are not acceptable. Currently, these
-staging and CI environments can only be accessed by Joyent employees. 
+staging and CI environments can only be accessed by Joyent employees.
 
 All installed components **should** provide a "runtests" driver script
 (preferably in the "test" subdirectory) and the necessary test files
@@ -321,12 +321,12 @@ which translates to a make recipe something like this:
 
     .PHONY: xref
     xref: cscope.files
-    	$(CSCOPE) -bqR
+        $(CSCOPE) -bqR
 
     .PHONY: cscope.files
     cscope.files:
-    	find . -name '*.c' -o -name '*.h' -o -name '*.cc' -o -name '*.js' \
-    	    -o -name '*.s' -o -name '*.cpp' > $@
+        find . -name '*.c' -o -name '*.h' -o -name '*.cc' -o -name '*.js' \
+            -o -name '*.s' -o -name '*.cpp' > $@
 
 
 You may also want the "-k" flag to cscope, which tells it to ignore standard
@@ -354,7 +354,7 @@ Restdown is a tool for creating docs (and especially REST API docs) using a
 single Markdown file with a few added conventions. You can set it up as
 follows. Get the restdown tool:
 
-    git submodule add git://github.com/trentm/restdown.git deps/restdown
+    git submodule add https://github.com/trentm/restdown.git deps/restdown
     cd deps/restdown/
     git checkout 1.2.15    # let's use a restdown release tag
 
@@ -408,7 +408,7 @@ node build). There are two ways you can get a node build for your repo:
    "tools/mk/Makefile.node.targ". You'll also need a git submodule of the node
    sources:
 
-        $ git submodule add git://github.com/joyent/node.git deps/node
+        $ git submodule add https://github.com/joyent/node.git deps/node
         $ cd deps/node
         $ git checkout v0.6.18   # select whichever version you want
 
@@ -1312,7 +1312,7 @@ lift. Here's an example from eng.git:
 
     .PHONY: all
     all: $(SMF_MANIFESTS) | $(NPM_EXEC)
-    	$(NPM) install
+        $(NPM) install
 
     include ./Makefile.deps
     include ./Makefile.node.targ
