@@ -294,6 +294,7 @@ CLEAN_FILES +=					\
 $(DOC_MEDIA_FILES_BUILD): | $(DOC_MEDIA_DIRS_BUILD)
 
 $(DOC_BUILD)/%: docs/% | $(DOC_BUILD)
+	$(MKDIR) $(shell dirname $@)
 	$(CP) $< $@
 
 docs/%.json docs/%.html: docs/%$(RESTDOWN_EXT) | $(DOC_BUILD) $(RESTDOWN_EXEC) \
