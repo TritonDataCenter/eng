@@ -1,0 +1,28 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2016, Joyent, Inc.
+#
+
+#
+# Makefile.manpages.targ: targets for building manual pages.
+#
+# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
+
+#
+# See Makefile.manpages.defs.
+#
+
+$(MAN_$(MAN_SECTION)_OUTPUTS): $(MAN_OUTDIR_$(MAN_SECTION))/%.$(MAN_SECTION): $(MAN_INDIR_$(MAN_SECTION))/%.md | $(MAN_OUTDIR_$(MAN_SECTION))
+	$(MD2MAN) $^ > $@
+
+$(MAN_OUTDIR_$(MAN_SECTION)):
+	$(MKDIRP) $@

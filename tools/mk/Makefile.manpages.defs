@@ -1,0 +1,128 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2016, Joyent, Inc.
+#
+
+#
+# Makefile.manpages.defs: targets for building manual pages.
+#
+# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
+
+#
+# This Makefile is used along with Makefile.manpages.targ to build section
+# manpages for the current repository from Markdown sources using the md2man
+# tool.  You can build several different sections of manpages with this
+# Makefile, but you'll need to include the Makefile once for each section with a
+# different value of MAN_SECTION.  Required input variables include:
+#
+#     MAN_SECTION	defines which section's manpages will be built
+#     			(e.g., "1")
+#
+#     MAN_INROOT	defines the root of a directory tree containing man
+#     			pages source files in Markdown format.  The directory
+#     			tree should be organized as:
+#
+#     			    $(MAN_INROOT)/man$(MAN_SECTION)/*.md
+#
+#     MAN_OUTROOT	defines the root of a directory tree that will contain
+#     			the generated man pages.  The directory tree will be
+#     			organized as:
+#
+#     			    $(MAN_OUTROOT)/man$(MAN_SECTION)/*.$(MAN_SECTION)
+#
+#			This should mirror the typical man page directory
+#			structure, and should probably be alongside a
+#			corresponding "bin" directory to leverage the way
+#			man(1)'s looks up man pages for binaries.
+#
+# A common configuration would be to set MAN_INROOT = "docs/man" and
+# MAN_OUTROOT = "man".  In that case, you might have source files:
+#
+#     ./bin/mytool
+#     ./bin/my-other-tool
+#     ./docs/man/man1/mytool.md
+#     ./docs/man/man1/my-other-tool.md
+#
+# and that will generate files:
+#
+#     ./man/man1/mytool.1
+#     ./man/man1/my-other-tool.1
+#
+# Optional input variables include:
+#
+#     MD2MAN		tool to generate man pages from Markdown sources
+#     			The recommended tool is md2man-roff, available at
+#     			https://github.com/sunaku/md2man.
+#
+#     MKDIRP		should generally be "mkdir -p"
+#
+# This Makefile produces Make variables:
+#
+#     MAN_$(MAN_SECTION)_OUTPUTS	generated manual pages.  You can depend
+#     					on these in order to build them in
+#     					whatever top-level targets you want.
+#
+#     MAN_OUTPUTS			will be extended to include
+#     					MAN_$(MAN_SECTION)_OUTPUTS.
+#
+# There are two basic ways this tends to be used:
+#
+#     (1) Building manpages is part of the normal build.  Have the default
+#         target (usually "all") depends on either "manpages" or the built man
+#         pages directly (via MAN_OUTPAGES).  In this case, only the man pages
+#         _sources_ would be checked into source control.
+#
+#     (2) Building manpages is an ad-hoc operation outside the normal build
+#         process.  Developers that change the man page sources are expected to
+#         build the man pages and commit the generated pages into source
+#         control.
+#
+# Option (1) is preferred, since option (2) violates the basic tenets of
+# software engineering that processes should generally be automated and that
+# generated files should not be checked into source control.  The problem is
+# that in practice, the tools that we use to generate man pages are not widely
+# installed on most users' systems, even developers' systems, so it's less than
+# ideal to require them for the main build.  This is especially true for many of
+# our Node modules, where there's traditionally no difference between the
+# published npm package and the repository source itself.  As a result, we use
+# option (2) in most places.  However, this Makefile supports both modes.
+#
+
+MAN_SECTION			?= $(error MAN_SECTION is not defined)
+MAN_INROOT			?= $(error MAN_INROOT is not defined)
+MAN_OUTROOT			?= $(error MAN_OUTROOT is not defined)
+MD2MAN				?= md2man-roff
+MKDIRP				?= mkdir -p
+
+#
+# Define some convenience variables for referring to the input and output
+# directories for this section's man pages.  These variables must have
+# MAN_SECTION in the name, and must use eager binding (":="), since MAN_SECTION
+# may change after this file is included.
+#
+MAN_INDIR_$(MAN_SECTION)	:= $(MAN_INROOT)/man$(MAN_SECTION)
+MAN_OUTDIR_$(MAN_SECTION)	:= $(MAN_OUTROOT)/man$(MAN_SECTION)
+
+#
+# Define the lists of input and output files for this section's man pages.  The
+# list of inputs is just the list of Markdown files in the input directory.  We
+# construct the list of outputs by taking that same list and replacing the
+# section-specific input directory with the section-specific output directory
+# and changing the file extension.
+#
+MAN_$(MAN_SECTION)_INPUTS	:= $(wildcard $(MAN_INDIR_$(MAN_SECTION))/*.md)
+MAN_$(MAN_SECTION)_OUTPUTS_TMP  := \
+    $(MAN_$(MAN_SECTION)_INPUTS:$(MAN_INDIR_$(MAN_SECTION))/%=$(MAN_OUTDIR_$(MAN_SECTION))/%)
+MAN_$(MAN_SECTION)_OUTPUTS	:= \
+    $(MAN_$(MAN_SECTION)_OUTPUTS_TMP:%.md=%.$(MAN_SECTION))
+
+MAN_OUTPUTS			:= $(MAN_OUTPUTS) $(MAN_$(MAN_SECTION)_OUTPUTS)
