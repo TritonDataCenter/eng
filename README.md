@@ -5,20 +5,40 @@
 -->
 
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright (c) 2016, Joyent, Inc.
 -->
 
 # eng: Joyent Engineering Guide
 
 This repo serves two purposes: (1) It defines the guidelines and best
 practices for Joyent engineering work (this is the primary goal), and (2) it
-also provides boilerplate for a SmartDataCenter (SDC) project repo, giving you
-a starting point for many of the suggestion practices defined in the guidelines.
-This is especially true for node.js-based REST API projects.
+also provides boilerplate for a Triton (formerly known as SDC) project repo,
+giving you a starting point for many of the suggestion practices defined in
+the guidelines. This is especially true for node.js-based REST API projects.
 
 **You probably want to be looking at the
 [actual Joyent engineering guide at docs/index.md](docs/index.md).**
 This README.md is a template for repos to use.
+
+**If you have cloned this repo to start a new project**
+
+Remove all eng guide blurb above, and use one of the following boilerplates
+as the first paragraph of the introduction of your repo:
+
+- For Triton-related repos:
+```
+    This repository is part of the Joyent Triton project. See the [contribution
+    guidelines](https://github.com/joyent/triton/blob/master/CONTRIBUTING.md) --
+    *Triton does not use GitHub PRs* -- and general documentation at the main
+    [Triton project](https://github.com/joyent/triton) page.
+```
+- For Manta-related repos:
+```
+    This repository is part of the Joyent Manta project.  For contribution
+    guidelines, issues, and general documentation, visit the main
+    [Manta](http://github.com/joyent/manta) project page.
+```
+After the boilerplate paragraph, write a brief description about your repo.
 
 
 ## Development

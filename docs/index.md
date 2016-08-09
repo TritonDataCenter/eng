@@ -63,7 +63,7 @@ being able to commit frequently.
 ## Repositories and documentation
 
 Open-source projects and components live at github.com/joyent. These include
-Node.js, SmartOS, SDC, Manta, and a large number of smaller Node modules and
+Node.js, SmartOS, Triton, Manta, and a large number of smaller Node modules and
 other components. Some components still live under individuals' github
 accounts, but new components should generally be created under the "joyent"
 organization.
@@ -136,6 +136,8 @@ describes the repo and covers:
 
 * the name of the API or other component(s) contained in the repo and a brief
   description of what they do
+* the boilerplate text for referencing the contribution and issue tracking
+  guidelines of the master project (Triton or Manta)
 * the JIRA project for this repo (and any additional instructions, like how JIRA
   components are used for this project)
 * owners of the project
@@ -256,7 +258,7 @@ year, not a list. For example:
 ## Testing
 
 tl;dr: `make test` for dev environment tests. 'test/runtests' driver script
-for in-SDC systems tests (see boilerplate 'tools/runtests.in').
+for in-Triton systems tests (see boilerplate 'tools/runtests.in').
 
 All repos **must** be tested by a comprehensive automated test suite and must
 be able to generate TAP output. (No particular node.js test framework is
@@ -400,7 +402,7 @@ date.
 ## Node Build
 
 If your deployed service or tool uses node, then it **must** provide its own
-node build. The exception is services whose upgrade is tied to the SDC
+node build. The exception is services whose upgrade is tied to the Triton
 platform, and hence can be tested against a known node build (the platform's
 node build). There are two ways you can get a node build for your repo:
 
@@ -461,8 +463,8 @@ include them and then add the appropriate dependencies on `$(NODE)`.
 
 ## Commit Comments and JIRA Tickets
 
-In collaborating on a body of software as large as SDC, it's critical that the
-issues and thought processes behind non-trivial code changes be documented,
+In collaborating on a body of software as large as Triton, it's critical that
+the issues and thought processes behind non-trivial code changes be documented,
 whether that's through code comments, git commit comments, or JIRA tickets.
 There are many cases where people other than the original author need to
 examine the git log:
@@ -568,7 +570,7 @@ available after a crash or an individual error to debug the problem from the
 very first occurrence in the field**. It should also be possible for engineers
 to manually dump the same information as needed to debug non-fatal failures.
 
-SDC service logs **must** be formatted in JSON. Node.js services **must**
+Triton service logs **must** be formatted in JSON. Node.js services **must**
 use [Bunyan](https://github.com/trentm/node-bunyan). Exceptions: (a) you are
 using syslog (see use case for syslog below); (b) your service is legacy; or,
 (c) you just haven't migrated to Bunyan yet (which is fine, JSON log output
@@ -1168,7 +1170,7 @@ practices:
 ### Moving Tickets
 
 Often a ticket will come in through the JPC project, but logically belongs in
-another, as the problem needs to be resolved in SDC.
+another, as the problem needs to be resolved in Triton.
 
 For issues like this, please use the Move feature to move the ticket into the
 appropriate project. The JPC ticket will then automatically redirect users to
