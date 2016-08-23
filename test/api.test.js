@@ -10,7 +10,7 @@
 
 /* Test the Boilerplate API endpoints */
 
-var test = require('tap').test;
+var test = require('tape').test;
 
 
 test('douglas adams', function (t) {

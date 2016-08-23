@@ -105,12 +105,11 @@ repos **must** have a `README.md` and `Makefile`. The others are suggested
 namings for particular usages, should your repo require them.
 
     build/          Built bits.
-    deps/           Git submodules and/or commited 3rd-party deps should go
+    deps/           Git submodules and/or committed 3rd-party deps should go
                     here. See "node_modules/" for node.js deps.
     docs/           Project docs. Uses markdown and man.
     lib/            JavaScript source files.
-    node_modules/   Node.js deps, either populated at build time or commited.
-                    See Managing Node Dependencies.
+    node_modules/   Node.js deps, either populated at build time or committed.
     pkg/            Package lifecycle scripts
     smf/manifests   SMF manifests
     smf/methods     SMF method scripts
@@ -181,6 +180,69 @@ differ (e.g. not have a test suite):
 
 There are several modular Makefiles you can use to implement most of this. See
 "Writing Makefiles" (below) for details.
+
+
+### package.json and git submodules
+
+Repositories containing node.js code should have a `package.json` file at the
+root of the repository [1]. Normally most dependencies should be taken care of
+through `npm` and this `package.json` file, by adding entries to the
+`dependencies` or `devDependencies` arrays (see examples in this repository, or
+documentation on the `npm` website).
+
+Dependencies via `npm` can either take the form of an `npm` package name with a
+version specifier (in which case it must be published to the public `npm`
+package servers), or a `git` URL.
+
+For externally developed packages not published by Joyent, version specifiers
+should always be used (and the package published to `npm`):
+
+    "dependencies": {
+      "external-module": "^1.0.0"
+    }
+
+The use of version ranges (such as the `"^"` in the example above) is not
+required and you should use your judgment about the quality of release
+management and adherence to semantic versioning in the module you depend on.
+
+For packages developed by us, we have a weak preference towards publishing `npm`
+packages, stronger for shared library code that could be used outside Triton
+proper. Most usage of `git` URLs is historic and due to the original closed-
+source nature of the Triton stack.
+
+If you are using a `git` URL in an `npm` dependency, you must use a
+`git+https://` URL to specify it (not `git://` or `git+ssh://`). Plain `git://`
+operations are not authenticated in any way and can be hijacked by malicious
+WiFi or other network man-in-the-middle attacks (e.g. at airports and coffee
+shops - yes, this actually happens). The use of `git+ssh://` URLs is discouraged
+because it prevents users from being able to clone and build the package on a
+machine that does not have their GitHub private key on it. In particular, some
+Joyent CI bots (like the Gerrit `make check` bot) will complain if you use these
+URLs.
+
+    "dependencies": {
+      "joyent-module": "git+https://github.com/joyent/node-joyent-module.git#016977"
+    }
+
+For certain dependencies, it is standard practice across the Joyent repositories
+to use `git` submodules and not `npm`. This applies in particular to
+`javascriptlint`, `jsstyle`, `restdown`, `sdc-scripts` and some other modules
+that are not node.js-based. Similar to `npm` `git` dependencies, these must use
+`https://` URLs only. Your `.gitmodules` file should look like:
+
+    [submodule "deps/javascriptlint"]
+            path = deps/javascriptlint
+            url = https://github.com/davepacheco/javascriptlint.git
+
+Lastly, though you will find discussion about it in places, we don't currently
+use the npm "shrinkwrap" feature in any repositories. This is for a variety of
+reasons, the discussion about which is far too involved to relate here (but feel
+free to ask a senior Joyeur about the sordid history of SDC release management).
+
+*[1]* There are a handful of exceptions here in cases where multiple logical
+node.js modules are combined in one repository (e.g. `ca-native` and `amon`
+modules).
+
 
 ## Coding Style
 
@@ -416,33 +478,6 @@ node build). There are two ways you can get a node build for your repo:
 
 2. Use a prebuilt node. Read and use "tools/mk/Makefile.node_prebuilt.defs"
    and "tools/mk/Makefile.node_prebuilt.targ".
-
-
-## Managing Node Dependencies
-
-There are three cases for Node dependencies:
-
-* external public dependencies (e.g., restify, express): specify these in
-  package.json as usual and shrinkwrap them.
-* internal (Joyent-private) dependencies (e.g., ca-vis): either specify these in
-  package.json using git URLs instead of version numbers, or use git submodules
-  and treat these as local (repo-private) dependencies (see below). All things
-  being equal, prefer git URLs in package.json to git submodules. In all cases,
-  use shrinkwrap.
-* local, repo-private dependencies (e.g., ca-native in cloud-analytics or amon
-  modules): During the build process, run "npm install path/to/dep". **This
-  approach should only be used for code that lives inside the repo but is
-  installed as a separate package for whatever reason. This does not apply to
-  most dependencies. Most dependencies should not be checked into git.**
-
-Shrinkwrapping: all dependendencies that come from outside the repo should be
-shrinkwrapped. See [npm shrinkwrap](http://npmjs.org/doc/shrinkwrap.html) for
-details.
-
-Shrinkwrap is available in npm 1.1.2, which is bundled with node 0.6.12.
-However, proper support for git SHAs in shrinkwrap didn't land until the next
-version. If you're stuck on 1.1.2, you can still use git SHAs in the shrinkwrap
-file, but you'll have to specify them by hand.
 
 
 ## Node add-ons (binary modules)

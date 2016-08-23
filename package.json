@@ -6,16 +6,16 @@
   "private": true,
   "dependencies": {
     "restify": "2.2.1",
-    "node-uuid": "1.4.0",
-    "filed": "0.0.5",
-    "bunyan": "0.18.2"
+    "node-uuid": "^1.4.0",
+    "bunyan": "^1.8.0",
+    "git-example": "git+https://github.com/joyent/node-git-example.git#a3216ae18f384717b7be7148cc151ef743de45d5"
   },
   "devDependencies": {
-    "tap": "0.4.0"
+    "tape": "^4.6.0"
   },
   "scripts": {
     "start": "node ./server.js",
-    "test": "./node_modules/.bin/tap test/*.test.js"
+    "test": "./node_modules/.bin/tape test/*.test.js"
   },
   "license": "MPL-2.0"
 }
