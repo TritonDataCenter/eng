@@ -79,19 +79,22 @@ function checkFile(filename)
 		if (line.match(/# END BASHSTYLED/)) {
 			if (styled != true) {
 				nerrors++;
-				console.log('%s: %d: END BASHSTYLED w/o corresponding BEGIN',
-				            filename, i);
+				console.log('%s: %d: END BASHSTYLED ' +
+				    'w/o corresponding BEGIN', filename, i);
 			}
 			styled = false;
 		}
 
+		/*JSSTYLED*/
 		if (!styled && line.match(/^\s*local\s+(\w+)\s*=.*\$\(/)) {
 			nerrors++;
+			/*JSSTYLED*/
 			var m = line.match(/^\s*local\s+(\w+)\s*=/);
 			console.log('%s: %d: declaring and setting a "local" ' +
 				'var in the same statement ' +
 				'ignores a subshell return code ' +
-				'<http://www.tldp.org/LDP/abs/html/localvar.html#EXITVALANOMALY01>: ' +
+				'<http://www.tldp.org/LDP/abs/html/' +
+				'localvar.html#EXITVALANOMALY01>: ' +
 				'local %s=...',
 				filename, i, m[1]);
 		}
@@ -100,12 +103,19 @@ function checkFile(filename)
 		// groups before and after brackets to ease search/replace.
 		if (!styled && line.match(/(^|[^\[])\[(\s.+\s)\]([^\]])/)) {
 			nerrors++;
-			console.log('%s: %d: prefer [[ to [ for tests.', filename, i);
+			console.log('%s: %d: prefer [[ to [ for tests.',
+			    filename, i);
 		}
 
 		if (!styled && line.length > 80) {
 			nerrors++;
 			console.log('%s: %d: line exceeds 80 columns',
+			    filename, i);
+		}
+
+		if (!styled && line.match(/\s+$/)) {
+			nerrors++;
+			console.log('%s: %d: line ends in whitespace',
 			    filename, i);
 		}
 	}
@@ -118,7 +128,8 @@ function checkFile(filename)
 
 
 	/*
-	 * No sane editor lets you save a file without a newline at the very end.
+	 * No sane editor lets you save a file without a newline at the
+	 * very end.
 	 */
 	if (lines[lines.length - 1].length !== 0) {
 		nerrors++;
@@ -155,7 +166,7 @@ function expandTabs(text)
 
 		do {
 			out += ' ';
-		}  while (--k > 0);
+		} while (--k > 0);
 
 		col += k;
 	}
