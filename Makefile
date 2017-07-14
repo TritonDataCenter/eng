@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright (c) 2017, Joyent, Inc.
 #
 
 #
@@ -73,7 +73,7 @@
 #
 # Tools
 #
-TAP		:= ./node_modules/.bin/tap
+TAPE :=			./node_modules/.bin/tape
 
 #
 # Makefile.defs defines variables used as part of the build process.
@@ -81,33 +81,24 @@ TAP		:= ./node_modules/.bin/tap
 include ./tools/mk/Makefile.defs
 
 #
-# Configuration used by Makefile.defs and Makefile.targ to generate 
+# Configuration used by Makefile.defs and Makefile.targ to generate
 # "check" and "docs" targets.
 #
-DOC_FILES	 = index.md boilerplateapi.md
-JSON_FILES	 = package.json
-JS_FILES	:= $(shell find lib test -name '*.js') tools/bashstyle
-JSL_FILES_NODE	 = $(JS_FILES)
-JSSTYLE_FILES	 = $(JS_FILES)
+DOC_FILES =		index.md boilerplateapi.md
+JSON_FILES =		package.json
+JS_FILES :=		$(shell find lib test -name '*.js') tools/bashstyle
+JSL_FILES_NODE =	$(JS_FILES)
+JSSTYLE_FILES =		$(JS_FILES)
 
-JSL_CONF_NODE	 = tools/jsl.node.conf
-JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
-
-#
-# Configuration used by Makefile.node_deps.defs to generate targets for
-# installing Node modules contained within this repo (in this case, the
-# "node-dummy" module).
-#
-REPO_MODULES	 = src/node-dummy
-include ./tools/mk/Makefile.node_deps.defs
+JSL_CONF_NODE =		tools/jsl.node.conf
+JSSTYLE_FLAGS =		-f tools/jsstyle.conf
 
 #
 # Configuration used by Makefile.smf.defs to generate "check" and "all" targets
 # for SMF manifest files.
 #
-SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
+SMF_MANIFESTS_IN =	smf/manifests/bapi.xml.in
 include ./tools/mk/Makefile.smf.defs
-
 
 #
 # Historically, Node packages that make use of binary add-ons must ship their
@@ -117,13 +108,21 @@ include ./tools/mk/Makefile.smf.defs
 # binary as part of the build process.  Other options are possible -- it depends
 # on the need of your repository.
 #
-NODE_PREBUILT_VERSION=v0.12.14
+NODE_PREBUILT_VERSION =	v4.8.4
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG=zone
+	NODE_PREBUILT_TAG = zone
 	include ./tools/mk/Makefile.node_prebuilt.defs
 else
 	include ./tools/mk/Makefile.node.defs
 endif
+
+#
+# Makefile.node_modules.defs provides a common target for installing modules
+# with NPM from a dependency specification in a "package.json" file.  By
+# including this Makefile, we can depend on $(STAMP_NODE_MODULES) to drive "npm
+# install" correctly.
+#
+include ./tools/mk/Makefile.node_modules.defs
 
 #
 # Configuration used by Makefile.manpages.defs to generate manual pages.
@@ -131,13 +130,13 @@ endif
 # ":="), but the Makefile can be used multiple times to build manual pages for
 # different sections.
 #
-MAN_INROOT	 = docs/man
-MAN_OUTROOT	 = man
-CLEAN_FILES 	+= $(MAN_OUTROOT)
+MAN_INROOT =		docs/man
+MAN_OUTROOT =		man
+CLEAN_FILES +=		$(MAN_OUTROOT)
 
-MAN_SECTION	:= 1
+MAN_SECTION :=		1
 include tools/mk/Makefile.manpages.defs
-MAN_SECTION	:= 3bapi
+MAN_SECTION :=		3bapi
 include tools/mk/Makefile.manpages.defs
 
 
@@ -145,8 +144,7 @@ include tools/mk/Makefile.manpages.defs
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS)
-	$(NPM) rebuild
+all: $(SMF_MANIFESTS) $(STAMP_NODE_MODULES) | $(REPO_DEPS)
 
 #
 # This example Makefile defines a special target for building manual pages.  You
@@ -155,14 +153,9 @@ all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS)
 .PHONY: manpages
 manpages: $(MAN_OUTPUTS)
 
-$(TAP): | $(NPM_EXEC)
-	$(NPM) install
-
-CLEAN_FILES += $(TAP) ./node_modules/tap
-
 .PHONY: test
-test: $(TAP)
-	TAP=1 $(TAP) test/*.test.js
+test: $(STAMP_NODE_MODULES)
+	$(NODE) $(TAPE) test/*.test.js
 
 
 #
@@ -178,11 +171,11 @@ else
 	include ./tools/mk/Makefile.node.targ
 endif
 
-MAN_SECTION	:= 1
+MAN_SECTION :=		1
 include tools/mk/Makefile.manpages.targ
-MAN_SECTION	:= 3bapi
+MAN_SECTION :=		3bapi
 include tools/mk/Makefile.manpages.targ
 
 include ./tools/mk/Makefile.smf.targ
-include ./tools/mk/Makefile.node_deps.targ
+include ./tools/mk/Makefile.node_modules.targ
 include ./tools/mk/Makefile.targ

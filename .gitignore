@@ -1,6 +1,7 @@
 /node_modules
 /tmp
 build
+/make_stamps
 docs/*.json
 docs/*.html
 cscope.in.out

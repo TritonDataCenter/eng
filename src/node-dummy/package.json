@@ -1,9 +1,0 @@
-{
-	"name":		"dummy",
-	"version":	"0.0.1",
-	"description":	"Example package",
-	"private":	true,
-	"author":	"Joyent (joyent.com)",
-	"engines":	{ "node": ">=0.6" },
-	"license":      "MPL-2.0"
-}
