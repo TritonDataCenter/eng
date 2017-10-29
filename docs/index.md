@@ -1428,5 +1428,5 @@ For reference, read the [owasp top 10](https://www.owasp.org/index.php/Category:
 
 # Examples
 
-- The [boilerplate API](boilerplateapi.html) example in this repo gives you a
+- The [boilerplate API](boilerplateapi.md) example in this repo gives you a
   starter file and some suggestions on how to document a web service.
