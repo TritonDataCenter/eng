@@ -254,7 +254,8 @@ Existing style-checking tools include:
 
 * C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
 * JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle),
-  [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html)
+  [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html),
+  [eslint](http://eslint.org/)
 * Bash: bashstyle (contained in eng.git:tools/bashstyle)
 * Makefiles: use bashstyle for now
 
@@ -283,15 +284,17 @@ Make target: "check"
 ## Lint
 
 Every C repository **must** run "lint" and every JavaScript repository **must**
-run [javascriptlint](http://github.com/davepacheco/javascriptlint) and both
-**must** be lint-clean. Note that lint is not the same as style: lint covers
-objectively dangerous patterns like undeclared variables, while style covers
-subjective conventions like spacing.
+run [javascriptlint](http://github.com/davepacheco/javascriptlint) and/or
+[eslint](http://eslint.org) and all **must** be lint-clean. Note that lint is
+not the same as style: lint covers objectively dangerous patterns like
+undeclared variables, while style covers subjective conventions like spacing.
 
-Both lint and javascriptlint are very configurable. Projects may choose to
-enable and disable particular sets of checks as they deem appropriate. Most
-checks can be disabled on a per-line basis. As with style, it's recommended
-that we minimize divergence between repositories.
+All of `lint`, `javascriptlint`, and `eslint` very configurable. See
+[RFD 100](https://github.com/joyent/rfd/tree/master/rfd/0100) for eslint usage
+in Joyent repositories. Projects may choose to enable and disable particular
+sets of checks as they deem appropriate. Most checks can be disabled on a
+per-line basis. As with style, it's recommended that we minimize divergence
+between repositories.
 
 Make target: "check"
 

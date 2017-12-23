@@ -76,6 +76,10 @@
 #	CSCOPE_DIRS	Directories to search for source files for the cscope
 #			index. (default: ".")
 #
+#	ESLINT		Path to eslint (default: "eslint")
+#
+#	ESLINT_FLAGS	Additional flags to pass through to eslint
+#
 #	JSL		Path to JavaScriptLint (default: "jsl")
 #
 #	JSL_FLAGS_NODE	Additional flags to pass through to JSL
@@ -101,6 +105,7 @@ BASHSTYLE	?= tools/bashstyle
 CP		?= cp
 CSCOPE		?= cscope
 CSCOPE_DIRS	?= .
+ESLINT		?= eslint
 JSL		?= jsl
 JSON		?= json
 JSSTYLE		?= jsstyle
@@ -189,6 +194,12 @@ check-json: $(JSON_FILES:%=%.jsonchk)
 # a variable for the target itself *only if* the list of input files is
 # non-empty.  This avoids invoking the tool if there are no files to check.
 #
+
+ESLINT_TARGET = $(if $(ESLINT_FILES), check-eslint)
+.PHONY: check-eslint
+check-eslint: $(ESLINT_EXEC)
+	$(ESLINT) $(ESLINT_FLAGS) $(ESLINT_FILES)
+
 JSL_NODE_TARGET = $(if $(JSL_FILES_NODE), check-jsl-node)
 .PHONY: check-jsl-node
 check-jsl-node: $(JSL_EXEC)
@@ -208,7 +219,7 @@ check-jsstyle:  $(JSSTYLE_EXEC)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $(JSSTYLE_FILES)
 
 .PHONY: check
-check:: check-jsl check-json $(JSSTYLE_TARGET) check-bash
+check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash
 	@echo check ok
 
 .PHONY: clean
