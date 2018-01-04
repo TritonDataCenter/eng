@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2017, Joyent, Inc.
+# Copyright (c) 2018, Joyent, Inc.
 #
 
 #
@@ -108,12 +108,24 @@ include ./tools/mk/Makefile.smf.defs
 # binary as part of the build process.  Other options are possible -- it depends
 # on the need of your repository.
 #
-NODE_PREBUILT_VERSION =	v4.8.4
+NODE_PREBUILT_VERSION =	v4.8.7
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG = zone
 	include ./tools/mk/Makefile.node_prebuilt.defs
 else
 	include ./tools/mk/Makefile.node.defs
+endif
+
+#
+# If a project includes some components written in the Go language, the Go
+# toolchain will need to be available on the build machine.  At present, the
+# Makefile library only handles obtaining a toolchain for SmartOS systems.
+#
+ifeq ($(shell uname -s),SunOS)
+	GO_PREBUILT_VERSION =	1.9.2
+	GO_TARGETS =		$(STAMP_GO_TOOLCHAIN)
+	GO_TEST_TARGETS =	test_go
+	include ./tools/mk/Makefile.go_prebuilt.defs
 endif
 
 #
@@ -144,7 +156,7 @@ include tools/mk/Makefile.manpages.defs
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) $(STAMP_NODE_MODULES) | $(REPO_DEPS)
+all: $(SMF_MANIFESTS) $(STAMP_NODE_MODULES) $(GO_TARGETS) | $(REPO_DEPS)
 
 #
 # This example Makefile defines a special target for building manual pages.  You
@@ -154,9 +166,16 @@ all: $(SMF_MANIFESTS) $(STAMP_NODE_MODULES) | $(REPO_DEPS)
 manpages: $(MAN_OUTPUTS)
 
 .PHONY: test
-test: $(STAMP_NODE_MODULES)
+test: $(STAMP_NODE_MODULES) $(GO_TEST_TARGETS)
 	$(NODE) $(TAPE) test/*.test.js
 
+#
+# This test demonstrates a basic use of the project-local Go toolchain.
+#
+.PHONY: test_go
+test_go: $(STAMP_GO_TOOLCHAIN)
+	@$(GO) version
+	$(GO) run src/tellmewhereto.go
 
 #
 # Target definitions.  This is where we include the target Makefiles for
@@ -167,6 +186,7 @@ include ./tools/mk/Makefile.deps
 
 ifeq ($(shell uname -s),SunOS)
 	include ./tools/mk/Makefile.node_prebuilt.targ
+	include ./tools/mk/Makefile.go_prebuilt.targ
 else
 	include ./tools/mk/Makefile.node.targ
 endif

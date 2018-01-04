@@ -1,0 +1,132 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2018, Joyent, Inc.
+#
+
+#
+# Makefile.go_prebuilt.defs: Makefile for obtaining a prebuilt Go toolchain.
+#
+# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
+
+#
+# This Makefile aids in the download and operation of a Go toolchain when
+# building software written in the Go language.  It provides as much isolation
+# from the broader build host as possible, including the provision of a
+# project-local GOPATH and GOROOT.
+#
+# This Makefile is intended to be used along with "Makefile.go_prebuilt.targ".
+#
+# When using this Makefile, you MUST define these variables before the include
+# directive:
+#
+#	GO_PREBUILT_VERSION	The version of the Go toolchain to download
+#				and use.  For example, "1.9".
+#
+# You MAY also specify the following variables:
+#
+#	GO_ENV			A list of environment variable specifications
+#				in shell syntax which will be prepended to Go
+#				toolchain invocations.  Using the "+=" operator,
+#				it is possible to add to the list without
+#				overriding the base environment specified by
+#				this Makefile.
+#
+# This Makefile provides definitions for the following variables:
+#
+#	GO_INSTALL		The location of the Go toolchain, relative
+#				to $(TOP).
+#
+#	GO_GOPATH		The location of the project-local GOPATH
+#				directory, relative to $(TOP).
+#
+#	GO			To be used in place of a bare invocation of
+#				"go"; e.g., "go build" would become
+#				"$(GO) build".  This invocation uses env(1)
+#				and $(GO_ENV) to construct an isolated
+#				environment.
+#
+
+ifndef TOP
+$(error You must include Makefile.defs before this makefile.)
+endif
+
+ifndef CACHE_DIR
+$(error You must include Makefile.defs before this makefile.)
+endif
+
+ifndef GO_PREBUILT_VERSION
+$(error GO_PREBUILT_VERSION must be set before including this makefile.)
+endif
+
+GO_VERSION =			$(GO_PREBUILT_VERSION)
+
+#
+# This Makefile is presently used to build programs written in the Go language
+# to be shipped in zone images.  As such, we default to a target specification
+# which is appropriate for an illumos host.
+#
+GO_GOOS ?=			solaris
+GO_GOARCH ?=			amd64
+
+#
+# The "tools/download_go" script will obtain a Go toolchain tar archive, which
+# we will store in the $(CACHE_DIR).  This directory is be removed entirely by
+# "make distclean".
+#
+GO_TARBALL =			$(CACHE_DIR)/go-$(GO_PREBUILT_VERSION).tar.bz2
+
+#
+# The downloaded Go toolchain will be extracted into a directory under
+# $(CACHE_DIR) by the $(STAMP_GO_TOOLCHAIN) target.  This directory becomes
+# the value of $GOROOT for toolchain invocations.
+#
+GO_INSTALL =			$(CACHE_DIR)/go-$(GO_VERSION)
+
+#
+# Parts of the Go toolchain store intermediate build artefacts in the GOPATH
+# directory.  At the time of writing, at least some of these intermediate
+# artefacts cannot be reused by different versions of the toolchain.  There
+# does not appear to be any mechanism in place to _prevent_ an error of this
+# type, so we include the Go toolchain version in the project-local GOPATH
+# directory name.
+#
+GO_GOPATH =			$(CACHE_DIR)/gopath-$(GO_VERSION)
+
+#
+# The Go toolchain derives some amount of behaviour from the environment.  In
+# order to precisely control that behaviour, we build up our own environment
+# containing only the expected values and run the tool under "env -i", thus
+# precluding any other variables from leaking in:
+#
+GO_ENV +=			GOROOT="$(TOP)/$(GO_INSTALL)"
+GO_ENV +=			GOPATH="$(TOP)/$(GO_GOPATH)"
+GO_ENV +=			GOARCH="$(GO_GOARCH)"
+GO_ENV +=			GOOS="$(GO_GOOS)"
+GO_ENV +=			PATH="$(TOP)/$(GO_INSTALL)/bin:$$PATH"
+
+#
+# The $(GO) variable should be used in place of bare invocations of "go".
+# For example, instead of "go build", use "$(GO) build".
+#
+GO =				env -i $(GO_ENV) $(TOP)/$(GO_INSTALL)/bin/go
+
+#
+# If the version of Go is changed in the Makefile, or interactively, we need
+# to make sure the new version is downloaded and installed.  As such, the
+# stamp name needs to include the version.
+#
+STAMP_GO_TOOLCHAIN =		$(MAKE_STAMPS_DIR)/go-toolchain-$(GO_VERSION)
+
+#
+# A regular "make clean" should remove any cached build artefacts from GOPATH.
+#
+CLEAN_FILES +=			$(GO_GOPATH)

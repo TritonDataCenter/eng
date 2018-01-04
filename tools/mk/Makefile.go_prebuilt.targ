@@ -1,0 +1,55 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2018, Joyent, Inc.
+#
+
+#
+# Makefile.go_prebuilt.targ: Makefile for obtaining a prebuilt Go toolchain.
+#
+# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
+
+#
+# For usage documentation, see the comments in "Makefile.go_prebuilt.defs".
+#
+
+ifndef GO_TARBALL
+$(error You must include Makefile.go_prebuilt.defs first.)
+endif
+
+#
+# Download a prebuilt copy of the Go toolchain.  There are not presently builds
+# available for illumos systems on the official Go site, so we have an
+# appropriate build stored on a Joyent server.
+#
+# Note that the GOOS and GOARCH values provided here are for the toolchain to
+# run on this machine: the build machine.  The Go toolchain is a cross
+# compiler, and the GO_GOOS and GO_GOARCH make variables represent the intended
+# _target_ for any executables built with the Go compiler.  Though it is
+# likely, at least for now, that these values are the same in our environment
+# for the build and target machines, they are nonetheless distinct concepts and
+# the use of GO_GOOS and GO_GOARCH here would not be correct.
+#
+$(GO_TARBALL):
+	rm -f $@
+	mkdir -p $(@D)
+	tools/download_go $(GO_PREBUILT_VERSION) solaris amd64 $(CACHE_DIR)
+
+#
+# Extract the Go toolchain.  This stamp includes the version number of the
+# Go toolchain, ensuring a new download and extraction if the version changes.
+#
+$(STAMP_GO_TOOLCHAIN): $(GO_TARBALL)
+	$(MAKE_STAMP_REMOVE)
+	rm -rf $(GO_INSTALL)
+	mkdir $(GO_INSTALL)
+	cd $(GO_INSTALL) && tar xfj $(TOP)/$(GO_TARBALL)
+	$(MAKE_STAMP_CREATE)

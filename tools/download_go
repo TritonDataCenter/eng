@@ -1,0 +1,126 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2018, Joyent, Inc.
+#
+
+#
+# This program will download a Go toolchain for a particular system.  It
+# currently expects to find illumos builds of the toolchain on the Joyent
+# download server, where we will be placing them alongside sdcnode, etc.
+# The program is designed specifically to be used as part of a make target.
+#
+# We may revisit this once the Go project makes official builds for illumos
+# systems available in the future.
+#
+# NOTE: This program comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
+
+#
+# This program accepts four arguments, in the following order:
+#
+#	GOVERSION	The version of the Go toolchain to use; e.g., "1.9.2"
+#	GOOS		The build machine operating system; e.g., "solaris"
+#	GOARCH		The build machine CPU architecture; e.g., "amd64"
+#	OUTDIR		The local directory into which the downloaded tar
+#			file will be placed.
+#
+# The program will use the provided arguments to find and download an archive
+# of the Go toolchain for use on the build machine.  The archive will be named
+# for a combination of the provided arguments; e.g.,
+# "go1.9.2.solaris-amd64.tar.bz2".  A target symbolic link will also be
+# created, with just the version number in the name; e.g., "go-1.9.2.tar.bz2".
+# If the archive could not be downloaded, an error message will be printed and
+# the output file and target link will be unaffected.
+#
+
+BASEURL='https://download.joyent.com/pub/build/go/adhoc/'
+GOVERSION=$1
+GOOS=$2
+GOARCH=$3
+OUTDIR=$4
+
+if [[ -z $GOVERSION || -z $GOOS || -z $GOARCH || -z $OUTDIR ]]; then
+	printf 'ERROR: usage: download_go GOVERSION GOOS GOARCH OUTDIR\n' 2>&1
+	exit 1
+fi
+
+if [[ ! -d $OUTDIR ]]; then
+	printf 'ERROR: output directory "%s" does not exist\n' "$OUTDIR" 2>&1
+	exit 1
+fi
+
+TARGET="go-$GOVERSION.tar.bz2"
+
+#
+# Download the index page which lists the current set of available go
+# builds:
+#
+if ! list=$(curl -sSfL "$BASEURL") || [[ -z "$list" ]]; then
+	printf 'ERROR: could not download index page\n' >&2
+	exit 1
+fi
+
+#
+# Using only commonly found household items, extract the full name of the
+# go tar archive we need.  This program needs to be able to operate in a
+# minimally populated build zone, so we avoid using anything beyond basic
+# UNIX tools like "awk".
+#
+# One word to describe this process might be "brittle".
+#
+if ! name=$(/usr/bin/awk -v "v=$GOVERSION" -v "o=$GOOS" -v "a=$GOARCH" -F\" '
+    BEGIN { pattern = "^go"v"."o"-"a".tar.bz2$"; }
+    $1 == "<a href=" && $2 ~ pattern { print $2 }' <<< "$list") ||
+    [[ -z "$name" ]]; then
+	printf 'ERROR: could not locate file name in index page\n' >&2
+	printf '\t(Does Go version %s (%s-%s) exist?)\n' \
+	    "$GOVERSION" "$GOOS" "$GOARCH" >&2
+	exit 1
+fi
+
+
+#
+# If the full file name of the latest go build does not exist, download it now
+# to a temporary file.  If it succeeds, move it into place.
+#
+output_file="$OUTDIR/$name"
+if [[ ! -f $output_file ]]; then
+	printf 'Downloading Go: %s\n' "$BASEURL$name"
+
+	temp_file="$OUTDIR/.tmp.$name.$$"
+	rm -f "$temp_file"
+
+	if ! curl -sSf -o "$temp_file" "$BASEURL$name"; then
+		printf 'ERROR: could not download go\n' >&2
+		rm -f "$temp_file"
+		exit 1
+	fi
+
+	if ! mv "$temp_file" "$output_file"; then
+		printf 'ERROR: could not move tar file into place\n' >&2
+		rm -f "$temp_file"
+		exit 1
+	fi
+fi
+
+#
+# Make sure the target link points at the correct file:
+#
+rm -f "$OUTDIR/$TARGET"
+if ! ln -s "$name" "$OUTDIR/$TARGET"; then
+	printf 'ERROR: could not create target link\n' >&2
+	exit 1
+fi
+
+exit 0
+
+# vim: set ts=8 sts=8 sw=8 noet:

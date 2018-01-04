@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2017, Joyent, Inc.
+# Copyright (c) 2018, Joyent, Inc.
 #
 
 #
@@ -30,6 +30,11 @@
 #	MAKE_STAMPS_DIR	The directory in which make stamp files are to be
 #			created.  See comments below on expensive targets.
 #
+#	CACHE_DIR	A directory tree in which temporary files may be
+#			collected by download, tarball extraction, etc.  This
+#			directory is completely removed by "make distclean".
+#			Files in this directory are not intended to be shipped.
+#
 
 TOP := $(shell pwd)
 
@@ -51,6 +56,9 @@ STAMP := $(BRANCH)-$(TIMESTAMP)-$(_GITDESCRIBE)
 
 # node-gyp will print build info useful for debugging with V=1
 export V=1
+
+CACHE_DIR ?=		cache
+DISTCLEAN_FILES +=	$(CACHE_DIR)
 
 #
 # EXPENSIVE TARGETS AND MAKE STAMP FILES
