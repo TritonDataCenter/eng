@@ -10,7 +10,7 @@ apisections:
 -->
 
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright (c) 2018, Joyent, Inc.
 -->
 
 # Joyent Engineering Guide
@@ -1379,7 +1379,6 @@ In general, process is shrink-to-fit: we adopt process that help us work better,
 but process for process's sake is avoided. Any resemblance to formalized
 methodologies, living or dead, is purely coincidental.
 
-
 # Security Statement and Best Practices
 
 Joyent Engineering makes security a top priority for all of our projects. All engineering work is expected to follow industry best practices. New changes affecting security are reviewed by a developer other than the person who wrote the new code. Both developers test that these changes are not vulnerable to the OWASP top 10 security, pass PCI DSS, and are safe.
@@ -1404,6 +1403,90 @@ For the Joyent Public Cloud, Jira change tickets should include the following be
 - Steps to undo this change if necessary.
 
 For reference, read the [owasp top 10](https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project) vulnerabilities.
+
+# Community Interaction
+
+Due to the open source nature of Joyent software, community interaction is very
+important.
+
+There are mailing lists and IRC channels for top-level Joyent projects (Triton,
+Manta, SmartOS). In addition to using these channels for assisting community
+members with developing and using Joyent products, they are useful for notifying
+the community of major changes.
+
+## Flag Day and Heads Up Notifications
+
+A flag day change is a change that makes a service or tool incompatible with
+another service or tool. Flag day changes can result in complicated operational
+procedures to ensure dependent services and tools are updated in lock step.
+An example would be changing Manta's Muskie to communicate over the Gopher
+protocol instead of HTTP. All of the existing client software would have to be
+redeployed to a version supporting the Gopher protocol at the exact same time
+Muskie is updated.
+
+Flag days should be avoided, but sometimes they are necessary. It is important
+to notify the community as soon as flag day changes are integrated. For changes
+that require attention, but are not flag days, a heads up email should be sent.
+In either case, the message must be sent to the relevant public distribution
+lists (e.g. sdc-discuss).
+
+For heads up notifications, the subject line should include '[HEADS-UP]' and a
+brief summary of what has changed.
+
+For flag day notifications, the subject line should include '[FLAG-DAY]' and a
+list of components effected by the flag day.
+
+The body of each message should start with a statement describing who
+may safely ignore the message. This should be followed by a brief description
+of the change that was integrated and a ticket for the change.
+
+Heads up notifications may optionally include information describing what will
+happen if no action is taken.
+
+Flag day notifications should also include or link to instructions for how to
+successfully complete the flag day upgrade.
+
+Here is an example of a flag day email:
+
+```
+Subject: [FLAG-DAY] OS-4498 (illumos-joyent and smartos-live)
+Body:
+Hi folks,
+
+If you are not building your own SmartOS (or SDC) platform images,
+you can ignore this mail.
+
+I just put back OS-4498. This slightly changes the behaviour of
+"custr_cstr()" from "libcmdutils.so.1" in the OS, so if you are
+updating your copy of "smartos-live" you should first update your
+"illumos-joyent".
+```
+
+Here is an example of a heads up email:
+
+```
+Subject: [HEADS-UP] storage zone CPU shares
+Body:
+I've pushed the change for:
+MANTA-1573 mako should have larger shares than marlin compute zones
+
+This increases the cpu_shares allotted for storage zones, which can improve
+download/upload performance when the system is saturated with compute jobs
+(at the potential expense of the compute jobs).  This change only affects new
+deployments.  If you want to apply it to an existing Manta deployment, you'll
+want to do something like this for each "storage" zone in your fleet:
+
+    vmadm update $zone_uuid cpu_shares=2048
+
+You should probably also update the Manta SAPI application so that subsequent
+storage zone deployments get the updated value.  That will be something like
+this:
+
+    echo '{ "params": { "cpu_shares": 2048 } }' | \
+        sapiadm update $uuid
+
+where $uuid is the uuid of the "storage" SAPI service.
+```
 
 # Miscellaneous Best Practices
 
