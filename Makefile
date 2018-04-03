@@ -108,7 +108,7 @@ include ./tools/mk/Makefile.smf.defs
 # binary as part of the build process.  Other options are possible -- it depends
 # on the need of your repository.
 #
-NODE_PREBUILT_VERSION =	v4.8.7
+NODE_PREBUILT_VERSION =	v4.9.0
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG = zone
 	include ./tools/mk/Makefile.node_prebuilt.defs
