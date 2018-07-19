@@ -101,7 +101,7 @@
 # Defaults for the various tools we use.
 #
 BASH		?= bash
-BASHSTYLE	?= tools/bashstyle
+BASHSTYLE   ?= $(NODE) tools/bashstyle
 CP		?= cp
 CSCOPE		?= cscope
 CSCOPE_DIRS	?= .
