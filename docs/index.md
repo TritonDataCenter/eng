@@ -1122,7 +1122,13 @@ and when it fails:
 This is primarily useful for complex scripts that people run interactively
 rather than system scripts whose output goes to a log.
 
+# Java
 
+If you find yourself having to do anything related to Java or the Java Manta SDK
+[QUICKSTART.md in java-manta](https://github.com/joyent/java-manta/blob/master/QUICKSTART.md)
+has a condensed guide for getting started and covers many aspects of our usage
+of Java and Maven that might not be familiar to an engineer that hasn't worked
+with these tools yet.
 
 # JIRA best practices for Customer Issues
 
