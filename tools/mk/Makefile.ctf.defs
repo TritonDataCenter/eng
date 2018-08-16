@@ -1,0 +1,49 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2018, Joyent, Inc.
+#
+
+#
+# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
+# into other repos as-is without requiring any modifications. If you find
+# yourself changing this file, you should instead update the original copy in
+# eng.git and then update your repo to use the new version.
+#
+# This Makefile uses the following definitions:
+#
+# 	CTFTOOLS	Directory in which to install ctftools once downloaded
+# 			extracted.
+#
+# 	CTFCONVERT	Path for the ctfconvert utility which converts debug
+# 			information from a binary file to CTF data and replaces
+# 			the debug section of that file with a CTF section called
+# 			SUNW_ctf.
+#
+# See the rule for helloctf in the Makefile located at the root of this
+# repository for an example of how to use ctfconvert to include CTF information
+# in a desired binary.
+#
+# To use this file, be sure to also include Makefile.ctf.targ after defining
+# targets.
+#
+ifndef TOP
+$(error You must include Makefile.defs before this makefile.)
+endif
+
+ifndef CACHE_DIR
+$(error You must include Makefile.defs before this makefile.)
+endif
+
+CTFTOOLS := $(TOP)/$(CACHE_DIR)/ctftools
+CTFCONVERT := $(CTFTOOLS)/bin/ctfconvert
+CTFDIFF := $(CTFTOOLS)/bin/ctfdiff
+CTFDUMP := $(CTFTOOLS)/bin/ctfdump
+CTFMERGE := $(CTFTOOLS)/bin/ctfmerge
+CTFSTRIP := $(CTFTOOLS)/bin/ctfstrip
+
+STAMP_CTF_TOOLS :=	$(MAKE_STAMPS_DIR)/ctftools.stamp

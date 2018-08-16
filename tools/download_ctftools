@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2018, Joyent, Inc.
+#
+
+#
+# This program will download a prebuilt copy of the CTF tools from Manta.
+# These tools have been built using a technique to ensure they can be run on a
+# sufficiently old platform.  More details are available at:
+#
+#	https://github.com/jclulow/ctftools
+#
+
+MANTA_URL='https://us-east.manta.joyent.com'
+BASE_PATH='/Joyent_Dev/public/ctftools'
+TARBALL='ctftools.20141030T081701Z.9543159.tar.gz'
+
+if [[ -z $1 ]]; then
+	printf 'ERROR: usage: download_ctftools <destination dir>\n' 2>&1
+	exit 1
+fi
+
+TOP=$(cd "$(dirname "$0")/.." && pwd)
+CACHE_DIR=$1
+TMPDIR="$TOP/$CACHE_DIR"
+CTFDIR="$TOP/$CACHE_DIR/ctftools"
+
+if ! /usr/bin/mkdir -p "$TMPDIR"; then
+	printf 'ERROR: could not mkdir "%s"\n' "$TMPDIR" >&2
+	exit 1
+fi
+
+if [[ ! -f "$TMPDIR/$TARBALL" ]]; then
+	#
+	# Try to download the tarball from Manta.
+	#
+	start_time=$SECONDS
+	rm -f "$TMPDIR/$TARBALL.tmp"
+	while :; do
+		if (( $SECONDS > start_time + 120 )); then
+			printf 'ERROR: timed out trying to download tools\n' >&2
+			exit 1
+		fi
+
+		if ! curl -sSf -o "$TMPDIR/$TARBALL.tmp" \
+		    "$MANTA_URL/$BASE_PATH/$TARBALL"; then
+			printf 'WARNING: download failure (retrying)\n' >&2
+			sleep 5
+			continue
+		fi
+
+		if ! /usr/bin/gzip -t "$TMPDIR/$TARBALL.tmp"; then
+			printf 'WARNING: download gzip invalid (retrying)\n' >&2
+			sleep 5
+			continue
+		fi
+
+		if ! /usr/bin/mv "$TMPDIR/$TARBALL.tmp" "$TMPDIR/$TARBALL"; then
+			printf 'ERROR: could not move tarball into place\n' >&2
+			exit 1
+		fi
+
+		break
+	done
+fi
+
+#
+# Extract the tarball
+#
+if ! /usr/bin/mkdir -p "$CTFDIR"; then
+	printf 'ERROR: could not mkdir "%s"\n' "$CTFDIR" >&2
+	exit 1
+fi
+
+if ! cd "$CTFDIR"; then
+	exit 1
+fi
+
+if ! /usr/bin/tar xfz "$TMPDIR/$TARBALL"; then
+	printf 'ERROR: could not extract tarball\n' >&2
+	exit 1
+fi
+
+exit 0
