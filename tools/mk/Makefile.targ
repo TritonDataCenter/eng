@@ -73,6 +73,9 @@
 #
 #	BASH		Path to bash (default: "bash")
 #
+#	BUILD		top-level directory for node binaries, generated docs,
+#			and any other build output (default: "build")
+#
 #	CSCOPE_DIRS	Directories to search for source files for the cscope
 #			index. (default: ".")
 #
@@ -126,7 +129,7 @@ endif
 #
 # Defaults for other fixed values.
 #
-BUILD		= build
+BUILD		?= build
 DISTCLEAN_FILES += $(BUILD)
 DOC_BUILD	= $(BUILD)/docs/public
 
