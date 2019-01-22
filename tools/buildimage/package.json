@@ -1,0 +1,14 @@
+{
+    "name": "buildimage",
+    "description": "Triton Image Builder",
+    "version": "0.0.2",
+    "author": "Joyent (joyent.com)",
+    "private": true,
+    "dependencies": {
+        "assert-plus": "1.0.0",
+        "dashdash": "1.14.1",
+        "uuid": "3.3.2",
+        "vasync": "2.2.0"
+    },
+    "license": "MPL-2.0"
+}

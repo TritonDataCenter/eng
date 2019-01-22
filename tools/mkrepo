@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2019, Joyent, Inc.
  */
 
 var child_process = require('child_process');
@@ -26,11 +26,11 @@ var DIRS = [
     'smf',
     'smf/manifests',
     'test',
-    'tools',
-    'tools/mk'
+    'tools'
 ];
 
 var SUBMODULES = {
+    'eng': 'https://github.com/joyent/eng.git',
     'javascriptlint': 'https://github.com/davepacheco/javascriptlint.git',
     'jsstyle': 'https://github.com/davepacheco/jsstyle.git',
     'restdown': 'https://github.com/trentm/restdown.git'

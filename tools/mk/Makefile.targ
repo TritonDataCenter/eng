@@ -1,39 +1,63 @@
-#
+
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
 #
-# Copyright (c) 2017, Joyent, Inc.
+# Copyright (c) 2019, Joyent, Inc.
 #
 
 #
 # Makefile.targ: common targets.
 #
-# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
-# into other repos as-is without requiring any modifications. If you find
-# yourself changing this file, you should instead update the original copy in
-# eng.git and then update your repo to use the new version.
+
+#
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to the eng.git gerrit project as normal, then do the following for
+# each component that uses eng.git, likely reusing the original ticket subject
+# for the commit message as was used for the eng.git push.
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "TOOLS-xxxx some description" deps/eng
+#
+# Then push those changes to gerrit as usual for review.
+#
+
 #
 # This Makefile defines several useful targets and rules. You can use it by
 # including it from a Makefile that specifies some of the variables below.
 #
 # Targets defined in this Makefile:
 #
-#	check	Checks JavaScript files for lint and style
-#		Checks bash scripts for syntax
-#		Checks SMF manifests for validity against the SMF DTD
+#	buildimage	Builds an image
+#	check		Checks JavaScript files for lint and style
+#			Checks bash scripts for syntax
+#			Checks SMF manifests for validity against the SMF DTD
 #
-#	clean	Removes built files
+#	clean		Removes built files
 #
-#	docs	Builds restdown documentation in docs/
+#	docs		Builds restdown documentation in docs/
 #
-#	prepush	Depends on "check" and "test"
+#	prepublish	Is depended upon by "publish", saves the $(STAMP)
+#			of our last published bits, used by bits-upload.sh,
+#			as well as data about the build environment
 #
-#	test	Does nothing (you should override this)
+#	prepush		Depends on "check" and "test"
 #
-#	xref	Generates cscope (source cross-reference index)
+#	show-buildenv	Emits the pkgsrc version required for this component,
+#			if available
+#
+#	test		Does nothing (you should override this)
+#
+#	validate-buildenv
+#			Runs a series of checks to determine if the build
+#			environment is valid for this component
+#
+#	xref		Generates cscope (source cross-reference index)
 #
 # For details on what these targets are supposed to do, see the Joyent
 # Engineering Guide.
@@ -104,7 +128,7 @@
 # Defaults for the various tools we use.
 #
 BASH		?= bash
-BASHSTYLE   ?= $(NODE) tools/bashstyle
+BASHSTYLE   	?= $(NODE) deps/eng/tools/bashstyle
 CP		?= cp
 CSCOPE		?= cscope
 CSCOPE_DIRS	?= .
@@ -130,7 +154,7 @@ endif
 # Defaults for other fixed values.
 #
 BUILD		?= build
-DISTCLEAN_FILES += $(BUILD)
+DISTCLEAN_FILES += $(BUILD) bits
 DOC_BUILD	= $(BUILD)/docs/public
 
 #
@@ -332,6 +356,135 @@ test:
 prepush: check test
 
 #
+# Ensure we have a sane build environment. The script includes an escape
+# hatch in case of emergencies. set ENGBLD_SKIP_VALIDATE_BUILDENV=true in the
+# environment to have it always pass.
+#
+.PHONY: validate-buildenv
+validate-buildenv:
+	$(TOP)/deps/eng/tools/validate-buildenv.sh
+
+.PHONY: show-buildenv
+show-buildenv:
+	@$(TOP)/deps/eng/tools/validate-buildenv.sh -r
+
+#
+# Everything should depend on us having a valid build environment.
+#
+all release publish buildimage: validate-buildenv
+
+publish: prepublish
+
+#
+# Store some information about the build environment. The latest-build-stamp
+# file is used if running the 'bits-upload-latest' target. See bits-upload.sh.
+# When generating npm-ls.json output, we ignore errors since older versions
+# of npm seem to sometimes install packages that /opt/tools/bin/npm deems
+# "invalid". That shouldn't be allowed to fail the build.
+#
+.PHONY: prepublish
+prepublish:
+	-mkdir -p $(ENGBLD_BITS_DIR)/$(NAME)
+	echo $(STAMP) > $(ENGBLD_BITS_DIR)/$(NAME)/latest-build-stamp
+	@echo "Generating $(ENGBLD_BITS_DIR)/$(NAME)/build-environment"
+	@if [[ "$$(uname -s)" == "SunOS" ]]; then \
+		MAKE_PID=$$(/usr/bin/ps -o ppid= -p $$$$); \
+		BUILD_IMG_UUID=$$(/usr/bin/pfexec /usr/sbin/mdata-get sdc:image_uuid); \
+		echo hostname: $$(/usr/bin/hostname) > $(ENGBLD_BITS_DIR)/$(NAME)/build-environment; \
+		/usr/bin/cat /etc/pkgsrc_version >> $(ENGBLD_BITS_DIR)/$(NAME)/build-environment; \
+		echo image_uuid: $$BUILD_IMG_UUID >> $(ENGBLD_BITS_DIR)/$(NAME)/build-environment; \
+	fi
+	@echo "Generating $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json"
+	-/opt/tools/bin/npm ls --json > $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json
+
+#
+# The list of pkgsrc packages that should be installed in the
+# image that the 'buildimage' target constructs. Set here rather than
+# in Makefile.defs to ensure it's always computed after $(BUILDIMAGE_PKGSRC)
+# is set.
+#
+ifdef BUILDIMAGE_PKGSRC
+BUILDIMAGE_PKGSRC_ARGS = -p $$(echo $(BUILDIMAGE_PKGSRC) | sed -e 's/ /,/g')
+else
+BUILDIMAGE_PKGSRC_ARGS =
+endif
+
+#
+# BUILDIMAGE_PKG should nearly always be set to $(TOP)/$(RELEASE_TARBALL),
+# but ensure RELEASE_TARBALL is set before setting that default.
+#
+ifeq ($(ENGBLD_USE_BUILDIMAGE), true)
+
+ifndef BUILDIMAGE_PKG
+  ifndef RELEASE_TARBALL
+    $(error "Error: RELEASE_TARBALL must be set before including Makefile.targ")
+  else
+    BUILDIMAGE_PKG=$(TOP)/$(RELEASE_TARBALL)
+  endif
+endif
+
+endif
+
+.PHONY: buildimage
+buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
+	mkdir -p $(ENGBLD_BITS_DIR)/$(NAME)
+	mkdir -p $(BUILDIMAGE_STAGEDIR)
+	cd $(BUILDIMAGE_STAGEDIR) ; \
+	$(TOP)/deps/eng/tools/buildimage-extract-pkg.sh $(BUILDIMAGE_PKG)
+	pfexec chown -R root:root $(BUILDIMAGE_STAGEDIR)
+	cd $(BUILDIMAGE_STAGEDIR); \
+	pfexec $(BUILDIMAGE) \
+		-i $(BASE_IMAGE_UUID) \
+		-d $(BUILDIMAGE_STAGEDIR)/root \
+		-m '$(BUILDIMAGE_MF)' \
+		$(BUILDIMAGE_PKGSRC_ARGS) \
+		-P $(NAME)-zfs
+	cp /tmp/$(NAME)-zfs-$(STAMP).zfs.gz $(ENGBLD_BITS_DIR)/$(NAME)
+	cp /tmp/$(NAME)-zfs-$(STAMP).imgmanifest $(ENGBLD_BITS_DIR)/$(NAME)
+	pfexec rm /tmp/$(NAME)-zfs-$(STAMP).zfs.gz
+	pfexec rm /tmp/$(NAME)-zfs-$(STAMP).imgmanifest
+	pfexec rm -rf $(BUILDIMAGE_STAGEDIR)
+
+#
+# Upload the build products from this component's ./bits directory
+# to either manta or a filesystem path.
+#
+.PHONY: bits-upload
+bits-upload: publish $(BUILDIMAGE_TARG)
+	$(TOP)/deps/eng/tools/bits-upload.sh \
+		-b $(BRANCH) \
+		-B "$(TRY_BRANCH)" \
+		$(BITS_UPLOAD_LOCAL_ARG) \
+		$(BITS_UPLOAD_IMGAPI_ARG) \
+		-d $(ENGBLD_DEST_OUT_PATH)/$(NAME) \
+		-n $(NAME) \
+		-t $(STAMP)
+
+#
+# A convenience target that doesn't require us to do a full build. We derive
+# the timestamp for the bits being uploaded from the latest-build-stamp file
+# in build/bits directory, produced by the 'prepublish' target.
+#
+.PHONY: bits-upload-latest
+bits-upload-latest:
+	$(TOP)/deps/eng/tools/bits-upload.sh \
+		-b $(BRANCH) \
+		-B "$(TRY_BRANCH)" \
+		$(BITS_UPLOAD_LOCAL_ARG) \
+		$(BITS_UPLOAD_IMGAPI_ARG) \
+		-d $(ENGBLD_DEST_OUT_PATH)/$(NAME) \
+		-n $(NAME)
+
+#
+# Do an npm install for the dependencies of buildimage itself.
+#
+$(STAMP_BUILDIMAGE_PREP):
+	$(MAKE_STAMP_REMOVE); \
+	cd $(TOP)/deps/eng/tools/buildimage; \
+	$(MAKE) buildimage-prep
+	$(MAKE_STAMP_CREATE)
+
+#
 # This rule automatically exposes every "stamp" file as a target that can be
 # invoked manually as "stamp-$STAMP_NAME".  For example, if a stamp has been
 # defined thus:
@@ -346,3 +499,10 @@ prepush: check test
 #
 stamp-%: $(MAKE_STAMPS_DIR)/%
 	@:
+
+#
+# Allow for easier Makefile debugging. 'make print-FOO' will emit the value
+# of $(FOO).
+#
+print-%:
+	@echo '$*=$($*)'

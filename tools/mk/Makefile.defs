@@ -5,16 +5,27 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright (c) 2019, Joyent, Inc.
 #
 
 #
 # Makefile.defs: common defines.
+
 #
-# NOTE: This makefile comes from the "eng" repo. It's designed to be dropped
-# into other repos as-is without requiring any modifications. If you find
-# yourself changing this file, you should instead update the original copy in
-# eng.git and then update your repo to use the new version.
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to the eng.git gerrit project as normal, then do the following for
+# each component that uses eng.git, likely reusing the original ticket subject
+# for the commit message as was used for the eng.git push.
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "TOOLS-xxxx some description" deps/eng
+#
+# Then push those changes to gerrit as usual for review.
+#
+
 #
 # This makefile defines some useful defines. Include it at the top of
 # your Makefile.
@@ -34,6 +45,12 @@
 #			collected by download, tarball extraction, etc.  This
 #			directory is completely removed by "make distclean".
 #			Files in this directory are not intended to be shipped.
+#
+
+#
+# Note that variables that start with "ENGBLD_" are ones we expect developers
+# may want to override in their environment, usually to modify build output
+# destinations, but sometimes to modify the behavior of the build.
 #
 
 TOP := $(shell pwd)
@@ -59,6 +76,9 @@ export V=1
 
 CACHE_DIR ?=		cache
 DISTCLEAN_FILES +=	$(CACHE_DIR)
+
+# Many components assemble *-pkg*.gz tarballs as build products
+CLEAN_FILES +=  $(NAME)-pkg*.gz
 
 #
 # EXPENSIVE TARGETS AND MAKE STAMP FILES
@@ -103,3 +123,79 @@ CLEAN_FILES +=		$(MAKE_STAMPS_DIR)
 
 MAKE_STAMP_REMOVE =	mkdir -p $(@D); rm -f $(@)
 MAKE_STAMP_CREATE =	mkdir -p $(@D); touch $(@)
+
+#
+# Nearly all components in Triton/Manta currently require the build machine to
+# be running this platform image, validated as part of validate-buildenv.sh.
+# Makefiles that allow newer platforms should override this.
+#
+BUILD_PLATFORM=20151126T062538Z
+
+#
+# The manta path where the bits-upload target stores build artifacts, via
+# ./tools/bits-upload.sh. This can be a Manta path, or an absolute
+# filesystem path. If the latter, be sure to also set
+# $ENGBLD_BITS_UPLOAD_LOCAL=true, see below.
+#
+ENGBLD_DEST_OUT_PATH ?= /public/builds
+
+#
+# Makefiles must declare whether they need to construct a ZFS image
+# by setting ENGBLD_USE_BUILDIMAGE to 'true'. We use this mechanism
+# so that we can conditionally add a buildimage dependency to the
+# 'bits-upload' target.
+#
+ifeq ($(ENGBLD_USE_BUILDIMAGE), true)
+BUILDIMAGE_TARG = buildimage
+else
+BUILDIMAGE_TARG =
+endif
+
+#
+# If bits-upload should use a local dest_dir, set that argument based on
+# $ENGBLD_BITS_UPLOAD_LOCAL in the environment.
+#
+ifeq ($(ENGBLD_BITS_UPLOAD_LOCAL), true)
+BITS_UPLOAD_LOCAL_ARG = -L
+else
+BITS_UPLOAD_LOCAL_ARG =
+endif
+
+#
+# If bits-upload should publish images to updates.joyent.com, set that argument
+# based on $ENGBLD_BITS_UPLOAD_IMGAPI in the environment.
+#
+ifeq ($(ENGBLD_BITS_UPLOAD_IMGAPI), true)
+BITS_UPLOAD_IMGAPI_ARG = -p
+else
+BITS_UPLOAD_IMGAPI_ARG =
+endif
+
+#
+# A directory for build artifacts, used by the bits-upload, publish and
+# buildimage targets. If BITS_DIR is set, use that instead, to remain
+# compatible with MG-driven builds.
+#
+ENGBLD_BITS_DIR ?= $(TOP)/bits
+ifdef BITS_DIR
+  ENGBLD_BITS_DIR = $(BITS_DIR)
+endif
+
+#
+# A pointer to the buildimage tool, and a stamp-name used to install
+# its dependencies.
+#
+BUILDIMAGE = $(TOP)/deps/eng/tools/buildimage/bin/buildimage
+STAMP_BUILDIMAGE_PREP := $(MAKE_STAMPS_DIR)/buildimage-prep
+
+#
+# Metadata needed by buildimage to construct the image.
+# This gets used when generating the image's manifest file.
+#
+BUILDIMAGE_VERSION	= $(STAMP)
+BUILDIMAGE_STAGEDIR = /tmp/buildimage-$(NAME)-$(STAMP)
+BUILDIMAGE_MF           = \
+    {"name": "$(BUILDIMAGE_NAME)",\
+    "description": "$(BUILDIMAGE_DESC)",\
+    "version": "$(BUILDIMAGE_VERSION)"\
+    }

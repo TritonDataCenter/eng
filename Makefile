@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright (c) 2019, Joyent, Inc.
 #
 
 #
@@ -71,14 +71,31 @@
 #
 
 #
+# If a project produces a SmartOS image for use in Triton or Manta, the name of
+# the image should be specified here. Additional metadata for the image can be
+# set using BUILDIMAGE_* macros.
+#
+NAME = myproject
+
+#
 # Tools
 #
 TAPE :=			./node_modules/.bin/tape
 
 #
-# Makefile.defs defines variables used as part of the build process.
+# If we need to use buildimage, make sure we declare that before including
+# Makefile.defs since that conditionally sets macros based on
+# ENGBLD_USE_BUILDIMAGE.
 #
-include ./tools/mk/Makefile.defs
+ENGBLD_USE_BUILDIMAGE   = true
+
+#
+# Makefile.defs defines variables used as part of the build process.
+# Ensure we have the eng submodule before attempting to include it.
+#
+ENGBLD_REQUIRE          := $(shell git submodule update --init deps/eng)
+include ./deps/eng/tools/mk/Makefile.defs
+TOP ?= $(error Unable to access eng.git submodule Makefiles.)
 
 #
 # Configuration used by Makefile.defs and Makefile.targ to generate
@@ -98,7 +115,7 @@ JSSTYLE_FLAGS =		-f tools/jsstyle.conf
 # for SMF manifest files.
 #
 SMF_MANIFESTS_IN =	smf/manifests/bapi.xml.in
-include ./tools/mk/Makefile.smf.defs
+include ./deps/eng/tools/mk/Makefile.smf.defs
 
 #
 # Historically, Node packages that make use of binary add-ons must ship their
@@ -111,10 +128,18 @@ include ./tools/mk/Makefile.smf.defs
 NODE_PREBUILT_VERSION =	v4.9.0
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG = zone
-	include ./tools/mk/Makefile.node_prebuilt.defs
+	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
 else
-	include ./tools/mk/Makefile.node.defs
+	include ./deps/eng/tools/mk/Makefile.node.defs
 endif
+
+#
+# If a project needs to include Triton/Manta agents as part of its image,
+# include Makefile.agent_prebuilt.defs and define an AGENTS macro to specify
+# which agents are required.
+#
+include ./deps/eng/tools/mk/Makefile.agent_prebuilt.defs
+
 
 #
 # If a project includes some components written in the Go language, the Go
@@ -125,7 +150,7 @@ ifeq ($(shell uname -s),SunOS)
 	GO_PREBUILT_VERSION =	1.9.2
 	GO_TARGETS =		$(STAMP_GO_TOOLCHAIN)
 	GO_TEST_TARGETS =	test_go
-	include ./tools/mk/Makefile.go_prebuilt.defs
+	include ./deps/eng/tools/mk/Makefile.go_prebuilt.defs
 endif
 
 ifeq ($(shell uname -s),SunOS)
@@ -140,7 +165,7 @@ endif
 # including this Makefile, we can depend on $(STAMP_NODE_MODULES) to drive "npm
 # install" correctly.
 #
-include ./tools/mk/Makefile.node_modules.defs
+include ./deps/eng/tools/mk/Makefile.node_modules.defs
 
 #
 # Configuration used by Makefile.manpages.defs to generate manual pages.
@@ -153,10 +178,36 @@ MAN_OUTROOT =		man
 CLEAN_FILES +=		$(MAN_OUTROOT)
 
 MAN_SECTION :=		1
-include tools/mk/Makefile.manpages.defs
+include ./deps/eng/tools/mk/Makefile.manpages.defs
 MAN_SECTION :=		3bapi
-include tools/mk/Makefile.manpages.defs
+include ./deps/eng/tools/mk/Makefile.manpages.defs
 
+#
+# If a project produces a SmartOS image for use in Manta/Triton, the build
+# should produce a tarball containing the components built from this workspace,
+# including any node_modules imported along with the build of node itself
+# (either built locally or prebuilt)
+#
+RELEASE_TARBALL = $(NAME)-pkg-$(STAMP).tar.gz
+
+#
+# To support the 'buildimage' target in Makefile.targ, metadata required for the
+# image should be set here.
+#
+
+# This image is triton-origin-multiarch-15.4.1
+BASE_IMAGE_UUID = 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
+BUILDIMAGE_NAME = manta-myproject
+BUILDIMAGE_DESC	= My Project Has A Description
+AGENTS          = amon config registrar
+BUILDIMAGE_PKGSRC = foobar-42 ook-1.0.1b cheese-0.4cheddar
+#
+# The default image contents are set to $(TOP)/$(RELEASE_TARBALL)
+# in Makefile.targ. To override those, set $(BUILDIMAGE_PKG) to the
+# full path of the required tarball.
+#
+# BUILDIMAGE_PKG=$(TOP)/bar/mytarball.tar.gz
+#
 
 #
 # Repo-specific targets
@@ -164,6 +215,13 @@ include tools/mk/Makefile.manpages.defs
 .PHONY: all
 all: $(SMF_MANIFESTS) $(STAMP_NODE_MODULES) $(GO_TARGETS) | $(REPO_DEPS)
 
+#
+# If a project produces a SmartOS image for use in Manta/Triton, a release
+# target should construct the RELEASE_TARBALL file
+#
+.PHONY: release
+release:
+	echo "Do work here"
 #
 # This example Makefile defines a special target for building manual pages.  You
 # may want to make these dependencies part of "all" instead.
@@ -209,21 +267,22 @@ test_ctf: helloctf $(STAMP_CTF_TOOLS)
 # the "defs" Makefiles we included above.
 #
 
-include ./tools/mk/Makefile.deps
+include ./deps/eng/tools/mk/Makefile.deps
 
 ifeq ($(shell uname -s),SunOS)
-	include ./tools/mk/Makefile.node_prebuilt.targ
-	include ./tools/mk/Makefile.go_prebuilt.targ
+	include ./deps/eng/tools/mk/Makefile.node_prebuilt.targ
+	include ./deps/eng/tools/mk/Makefile.go_prebuilt.targ
+	include ./deps/eng/tools/mk/Makefile.agent_prebuilt.targ
 else
-	include ./tools/mk/Makefile.node.targ
+	include ./deps/eng/tools/mk/Makefile.node.targ
 endif
 
 MAN_SECTION :=		1
-include tools/mk/Makefile.manpages.targ
+include ./deps/eng/tools/mk/Makefile.manpages.targ
 MAN_SECTION :=		3bapi
-include tools/mk/Makefile.manpages.targ
+include ./deps/eng/tools/mk/Makefile.manpages.targ
 
-include ./tools/mk/Makefile.smf.targ
-include ./tools/mk/Makefile.node_modules.targ
-include ./tools/mk/Makefile.ctf.targ
-include ./tools/mk/Makefile.targ
+include ./deps/eng/tools/mk/Makefile.smf.targ
+include ./deps/eng/tools/mk/Makefile.node_modules.targ
+include ./deps/eng/tools/mk/Makefile.ctf.targ
+include ./deps/eng/tools/mk/Makefile.targ

@@ -1,0 +1,692 @@
+#!/opt/tools/bin/node
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/*
+ * Copyright (c) 2019, Joyent, Inc.
+ */
+
+var child_process = require('child_process');
+var dns = require('dns');
+var fs = require('fs');
+var path = require('path');
+var url = require('url');
+
+var assert = require('assert-plus');
+var dashdash = require('dashdash');
+var uuidv4 = require('uuid/v4');
+var vasync = require('vasync');
+
+var CLI = require('../lib/imgadm/lib/cli');
+var imgadmCommon = require('../lib/imgadm/lib/common');
+var indent = imgadmCommon.indent;
+
+
+var CHROOT_MOUNT_DIRS = ['/dev', '/lib', '/proc', '/sbin', '/usr'];
+var CLI_OPTIONS = [
+    {
+        names: ['dir', 'd'],
+        type: 'string',
+        help: 'Directory containing bits to include in image. [required]',
+        helpArg: 'DIR'
+    },
+    {
+        names: ['help', 'h'],
+        type: 'bool',
+        help: 'Print this help and exit.'
+    },
+    {
+        names: ['image', 'i'],
+        type: 'string',
+        help: 'Base image to use. [required]',
+        helpArg: 'IMAGE_UUID'
+    },
+    {
+        names: ['manifest', 'm'],
+        type: 'string',
+        help: 'A JSON object with manifest data. Must have at least name and version. [required]',
+        helpArg: '{"name": "blah", "version": "1.0.0", ...}'
+    },
+    {
+        names: ['packages', 'p'],
+        type: 'string',
+        help: 'Comma separated list of pkgsrc packages to install in image.',
+        helpArg: 'pkg1,pkg2,...'
+    },
+    {
+        names: ['image_prefix', 'P'],
+        type: 'string',
+        help: 'prefix name for output zfs and imgmanifest files.',
+        helpArg: 'PREFIX'
+    },
+    {
+        names: ['verbose', 'v'],
+        type: 'bool',
+        help: 'Enable extra verbosity.'
+    },
+    {
+        name: 'version',
+        type: 'bool',
+        help: 'Print tool version and exit.'
+    }
+];
+var NS_PER_SEC = 1e9;
+// from https://www.netbsd.org/docs/pkgsrc/components.html#components.Makefile
+// but with ',' added for separator and we're matching the string so we don't
+// care as much about first character.
+var PKGS_REGEX = /^[A-Za-z0-9\-_.+,]*$/;
+var PROGNAME = 'buildimage';
+var START_TIME = process.hrtime();
+
+
+function logLine() {
+    var args = Array.prototype.slice.call(arguments);
+    var delta = process.hrtime(START_TIME);
+    var deltaStr;
+    var pad = '';
+    var secsDelta = delta[0] + (delta[1] / NS_PER_SEC);
+
+    // left pad with spaces if we have less than 3 digit seconds
+    // then truncate the result to 12 characters
+    pad = '   '.substr(0, 3 - delta[0].toString().length);
+    deltaStr = (pad + secsDelta).substr(0, 12);
+
+    // if we didn't have 12 characters, right pad w/ 0 so things line up
+    while (deltaStr.length < 12) {
+        deltaStr = deltaStr + '0';
+    }
+
+    args[0] = '[' + deltaStr + '] ' + args[0];
+
+    console.log.apply(null, args);
+}
+
+function logExecError(err, stdout, stderr) {
+    console.error('FAILED(stdout): ' + stdout);
+    console.error('FAILED(stderr): ' + stderr);
+    console.error('FAILED(err): ' + err.message);
+}
+
+function ensureImage(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.uuid(opts.image, 'opts.image');
+    assert.func(callback, 'callback');
+
+    var cli = new CLI();
+
+    logLine('Calling imgadm to import image');
+
+    opts.cli = cli;
+
+    cli.init({}, {}, function _onInit(err) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        opts.dataroot = cli.tool.DEFAULT_ZPOOL;
+        // TODO: validate opts.dataroot looks reasonable.
+        opts.imagesnapshot = opts.dataroot + '/' + opts.image + '@final';
+        cli.do_import('import', {
+            logCb: logLine,
+            'source': ['https://updates.joyent.com']}, [opts.image], callback);
+    });
+}
+
+function createZoneAnalog(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.dataroot, 'opts.dataroot');
+    assert.string(opts.imagesnapshot, 'opts.imagesnapshot');
+    assert.func(callback, 'callback');
+
+    var mountpoint = '/zoneproto-' + process.pid;
+    var newUuid = uuidv4();
+    var source = opts.imagesnapshot;
+    var target = opts.dataroot + '/' + newUuid;
+
+    logLine('Creating zone analog (' + newUuid + ')');
+    opts.mountpoint = mountpoint;
+    opts.target = target;
+    opts.vmUuid = newUuid;
+
+    child_process.execFile('/usr/sbin/zfs', [
+        'clone',
+        '-o', 'mountpoint=' + mountpoint,
+        source,
+        target
+    ], function _onZfs(err, stdout, stderr) {
+        if (err) {
+            logExecError(err, stdout, stderr);
+            callback(err);
+            return;
+        }
+
+        opts.mountdirExists = true;
+        opts.datasetExists = true;
+
+        logLine('Created ' + target + ', and mounted on ' + mountpoint);
+        callback();
+    });
+}
+
+function doChrootMount(mountObj, callback) {
+    assert.object(mountObj, 'mountObj');
+    assert.string(mountObj.dest, 'mountObj.dest');
+    assert.string(mountObj.source, 'mountObj.source');
+    assert.func(callback, 'callback');
+
+    child_process.execFile('/usr/bin/mkdir', [
+        '-p', mountObj.dest
+    ], function _onMkdir(err, stdout, stderr) {
+        if (err) {
+            logExecError(err, stdout, stderr);
+            callback(err);
+            return;
+        }
+
+        child_process.execFile('/usr/sbin/mount', [
+            '-F', 'lofs',
+            '-r', mountObj.source,
+            mountObj.dest
+        ], function _onMount(_err, _stdout, _stderr) {
+            if (_err) {
+                logExecError(_err, _stdout, _stderr);
+                callback(_err);
+                return;
+            }
+
+            logLine('Mounted ' + mountObj.source + ' on ' + mountObj.dest);
+            callback();
+        });
+    });
+}
+
+function setupChroot(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    var mounts;
+
+    mounts = CHROOT_MOUNT_DIRS.map(function _mapDir(dir) {
+        return {
+            dest: opts.mountpoint + '/root' + dir,
+            source: dir
+        };
+    });
+
+    vasync.forEachParallel({
+        func: doChrootMount,
+        inputs: mounts
+    }, function _onMounted(err) {
+        if (!err) {
+            opts.chrootIsMounted = true;
+        }
+        callback(err);
+    });
+}
+
+//
+// In the chroot environment that we run pkg_add in later, it will use the
+// etc/resolv.conf in the chroot to resolve any http_proxy IP addresses.
+// If there's a local http proxy that's not in the DNS configured in the
+// chroot environment (likely 8.8.8.8) then the pkg_add operation will fail,
+// so resolve that hostname now, and modify process.env.http_proxy accordingly.
+//
+function replaceHttpProxy(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.func(callback, 'callback');
+
+    if (!process.env.http_proxy){
+        callback();
+        return;
+    }
+    var parsed = url.parse(process.env.http_proxy);
+    var hostname = parsed.hostname;
+    vasync.waterfall([
+        function(cb) {
+            dns.lookup(hostname, function(err, addr){
+                if (err) {
+                    logLine('Error: failed DNS lookup of $http_proxy host ' +
+                        hostname + ': ' + err);
+                }
+                cb(err, addr);
+            });
+        },
+        function(addr, cb) {
+            assert.string(addr, 'addr');
+            logLine('replacing ' + hostname + ' in http_proxy with ' + addr);
+            process.env.http_proxy = process.env.http_proxy.replace(
+                hostname, addr);
+            logLine('http_proxy now set to ' + process.env.http_proxy);
+            cb();
+        }
+    ]);
+    callback();
+}
+
+function installPkgsrcPkgs(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.array(opts.packages, 'opts.packages');
+    assert.func(callback, 'callback');
+
+    var child;
+
+    if (opts.packages.length === 0) {
+        logLine('No packages to install, skipping pkgsrc');
+        callback();
+        return;
+    }
+
+    logLine('Installing pkgsrc pkgs: ' + opts.packages.join(', '));
+
+    child = child_process.spawn('/usr/sbin/chroot', [
+        opts.mountpoint + '/root',
+        '/opt/local/sbin/pkg_add', '-U'
+    ].concat(opts.packages), {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onRsync(code) {
+        logLine('Child pkgsrc chroot exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to install packages'));
+            return;
+        }
+        logLine('Installed ' + opts.packages.join(', '));
+        callback();
+    });
+}
+
+function loadPkgsrcPkgs(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    child_process.execFile('/usr/sbin/chroot', [
+        opts.mountpoint + '/root',
+        '/opt/local/sbin/pkg_info', '-a'
+    ], {
+        maxBuffer: 10 * 1024 * 1024
+    }, function _onPkgInfo(err, stdout, stderr) {
+        var pkgLines;
+        var pkgString;
+
+        if (err) {
+            logExecError(err, stdout, stderr);
+            callback(err);
+            return;
+        }
+
+        pkgLines = stdout.trim().split('\n').sort();
+        pkgString = JSON.stringify(pkgLines.map(function _mapPkg(pkg) {
+            return (pkg.split(' ')[0]);
+        }), null, 4);
+
+        logLine('Packages:\n' + indent(pkgString));
+
+        callback();
+    });
+}
+
+function doChrootUmount(mountObj, callback) {
+    assert.object(mountObj, 'mountObj');
+    assert.string(mountObj.dest, 'mountObj.dest');
+    assert.func(callback, 'callback');
+
+    child_process.execFile('/usr/sbin/umount', [
+        mountObj.dest
+    ], function _onUmount(err, stdout, stderr) {
+        if (err) {
+            logExecError(err, stdout, stderr);
+            callback(err);
+            return;
+        }
+
+        logLine('Umounted ' + mountObj.dest);
+        callback();
+    });
+}
+
+function unsetupChroot(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.optionalBool(opts.chrootIsMounted, 'opts.chrootIsMounted');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    var mounts;
+
+    mounts = CHROOT_MOUNT_DIRS.map(function _mapDir(dir) {
+        return {
+            dest: opts.mountpoint + '/root' + dir
+        };
+    });
+
+    vasync.forEachParallel({
+        func: doChrootUmount,
+        inputs: mounts
+    }, function _onUmounted(err) {
+        if (!err) {
+            delete opts.chrootIsMounted;
+        }
+        callback(err);
+    });
+}
+
+function installFiles(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.dir, 'opts.dir');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.optionalBool(opts.verbose, 'opts.verbose');
+    assert.func(callback, 'callback');
+
+    var child;
+    var rsyncArgs = '-a';
+
+    if (opts.verbose) {
+        rsyncArgs = '-vaP';
+    }
+
+    logLine('Copying files from ' + opts.dir + ' to ' + opts.mountpoint);
+
+    child = child_process.spawn('/usr/bin/rsync', [
+        rsyncArgs,
+        opts.dir + '/',
+        opts.mountpoint + '/root/'
+    ], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onRsync(code) {
+        logLine('Child rsync exited with code ' + code);
+        callback();
+    });
+}
+
+function cleanupZoneAnalog(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.func(callback, 'callback');
+
+    // Filling out this function was originally marked as
+    // a todo item, but it's unclear what we had intended to
+    // clean up. We're leaving this code here for now to declare
+    // that open question.
+    callback();
+}
+
+function createImage(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.dataroot, 'opts.dataroot');
+    assert.uuid(opts.image, 'opts.image');
+    assert.string(opts.image_prefix, 'opts.image_prefix');
+    assert.object(opts.manifest, 'opts.manifest');
+    assert.string(opts.manifest.name, 'opts.manifest.name');
+    assert.string(opts.manifest.version, 'opts.manifest.version');
+    assert.string(opts.target, 'opts.target');
+    assert.uuid(opts.vmUuid, 'opts.vmUuid');
+    assert.func(callback, 'callback');
+
+    opts.cli.tool.createImage({
+        compression: 'gzip',
+        incremental: true,
+        logCb: logLine,
+        manifest: opts.manifest,
+        savePrefix: '/tmp/' + opts.image_prefix + '-' + opts.manifest.version,
+        vmGet: function _vmGet(vmUuid, _, cb) {
+            cb(null, {
+                image_uuid: opts.image,
+                state: 'stopped',
+                uuid: opts.vmUuid,
+                zfs_filesystem: opts.target,
+                zpool: opts.dataroot
+            });
+        },
+        vmUuid: opts.vmUuid
+    }, callback);
+}
+
+function destroyZoneAnalog(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.optionalBool(opts.datasetExists, 'opts.datasetExists');
+    assert.string(opts.target, 'opts.target');
+    assert.func(callback, 'callback');
+
+    child_process.execFile('/usr/sbin/zfs', [
+        'destroy',
+        opts.target
+    ], function _onZfs(err, stdout, stderr) {
+        if (err) {
+            logExecError(err, stdout, stderr);
+            callback(err);
+            return;
+        }
+
+        delete opts.datasetExists;
+        logLine('Destroyed ' + opts.target);
+        callback();
+    });
+}
+
+function destroyMountdir(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.optionalBool(opts.mountdirExists, 'opts.mountdirExists');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    child_process.execFile('/usr/bin/rmdir', [
+        opts.mountpoint
+    ], function _onRmdir(err, stdout, stderr) {
+        if (err) {
+            logExecError(err, stdout, stderr);
+            callback(err);
+            return;
+        }
+
+        delete opts.mountdirExists;
+        logLine('Deleted ' + opts.mountpoint);
+        callback();
+    });
+}
+
+function buildImage(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.object(opts.manifest, 'opts.manifest');
+    assert.string(opts.image_prefix, 'opts.image_prefix');
+    assert.string(opts.manifest.name, 'opts.manifest.name');
+    assert.string(opts.manifest.version, 'opts.manifest.version');
+    assert.func(callback, 'callback');
+
+    if (!opts.manifest.owner) {
+        opts.manifest.owner = '00000000-0000-0000-0000-000000000000';
+    }
+
+    if (!opts.manifest.tags) {
+        opts.manifest.tags = {};
+    }
+    if (!opts.manifest.tags.smartdc_service) {
+        opts.manifest.tags.smartdc_service = true;
+    }
+
+    if (!opts.manifest.requirements) {
+        opts.manifest.requirements = {};
+    }
+    if (!opts.manifest.requirements.min_platform) {
+        opts.manifest.requirements.min_platform = {};
+    }
+    // there is a node uname module, but this is not performance-critical
+    // code, so spawn is fine.
+    if (!opts.manifest.requirements.min_platform['7.0']) {
+        var vers = child_process.spawnSync(
+            '/usr/bin/uname', ['-v']).stdout.toString().trim();
+        // we expect a string like joyent_20180807T230146Z
+        if (vers.lastIndexOf('_') >= 0) {
+            vers = vers.split('_').slice(1).join('_');
+        }
+        opts.manifest.requirements.min_platform['7.0'] = vers;
+    }
+
+    logLine('Starting build for %s (%s)',
+        opts.manifest.name, opts.manifest.version);
+
+    vasync.pipeline({
+        arg: opts,
+        funcs: [
+            ensureImage,
+            createZoneAnalog,
+            replaceHttpProxy,
+            installFiles,
+            setupChroot,
+            installPkgsrcPkgs,
+            loadPkgsrcPkgs,
+            unsetupChroot,
+            cleanupZoneAnalog,
+            createImage,
+            destroyZoneAnalog,
+            destroyMountdir
+        ]
+    }, function _onBuilt(err) {
+        if (!err) {
+            callback();
+            return;
+        }
+        console.error(JSON.stringify(err));
+
+        vasync.pipeline({
+            funcs: [
+                function _cleanupChroot(_, cb) {
+                    if (!opts.chrootIsMounted) {
+                        cb();
+                        return;
+                    }
+                    unsetupChroot(opts, function _onUnsetup(err) {
+                        // ignore errors, this is best effort.
+                        console.error('WARN: failed to unsetup chroot: ' +
+                            err.message);
+                        cb();
+                    });
+                }, function _destroyZoneAnalog(_, cb) {
+                    if (!opts.datasetExists) {
+                        cb();
+                        return;
+                    }
+                    destroyZoneAnalog(opts, function _onDestroy(err) {
+                        // ignore errors, this is best effort.
+                        console.error('WARN: failed to destroy zone analog: ' +
+                            err.message);
+                        cb();
+                    });
+                }, function _destroyMountdir(_, cb) {
+                    if (!opts.mountdirExists) {
+                        cb();
+                        return;
+                    }
+                    destroyMountdir(opts, function _onDestroy(err) {
+                        // ignore errors, this is best effort.
+                        console.error('WARN: failed to destroy mount dir: ' +
+                            err.message);
+                        cb();
+                    });
+                }
+            ]
+        }, function _onCleanup() {
+            // Ignore err, since we did what we could and we're already
+            // returning the original err.
+            callback(err);
+        });
+    });
+}
+
+function usage(help, writer) {
+    assert.string(help, 'help');
+    assert.func(writer, 'writer');
+
+    writer('Usage: %s [OPTIONS]\n' + 'Options:\n' + help, PROGNAME);
+}
+
+function main() {
+    var help;
+    var opts;
+    var packageJson = path.join(path.dirname(__dirname), 'package.json');
+    var packages = [];
+    var parser = dashdash.createParser({ options: CLI_OPTIONS });
+    var manifest;
+    var missingRequired = false;
+    var version;
+
+    help = parser.help({includeEnv: true}).trimRight();
+
+    try {
+        opts = parser.parse(process.argv);
+    } catch (e) {
+        console.error('%s: ERROR: %s', PROGNAME, e.message);
+        process.exit(1);
+    }
+
+    if (opts.help) {
+        usage(help, console.log);
+        process.exit(0);
+    }
+
+    if (opts.version) {
+        version = JSON.parse(fs.readFileSync(packageJson)).version;
+        console.log(version);
+        process.exit(0);
+    }
+
+    ['dir', 'image', 'manifest'].forEach(function _checkRequiredArg(arg) {
+        if (!opts[arg]) {
+            console.error('%s: FATAL: %s is required.', PROGNAME, arg);
+            missingRequired = true;
+        }
+    });
+    if (missingRequired) {
+        usage(help, console.error);
+        process.exit(2);
+    }
+
+    try {
+        manifest = JSON.parse(opts.manifest);
+    } catch (e) {
+        console.error('%s: FATAL: failed to parse manifest: ' + e.message,
+            PROGNAME);
+        process.exit(2);
+    }
+
+    if (!manifest.hasOwnProperty('name') || !manifest.hasOwnProperty('version')) {
+        console.error('%s: FATAL: manifest must include name and version',
+            PROGNAME);
+        process.exit(2);
+    }
+
+    if (opts.packages) {
+        if (!opts.packages.match(PKGS_REGEX)) {
+            console.error('%s: FATAL: invalid packages specification.');
+            process.exit(2);
+        }
+
+        packages = opts.packages.split(',');
+    }
+
+    // TODO check that dir is a dir
+    // TODO check that image is a uuid
+
+    buildImage({
+        dir: opts.dir,
+        image: opts.image,
+        image_prefix: opts.image_prefix,
+        manifest: manifest,
+        packages: packages,
+        verbose: opts.verbose
+    }, function _onBuild(err) {
+        if (err) {
+            logLine('Build failed: ' + err.message);
+        } else {
+            logLine('Build complete');
+        }
+    });
+}
+
+main();

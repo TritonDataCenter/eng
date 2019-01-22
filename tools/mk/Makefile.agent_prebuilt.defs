@@ -1,0 +1,207 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2019, Joyent, Inc.
+#
+
+#
+# Makefile.agent_prebuilt.defs: A Makefile for components that need to bundle
+# one of the Triton/Manta agents.
+#
+
+#
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to the eng.git gerrit project as normal, then do the following for
+# each component that uses eng.git, likely reusing the original ticket subject
+# for the commit message as was used for the eng.git push.
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "TOOLS-xxxx some description" deps/eng
+#
+# Then push those changes to gerrit as usual for review.
+#
+
+#
+# This Makefile facilitates either downloading and caching a prebuilt agent
+# tarball or cloning a fresh copy of the required agent source repository
+# at the declared branch, building it once and caching the result.
+#
+# The supported agents are those commonly used by Triton or Manta components:
+#
+# TARGET     PKG              TARBALL
+# amon       amon-agent       amon/amon-agent-*.tgz
+# config     config-agent     config-agent/config-agent-*.tar.gz
+# mackerel   mackerel-pkg     mackerel/mackerel-pkg-*.tar.gz
+# minnow     minnow-pkg       minnow/minnow-pkg-*.tar.gz
+# registrar  registrar-pkg    registrar/registrar-pkg-*.tar.gz
+# waferlock  waferlock        waferlock/waferlock-pkg-*.tar.gz
+#
+# These can then be reused by the buildimage utility when assembling component
+# images. The agent deliverables get extracted to $(BUILDIMAGE_STAGEDIR)
+# during the build.
+#
+
+#
+# Usage:
+#
+# - `include deps/eng/tools/mk/Makefile.agent_prebuilt.defs` after this in your
+#   Makefile.
+# - `include deps/eng/tools/mk/Makefile.agent_prebuilt.targ` near the end of
+#   your Makefile.
+# - set $(AGENTS) to one or more of the TARGETS from the table above
+#
+# The 'buildimage' target will use $(AGENTS) to determine which agents to
+# build/download/extract to $(BUILDIMAGE_STAGEDIR) prior to assembling the
+# image.
+#
+
+#
+# When including this Makefile, you MAY specify:
+#
+#	AGENT_PREBUILT_DOWNLOAD_URL  The dir in which to find agent tarballs. This
+#				can either be a *local directory* or *a
+#				URL* dir (with trailing '/') which serves
+#				Apache/Nginx dir listing HTML. This defaults to empty,
+#				as we prefer to build agents on the build machine of the
+#				component that's going to use them, rather than downloading
+#				prebuilt ones. (default: '')
+#
+#	AGENT_PREBUILT_BRANCH	Specify a particular branch of 'agent' builds
+#				from which to pull. This defaults to the value of $(BRANCH)
+#
+#	AGENT_PREBUILT_AGENT_BRANCH	Allow a separate branch name for agent builds,
+#				allowing users to build one branch for their main component, and
+#				another branch for the agents that component includes.
+#				agent-prebuilt.sh first tries AGENT_PREBUILT_AGENT_BRANCH,
+#				then AGENT_PREBUILT_BRANCH, and finally falls back to 'master'
+#
+#	BUILD		top-level directory for built binaries
+#				(default: "build")
+#
+
+TOP ?= $(error You must include Makefile.defs before this makefile)
+
+AGENT_USER = $(shell id -un)
+AGENT_PREBUILT_BRANCH ?= $(BRANCH)
+AGENT_PREBUILT_AGENT_BRANCH ?= $(AGENT_BRANCH)
+AGENT_PREBUILT_DIR ?= /var/tmp/agent-cache.$(AGENT_USER)
+
+#
+# To add a new agent to this file, define the following variables:
+#
+# <AGENT>_PREBUILT_GIT_URL			the git repository to clone
+# <AGENT>_PREBUILT_REPO				the local repository name
+# <AGENT>_PREBUILT_AGENT_TARGETS	the make targets in that repository to build
+# <AGENT>_PREBUILT_ROOTDIR			where in the image the package resides
+# <AGENT>_PREBUILT_TARBALL_PATTERN	a regexp to match the built/downloaded agent
+#
+# then add the logic to define <name>_PREBUILT_TARGETS, likely reused from
+# existing agent definitions.
+#
+
+#
+# sdc-amon
+#
+AMON_PREBUILT_GIT_URL = 		https://github.com/joyent/sdc-amon.git
+AMON_PREBUILT_REPO = 			sdc-amon
+AMON_PREBUILT_AGENT_TARGETS =		distclean agent pkg_agent
+AMON_PREBUILT_ROOTDIR = 		root/opt
+AMON_PREBUILT_TARBALL_PATTERN =		build/amon-agent-.*.tgz
+
+ifdef AGENT_PREBUILT_DOWNLOAD_URL
+	AMON_PREBUILT_TARGETS = AMON-prebuilt-download
+else
+	AMON_PREBUILT_TARGETS = AMON-prebuilt-clone AMON-prebuilt-build
+endif
+AMON_PREBUILT_TARGETS += AMON-prebuilt-extract
+
+#
+# sdc-config-agent
+#
+CONFIG_PREBUILT_GIT_URL =		https://github.com/joyent/sdc-config-agent.git
+CONFIG_PREBUILT_REPO = 			sdc-config-agent
+CONFIG_PREBUILT_AGENT_TARGETS =		distclean release
+CONFIG_PREBUILT_ROOTDIR = 		root/opt/smartdc
+CONFIG_PREBUILT_TARBALL_PATTERN = 	config-agent-.*.tar.gz
+
+ifdef AGENT_PREBUILT_DOWNLOAD_URL
+	CONFIG_PREBUILT_TARGETS = CONFIG-prebuilt-download
+else
+	CONFIG_PREBUILT_TARGETS = CONFIG-prebuilt-clone CONFIG-prebuilt-build
+endif
+CONFIG_PREBUILT_TARGETS += CONFIG-prebuilt-extract
+
+#
+# manta-mackerel
+#
+MACKEREL_PREBUILT_GIT_URL =			https://github.com/joyent/manta-mackerel.git
+MACKEREL_PREBUILT_REPO = 			manta-mackerel
+MACKEREL_PREBUILT_AGENT_TARGETS =	distclean release
+# intentionally left blank as the tarball includes root/opt/smartdc
+MACKEREL_PREBUILT_ROOTDIR =
+MACKEREL_PREBUILT_TARBALL_PATTERN =	mackerel-pkg-.*.tar.gz
+
+ifdef AGENT_PREBUILT_DOWNLOAD_URL
+	MACKEREL_PREBUILT_TARGETS= MACKEREL-prebuilt-download
+else
+	MACKEREL_PREBUILT_TARGETS = MACKEREL-prebuilt-clone MACKEREL-prebuilt-build
+endif
+MACKEREL_PREBUILT_TARGETS += MACKEREL-prebuilt-extract
+
+#
+# manta-minnow
+#
+MINNOW_PREBUILT_GIT_URL =		https://github.com/joyent/manta-minnow.git
+MINNOW_PREBUILT_REPO = 			manta-minnow
+MINNOW_PREBUILT_AGENT_TARGETS =	distclean release
+# intentionally left blank as the tarball includes root/opt/smartdc
+MINNOW_PREBUILT_ROOTDIR =
+MINNOW_PREBUILT_TARBALL_PATTERN =	minnow-pkg-.*.tar.gz
+
+ifdef AGENT_PREBUILT_DOWNLOAD_URL
+	MINNOW_PREBUILT_TARGETS= MINNOW-prebuilt-download
+else
+	MINNOW_PREBUILT_TARGETS = MINNOW-prebuilt-clone MINNOW-prebuilt-build
+endif
+MINNOW_PREBUILT_TARGETS += MINNOW-prebuilt-extract
+
+#
+# registrar
+#
+REGISTRAR_PREBUILT_GIT_URL =			https://github.com/joyent/registrar.git
+REGISTRAR_PREBUILT_REPO = 				registrar
+REGISTRAR_PREBUILT_AGENT_TARGETS = 		distclean release
+# intentionally left blank as the tarball includes root/opt/smartdc
+REGISTRAR_PREBUILT_ROOTDIR =
+REGISTRAR_PREBUILT_TARBALL_PATTERN =	registrar-pkg-.*.tar.gz
+
+ifdef AGENT_PREBUILT_DOWNLOAD_URL
+	REGISTRAR_PREBUILT_TARGETS= REGISTRAR-prebuilt-download
+else
+	REGISTRAR_PREBUILT_TARGETS = REGISTRAR-prebuilt-clone REGISTRAR-prebuilt-build
+endif
+REGISTRAR_PREBUILT_TARGETS += REGISTRAR-prebuilt-extract
+
+#
+# waferlock
+#
+WAFERLOCK_PREBUILT_GIT_URL =			https://github.com/joyent/waferlock.git
+WAFERLOCK_PREBUILT_REPO = 				waferlock
+WAFERLOCK_PREBUILT_AGENT_TARGETS = 		distclean release
+# intentionally left blank as the tarball includes root/opt/smartdc
+WAFERLOCK_PREBUILT_ROOTDIR =
+WAFERLOCK_PREBUILT_TARBALL_PATTERN =	waferlock-pkg-.*.tar.gz
+
+ifdef AGENT_PREBUILT_DOWNLOAD_URL
+	WAFERLOCK_PREBUILT_TARGETS= WAFERLOCK-prebuilt-download
+else
+	WAFERLOCK_PREBUILT_TARGETS = WAFERLOCK-prebuilt-clone WAFERLOCK-prebuilt-build
+endif
+WAFERLOCK_PREBUILT_TARGETS += WAFERLOCK-prebuilt-extract

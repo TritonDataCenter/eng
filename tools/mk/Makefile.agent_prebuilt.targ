@@ -1,0 +1,120 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2019, Joyent, Inc.
+#
+
+#
+# Makefile.agent_prebuilt.targ: Makefile for components that need to use
+# one of the Triton/Manta agents. Include Makefile.agent_prebuilt.defs and
+# this file, then add one of the *-prebuilt targets below.
+#
+
+#
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to eng.git as normal, then do the following for each component that
+# uses eng.git:
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "Updated eng bits to get <describe your fix here>" deps/eng
+#
+
+AGENT_PREBUILT_DIR ?= \
+	$(error AGENT_PREBUILT_DIR is not set: was Makefile.agent_prebuilt.defs included?)
+
+BUILDIMAGE_STAGEDIR ?= \
+	$(error BUILDIMAGE_STAGEDIR is not set!)
+
+amon-prebuilt: $(AMON_PREBUILT_TARGETS)
+config-prebuilt: $(CONFIG_PREBUILT_TARGETS)
+mackerel-prebuilt: $(MACKEREL_PREBUILT_TARGETS)
+minnow-prebuilt: $(MINNOW_PREBUILT_TARGETS)
+registrar-prebuilt: $(REGISTRAR_PREBUILT_TARGETS)
+waferlock-prebuilt: $(WAFERLOCK_PREBUILT_TARGETS)
+
+%-prebuilt-download:
+	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+		-b '$(AGENT_PREBUILT_BRANCH)' \
+		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
+		-c '$(AGENT_PREBUILT_DIR)' \
+		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
+		-r '$($*_PREBUILT_REPO)' \
+		-U '$(AGENT_PREBUILT_DOWNLOAD_URL)' download
+
+#
+# Note that this target will only perform a build if we don't have a tarball
+# or if the git hash in the discovered tarball doesn't match the hash of the
+# cloned/checked-out source.
+#
+%-prebuilt-build: %-prebuilt-clone $(AGENT_PREBUILT_DIR)
+	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+		-b '$(AGENT_PREBUILT_BRANCH)' \
+		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
+		-c '$(AGENT_PREBUILT_DIR)' \
+		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
+		-r '$($*_PREBUILT_REPO)' \
+		-t '$($*_PREBUILT_AGENT_TARGETS)' build
+
+#
+# Clone a fresh copy of the agent's source, or checkout an existing copy
+# to the version specified by $($*_PREBUILT_BRANCH)
+#
+%-prebuilt-clone: $(AGENT_PREBUILT_DIR)
+	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+		-b '$(AGENT_PREBUILT_BRANCH)' \
+		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
+		-c '$(AGENT_PREBUILT_DIR)' \
+		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
+		-r '$($*_PREBUILT_REPO)' \
+		-t '$($*_PREBUILT_AGENT_TARGETS)' \
+		-u '$($*_PREBUILT_GIT_URL)' clone
+
+#
+# Just emit the tarball version
+#
+%-prebuilt-tarball: $(AGENT_PREBUILT_DIR)
+	@$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+		-b '$(AGENT_PREBUILT_BRANCH)' \
+		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
+		-c '$(AGENT_PREBUILT_DIR)' \
+		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
+		-r '$($*_PREBUILT_REPO)' \
+		-U '$(AGENT_PREBUILT_DOWNLOAD_URL)' show_tarball
+
+#
+# Extract the tarball to the buildimage staging directory
+#
+%-prebuilt-extract:
+	mkdir -p $(BUILDIMAGE_STAGEDIR); \
+	cd $(BUILDIMAGE_STAGEDIR); \
+	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+		-b '$(AGENT_PREBUILT_BRANCH)' \
+		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
+		-c '$(AGENT_PREBUILT_DIR)' \
+		-d '$($*_PREBUILT_ROOTDIR)' \
+		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
+		-r '$($*_PREBUILT_REPO)' \
+		-U '$(AGENT_PREBUILT_DOWNLOAD_URL)' extract
+
+#
+# Clean a prebuilt agent. This does an rm -rf of the local repo
+# for the agent (it's the only way to be sure)
+#
+%-prebuilt-clean: $(AGENT_PREBUILT_DIR)
+	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+		-b '$(AGENT_PREBUILT_BRANCH)' \
+		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
+		-c '$(AGENT_PREBUILT_DIR)' \
+		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
+		-r '$($*_PREBUILT_REPO)' \
+		-U '$(AGENT_PREBUILT_DOWNLOAD_URL)' clean
+
+$(AGENT_PREBUILT_DIR):
+	mkdir -p $@
