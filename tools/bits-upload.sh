@@ -283,6 +283,9 @@ function find_upload_bits {
 # Publish build artifacts to updates.joyent.com.
 #
 function publish_to_updates {
+    local manta_path
+    local msigned_url
+
     echo "Publishing updates to updates.joyent.com"
     for file in ${FILES}; do
         set +o errexit
@@ -321,8 +324,8 @@ function publish_to_updates {
 
         # The default 1hr expiry for msign is sufficient, since we're going
         # to be accessing this URL almost immediately.
-        MANTA_PATH=${STORED_MANTA_PATHS[$(basename $IMAGEFILE)]}
-        MANTA_URL=$(msign $MANTA_PATH)
+        manta_path=${STORED_MANTA_PATHS[$(basename $IMAGEFILE)]}
+        msigned_url=$(msign $manta_path)
 
         # Compute values for channel, user and identity
         if [[ -z "$UPDATES_IMGADM_CHANNEL" ]]; then
@@ -355,8 +358,8 @@ function publish_to_updates {
         echo "UPDATES_IMGADM_CHANNEL=$UPDATES_IMGADM_CHANNEL"
         echo "UPDATES_IMGADM_USER=$UPDATES_IMGADM_USER"
         echo "UPDATES_IMGADM_IDENTITY=$UPDATES_IMGADM_IDENTITY"
-        echo Running: ${UPDATES_IMGADM} import -m ${MF} -f "${MANTA_URL}"
-        ${UPDATES_IMGADM} import -m ${MF} -f "${MANTA_URL}"
+        echo Running: ${UPDATES_IMGADM} import -m ${MF} -f "${msigned_url}"
+        ${UPDATES_IMGADM} import -m ${MF} -f "${msigned_url}"
     done
 }
 
