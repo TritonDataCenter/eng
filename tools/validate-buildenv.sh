@@ -430,7 +430,7 @@ function validate_build_platform {
 #
 function print_required_pkgsrc_version {
     if [[ -n "$REQUIRED_IMAGE" ]]; then
-        echo "${PKGSRC_MAP[$REQUIRED_IMAGE]} ${SDC_MAP[$REQUIRED_IMAGE]}"
+        echo "${PKGSRC_MAP[$REQUIRED_IMAGE]} ${SDC_MAP[$REQUIRED_IMAGE]} ${JENKINS_AGENT_MAP[$REQUIRED_IMAGE]}"
         exit 0
     else
         exit 1
@@ -612,6 +612,20 @@ function validate_non_pkgsrc_bins {
     return 0
 }
 
+#
+# Issue a warning to the developer if their workspace contains uncommitted
+# changes, which would result in bits-upload.sh not posting any built bits
+# to Manta or updates.joyent.com
+#
+function verify_clean_repo {
+    HAS_DIRTY=$(git describe --all --long --dirty | grep '\-dirty$')
+    if [[ -n "$HAS_DIRTY" ]]; then
+        echo "WARNING: this workspace contains uncommitted changes,"
+        echo "which means that any build artifacts will not be uploaded by"
+        echo "bits-upload.sh to either Manta or updates.joyent.com"
+    fi
+}
+
 function usage {
     echo "Usage: validate-build-platform [-h] [-r]"
     echo "  -h       print usage"
@@ -660,6 +674,10 @@ else
     RESULT=$(( $RESULT + $? ))
     validate_non_pkgsrc_bins
     RESULT=$(( $RESULT + $? ))
+    # this doesn't contribute to success/failure, but warns
+    # developers that '-dirty' repositories will result in
+    # bits-upload not posting to Manta/updates.joyent.com.
+    verify_clean_repo
     if [[ "$RESULT" -gt 0 ]]; then
         exit 1
     else

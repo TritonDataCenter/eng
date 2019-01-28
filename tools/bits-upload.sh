@@ -46,6 +46,11 @@ set -o errexit
 BITS_UPLOAD_OVERWRITE=false
 
 #
+# Whether we should allow upload of bits marked with a '-dirty' $STAMP
+#
+BITS_UPLOAD_ALLOW_DIRTY=$ENGBLD_BITS_UPLOAD_ALLOW_DIRTY
+
+#
 # A path to our updates-imgadm command
 #
 UPDATES_IMGADM=/root/opt/imgapi-cli/bin/updates-imgadm
@@ -301,12 +306,16 @@ function publish_to_updates {
 
         # Some payloads are not zfs-based, look for likely alternatives.
         # This assumes that a single directory with <file>.manifest
-        # contains only one of [<file>.zfs.gz, <file>.sh, <file>.tgz]
+        # contains only one of [<file>.zfs.gz, <file>.sh, <file>.tgz,
+	# <file>.tar.gz]
         if [[ ! -f "${IMAGEFILE}" ]]; then
             IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.sh/g')
         fi
         if [[ ! -f "${IMAGEFILE}" ]]; then
             IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.tgz/g')
+        fi
+        if [[ ! -f "${IMAGEFILE}" ]]; then
+            IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.tar.gz/g')
         fi
 
         if [[ ! -f ${IMAGEFILE} ]]; then
@@ -443,6 +452,21 @@ if [[ -z "$TIMESTAMP" ]]; then
         fatal "Unable to derive latest timestamp from files in $ENGBLD_BITS_DIR"
     fi
 fi
+
+#
+# Attempting to upload bits from a workspace marked dirty isn't
+# allowed, because then we have no sure way to get from the development
+# bits to the corresponding source commit. Arguably, this _might_ be
+# feasible for pure-javascript-only components. Developers who absolutely
+# must upload bits marked '-dirty' can always upload them manually, or
+# use the BITS_UPLOAD_ALLOW_DIRTY escape hatch in case of emergency.
+#
+set +o errexit
+echo $TIMESTAMP | grep -q '\-dirty$'
+if [[ $? -eq 0 && -z "$BITS_UPLOAD_ALLOW_DIRTY" ]]; then
+    fatal "Bits timestamp $TIMESTAMP marked 'dirty': not uploading"
+fi
+set -o errexit
 
 UPLOAD_SUBDIR=$TIMESTAMP
 
