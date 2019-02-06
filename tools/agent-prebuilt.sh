@@ -90,16 +90,16 @@ function do_clone {
             echo "the branch the existing repository is checked out to doesn't"
             echo "exist upstream."
         fi
-        git checkout $agent_branch
+        git checkout $agent_branch --
         if [[ $? -ne 0 ]]; then
             echo "Checking out $agent_branch failed, falling back to $branch"
-            git checkout $branch
+            git checkout $branch --
         fi
         if [[ $? -ne 0 ]]; then
             # at this point, failures are really fatal.
             set -o errexit
             echo "Checking out $branch also failed, falling back to master"
-            git checkout master
+            git checkout master --
             git_exit=$?
         fi
     else
