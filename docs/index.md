@@ -10,7 +10,7 @@ apisections:
 -->
 
 <!--
-    Copyright (c) 2018, Joyent, Inc.
+    Copyright (c) 2019, Joyent, Inc.
 -->
 
 # Joyent Engineering Guide
@@ -249,8 +249,9 @@ modules).
 Every repository **must** have a consistent coding style that is enforced by
 some tool. It's not necessary that all projects use the same style, though it's
 strongly suggested to keep differences to a minimum (e.g., only hard vs. soft
-tabs and tabstops). All styles **must** limit line length to 80 columns.
-Existing style-checking tools include:
+tabs and tabstops). All styles **must** limit line length to 80
+columns<sup>[1](#footnote1)</sup>.  Existing style-checking tools
+include:
 
 * C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
 * JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle),
@@ -289,7 +290,7 @@ run [javascriptlint](http://github.com/davepacheco/javascriptlint) and/or
 not the same as style: lint covers objectively dangerous patterns like
 undeclared variables, while style covers subjective conventions like spacing.
 
-All of `lint`, `javascriptlint`, and `eslint` very configurable. See
+All of `lint`, `javascriptlint`, and `eslint` are very configurable. See
 [RFD 100](https://github.com/joyent/rfd/tree/master/rfd/0100) for eslint usage
 in Joyent repositories. Projects may choose to enable and disable particular
 sets of checks as they deem appropriate. Most checks can be disabled on a
@@ -332,12 +333,12 @@ These tests may be repo-specific, or may be part of a broader system test
 suite (ideally both). In either case, bug fixes and new features should not
 be integrated without adding new tests, and the tests **must** be run
 automatically (as via jenkins) either with every commit or daily. Currently
-this is handled by the [staging environment](https://mo.joyent.com/docs/globe-theatre/master/)
+this is handled by the [nightly environment](https://github.com/joyent/globe-theatre/)
 and the "stage-test-\*" Jenkins jobs. In other words, your project should
 have some sort of "stage-test-\*" job. Understanding and fixing failures in
 the automated test run **must** be considered the top development priority for
 that repo's team.  Persistent failures are not acceptable. Currently, these
-staging and CI environments can only be accessed by Joyent employees.
+nightly and CI environments can only be accessed by Joyent employees.
 
 All installed components **should** provide a "runtests" driver script
 (preferably in the "test" subdirectory) and the necessary test files
@@ -768,7 +769,7 @@ gather more information. To facilitate this:
 - When each service logs activity (API requests), alerts, or debug messages
   related to a particular request, it **must** include the request id as
   the "req_id" field (as described in the [Bunyan
-  docs](https://github.com/trentm/bunyan)).
+  docs](https://github.com/trentm/node-bunyan)).
 
 
 ## Naming Endpoints
@@ -805,7 +806,7 @@ errors.
 
 ### Motivation
 
-[Node-restify error support](http://mcavage.github.com/node-restify/#Error-handling)
+[Node-restify error support](https://github.com/restify/errors)
 provides a set of `RestError` classes with a typical response like:
 
     HTTP/1.1 409 Conflict
@@ -853,7 +854,7 @@ JEG-based API error response guidelines:
   message must be a human readable string that allows users to understand
   the nature of the error *code*, as the same error *code* can be produced
   with two different *messages*. An example of this might be an
-  "InternalError" *code* that could return "Database if offline" or "Cache
+  "InternalError" *code* that could return "Database is offline" or "Cache
   not running" as its *message*.
 - **may** include an `errors` array. Each element of that array **must**
   include a `field` name, **must** include a `code` CamelCase string code
@@ -1241,7 +1242,7 @@ The linked issue(s) will then show up in the ticket as a separate section:
 If you are working on an issue, it is important to know what release you are
 targeting for the fix. Typically, you will either be targeting a Simpsons
 version (meaning that the release to the customer would be the next major), or
-a dot release. Bryan and Laurel can help clarify which release your fix should
+a dot release. Your project lead can help clarify which release your fix should
 go into if you are unsure.
 
 Note: The JPC project only contains dot release versions. If something is more
@@ -1376,10 +1377,10 @@ See the top-level Makefile in eng.git for the complete details.
 
 # Software development process
 
-Team synchronization begins daily with our morning scrum over XMPP. We use
-continuous integration with Git. Bugs and feature requests are tracked in Jira.
-For more details on Joyent's morning scrum please read: [Engineering
-Process](https://hub.joyent.com/wiki/display/dev/Engineering+Process).
+Team synchronization begins daily with our morning scrum. We use
+continuous integration with Git/Gerrit. Bugs and feature requests are tracked in Jira.
+For more details on Joyent's morning scrum please read the: [Onboarding
+Guide](https://mo.joyent.com/docs/engdoc/master/engguide/onboard.html#scrum).
 
 In general, process is shrink-to-fit: we adopt process that help us work better,
 but process for process's sake is avoided. Any resemblance to formalized
@@ -1520,5 +1521,11 @@ where $uuid is the uuid of the "storage" SAPI service.
 
 # Examples
 
-- The [boilerplate API](boilerplateapi.html) example in this repo gives you a
+- The [boilerplate API](./boilerplateapi.html) example in this repo gives you a
   starter file and some suggestions on how to document a web service.
+
+---
+
+<a name="footnote1">[1]</a> : Why? I don't know, but this was enough to convince me to stop
+worrying about it [80-characters line length limit in 2017 (and
+later)](http://katafrakt.me/2017/09/16/80-characters-line-length-limit/)
