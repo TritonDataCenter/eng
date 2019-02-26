@@ -290,6 +290,7 @@ function find_upload_bits {
 function publish_to_updates {
     local manta_path
     local msigned_url
+    local compression_flag
 
     echo "Publishing updates to updates.joyent.com"
     for file in ${FILES}; do
@@ -303,6 +304,7 @@ function publish_to_updates {
 
         MF=${file}
         IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.zfs.gz/g')
+        compression_flag=""
 
         # Some payloads are not zfs-based, look for likely alternatives.
         # This assumes that a single directory with <file>.manifest
@@ -310,12 +312,15 @@ function publish_to_updates {
 	# <file>.tar.gz]
         if [[ ! -f "${IMAGEFILE}" ]]; then
             IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.sh/g')
+            compression_flag="--compression=none"
         fi
         if [[ ! -f "${IMAGEFILE}" ]]; then
             IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.tgz/g')
+            compression_flag=""
         fi
         if [[ ! -f "${IMAGEFILE}" ]]; then
             IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.tar.gz/g')
+            compression_flag=""
         fi
 
         if [[ ! -f ${IMAGEFILE} ]]; then
@@ -367,8 +372,8 @@ function publish_to_updates {
         echo "UPDATES_IMGADM_CHANNEL=$UPDATES_IMGADM_CHANNEL"
         echo "UPDATES_IMGADM_USER=$UPDATES_IMGADM_USER"
         echo "UPDATES_IMGADM_IDENTITY=$UPDATES_IMGADM_IDENTITY"
-        echo Running: ${UPDATES_IMGADM} import -m ${MF} -f "${msigned_url}"
-        ${UPDATES_IMGADM} import -m ${MF} -f "${msigned_url}"
+        echo Running: ${UPDATES_IMGADM} import -m ${MF} -f "${msigned_url}" ${compression_flag}
+        ${UPDATES_IMGADM} import -m ${MF} -f "${msigned_url}" ${compression_flag}
     done
 }
 
