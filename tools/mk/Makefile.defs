@@ -197,5 +197,6 @@ BUILDIMAGE_STAGEDIR = /tmp/buildimage-$(NAME)-$(STAMP)
 BUILDIMAGE_MF           = \
     {"name": "$(BUILDIMAGE_NAME)",\
     "description": "$(BUILDIMAGE_DESC)",\
-    "version": "$(BUILDIMAGE_VERSION)"\
+    "version": "$(BUILDIMAGE_VERSION)",\
+    "tags": {"smartdc_service": true}\
     }

@@ -506,9 +506,6 @@ function buildImage(opts, callback) {
     if (!opts.manifest.tags) {
         opts.manifest.tags = {};
     }
-    if (!opts.manifest.tags.smartdc_service) {
-        opts.manifest.tags.smartdc_service = true;
-    }
 
     if (!opts.manifest.requirements) {
         opts.manifest.requirements = {};
