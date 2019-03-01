@@ -192,9 +192,9 @@ STAMP_BUILDIMAGE_PREP := $(MAKE_STAMPS_DIR)/buildimage-prep
 # Metadata needed by buildimage to construct the image.
 # This gets used when generating the image's manifest file.
 #
-BUILDIMAGE_VERSION	= $(STAMP)
+BUILDIMAGE_VERSION	?= $(STAMP)
 BUILDIMAGE_STAGEDIR = /tmp/buildimage-$(NAME)-$(STAMP)
-BUILDIMAGE_MF           = \
+BUILDIMAGE_MF           ?= \
     {"name": "$(BUILDIMAGE_NAME)",\
     "description": "$(BUILDIMAGE_DESC)",\
     "version": "$(BUILDIMAGE_VERSION)",\

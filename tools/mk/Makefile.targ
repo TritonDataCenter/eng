@@ -439,10 +439,10 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 		-m '$(BUILDIMAGE_MF)' \
 		$(BUILDIMAGE_PKGSRC_ARGS) \
 		-P $(NAME)-zfs
-	cp /tmp/$(NAME)-zfs-$(STAMP).zfs.gz $(ENGBLD_BITS_DIR)/$(NAME)
-	cp /tmp/$(NAME)-zfs-$(STAMP).imgmanifest $(ENGBLD_BITS_DIR)/$(NAME)
-	pfexec rm /tmp/$(NAME)-zfs-$(STAMP).zfs.gz
-	pfexec rm /tmp/$(NAME)-zfs-$(STAMP).imgmanifest
+	cp /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).zfs.gz $(ENGBLD_BITS_DIR)/$(NAME)
+	cp /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).imgmanifest $(ENGBLD_BITS_DIR)/$(NAME)
+	pfexec rm /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).zfs.gz
+	pfexec rm /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).imgmanifest
 	pfexec rm -rf $(BUILDIMAGE_STAGEDIR)
 
 #
