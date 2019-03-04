@@ -457,6 +457,7 @@ bits-upload: publish $(BUILDIMAGE_TARG)
 		$(BITS_UPLOAD_LOCAL_ARG) \
 		$(BITS_UPLOAD_IMGAPI_ARG) \
 		-d $(ENGBLD_DEST_OUT_PATH)/$(NAME) \
+		-D $(ENGBLD_BITS_DIR) \
 		-n $(NAME) \
 		-t $(STAMP)
 
@@ -473,6 +474,7 @@ bits-upload-latest:
 		$(BITS_UPLOAD_LOCAL_ARG) \
 		$(BITS_UPLOAD_IMGAPI_ARG) \
 		-d $(ENGBLD_DEST_OUT_PATH)/$(NAME) \
+		-D $(ENGBLD_BITS_DIR) \
 		-n $(NAME)
 
 #

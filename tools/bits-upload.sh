@@ -10,7 +10,7 @@
 #
 
 #
-# Upload the $ENGBLD_BITS_DIR directory to Manta or a "local" directory (likely
+# Upload the given <bits_dir> directory to Manta or a "local" directory (likely
 # an NFS-mounted share if we're contributing to bits already stored there
 # by other builds on remote systems)
 # This creates a specific directory structure, consumed by the headnode builds:
@@ -55,10 +55,6 @@ BITS_UPLOAD_ALLOW_DIRTY=$ENGBLD_BITS_UPLOAD_ALLOW_DIRTY
 #
 UPDATES_IMGADM=/root/opt/imgapi-cli/bin/updates-imgadm
 
-if [[ -z "$ENGBLD_BITS_DIR" ]]; then
-	ENGBLD_BITS_DIR=bits
-fi
-
 PATH=$PATH:/root/opt/node_modules/manta/bin:/opt/tools/bin
 
 function fatal {
@@ -79,13 +75,13 @@ function usage {
     echo "  -b <branch>         the branch use"
     echo "  -B <try_branch>     the try_branch use"
     echo "  -d <upload_base_dir> destination path name in manta or a local path"
+    echo "  -D <bits_dir>       local dir with the bits to upload (default: ./bits) "
     echo "  -L                  indicate the -d arg is a local path"
     echo "  -n <name>           the name of component to upload"
     echo "  -p                  also publish images to updates.joyent.com"
     echo "  -t <timestamp>      the timestamp (optional, derived otherwise)"
     echo ""
-    echo "Upload bits to Manta or a local destination from \$ENGBLD_BITS_DIR"
-    echo "which (defaults to <component>/bits)"
+    echo "Upload bits to Manta or a local destination from <bits_dir>"
     echo ""
     echo "The upload_base_dir is presumed to be either a subdir of"
     echo "\${MANTA_USER}/stor or if it starts with '/', a path under"
@@ -140,13 +136,13 @@ function manta_upload {
     fi
 
     for sub in $SUBS; do
-        manta_run mmkdir ${MANTA_VERBOSE} -p ${MANTA_DESTDIR}/${sub#${ENGBLD_BITS_DIR}}
+        manta_run mmkdir ${MANTA_VERBOSE} -p ${MANTA_DESTDIR}/${sub#${BITS_DIR}}
     done
 
     md5sums=""
     # now we can upload the files
     for file in $FILES; do
-        manta_object=${MANTA_DESTDIR}/${file#$ENGBLD_BITS_DIR}
+        manta_object=${MANTA_DESTDIR}/${file#$BITS_DIR}
         # md5sum comes from the coreutils package
         local_md5_line=$(md5sum ${file})
         local_md5=$(echo "${local_md5_line}" | cut -d ' ' -f1)
@@ -175,9 +171,9 @@ function manta_upload {
         set +o errexit
         echo $manta_object | grep -q /public/
         if [[ $? -eq 0 ]]; then
-            echo ${MANTA_URL}${manta_object} >> ${ENGBLD_BITS_DIR}/artifacts.txt
+            echo ${MANTA_URL}${manta_object} >> ${BITS_DIR}/artifacts.txt
         else
-            echo $manta_object >> ${ENGBLD_BITS_DIR}/artifacts.txt
+            echo $manta_object >> ${BITS_DIR}/artifacts.txt
         fi
         set -o errexit
     done
@@ -186,14 +182,14 @@ function manta_upload {
     echo -e $md5sums | \
         manta_run mput ${MANTA_VERBOSE} -H "content-type: text/plain" \
             ${MANTA_DESTDIR}/md5sums.txt
-        echo ${MANTA_DESTDIR}/md5sums.txt >> ${ENGBLD_BITS_DIR}/artifacts.txt
+        echo ${MANTA_DESTDIR}/md5sums.txt >> ${BITS_DIR}/artifacts.txt
 
     # now update the branch latest link
     echo "${MANTA_DESTDIR}" | \
         manta_run mput ${MANTA_VERBOSE} -H "content-type: text/plain" \
             /${MANTA_USER}${UPLOAD_BASE_DIR}/${UPLOAD_BRANCH}-latest
     echo /${MANTA_USER}${UPLOAD_BASE_DIR}/${UPLOAD_BRANCH}-latest >> \
-        ${ENGBLD_BITS_DIR}/artifacts.txt
+        ${BITS_DIR}/artifacts.txt
 
     # If this is a bi-weekly release branch, also update latest-release link
     if [[ $UPLOAD_BRANCH =~ ^release- ]]; then
@@ -201,7 +197,7 @@ function manta_upload {
             manta_run mput ${MANTA_VERBOSE} -H "content-type: text/plain" \
                 /${MANTA_USER}${UPLOAD_BASE_DIR}/latest-release
         echo /${MANTA_USER}${UPLOAD_BASE_DIR}/latest-release >> \
-            ${ENGBLD_BITS_DIR}/artifacts.txt
+            ${BITS_DIR}/artifacts.txt
     fi
 
     echo "Uploaded to ${MANTA_DESTDIR}"
@@ -217,12 +213,12 @@ function local_upload {
 
     LOCAL_DESTDIR=${UPLOAD_BASE_DIR}/${UPLOAD_SUBDIR}
     for sub in $SUBS; do
-        mkdir -p ${LOCAL_DESTDIR}/${sub#${ENGBLD_BITS_DIR}}
+        mkdir -p ${LOCAL_DESTDIR}/${sub#${BITS_DIR}}
     done
 
     md5sums=""
     for file in $FILES; do
-        remote_object=${LOCAL_DESTDIR}/${file#$ENGBLD_BITS_DIR}
+        remote_object=${LOCAL_DESTDIR}/${file#$BITS_DIR}
 
         local_md5_line=$(md5sum ${file})
         local_md5=$(echo "${local_md5_line}" | cut -d ' ' -f1)
@@ -246,7 +242,7 @@ function local_upload {
             echo "skipping upload."
         fi
         md5sums="${md5sums}${local_md5_line}\n"
-        echo $remote_object >> ${ENGBLD_BITS_DIR}/artifacts.txt
+        echo $remote_object >> ${BITS_DIR}/artifacts.txt
     done
 
     # upload the md5sums
@@ -272,13 +268,13 @@ function local_upload {
 #
 function find_upload_bits {
     if [[ -z "$SUBDIRS" ]]; then
-        SUBS=$(find $ENGBLD_BITS_DIR -type d)
-        FILES=$(find $ENGBLD_BITS_DIR -type f)
+        SUBS=$(find $BITS_DIR -type d)
+        FILES=$(find $BITS_DIR -type f)
     else
         for subdir in ${SUBDIRS}; do
-            if [[ -d $ENGBLD_BITS_DIR/$subdir ]]; then
-                SUBS="$SUBS $(find $ENGBLD_BITS_DIR/$subdir -type d)"
-                FILES="$FILES $(find $ENGBLD_BITS_DIR/$subdir -type f)"
+            if [[ -d $BITS_DIR/$subdir ]]; then
+                SUBS="$SUBS $(find $BITS_DIR/$subdir -type d)"
+                FILES="$FILES $(find $BITS_DIR/$subdir -type f)"
             fi
         done
     fi
@@ -381,7 +377,8 @@ function publish_to_updates {
 #
 # Main
 #
-while getopts "B:b:d:Ln:pt:" opt; do
+BITS_DIR="bits"
+while getopts "B:b:d:D:Ln:pt:" opt; do
     case "${opt}" in
         b)
             BRANCH=$OPTARG
@@ -391,6 +388,9 @@ while getopts "B:b:d:Ln:pt:" opt; do
             ;;
         d)
             UPLOAD_BASE_DIR=$OPTARG
+            ;;
+        D)
+            BITS_DIR=$OPTARG
             ;;
         L)
             USE_LOCAL=true
@@ -421,10 +421,6 @@ if [[ -z "$UPLOAD_BASE_DIR" ]]; then
     usage
 fi
 
-if [[ ! -d "$ENGBLD_BITS_DIR" ]]; then
-    fatal "bits dir $ENGBLD_BITS_DIR does not exist!"
-fi
-
 if [[ -z "$NAME" ]]; then
     fatal "Missing -d argument for name"
 fi
@@ -440,21 +436,21 @@ start_time=$(date +%s)
 
 # we keep a file containing a list of uploads for this
 # session, useful to include as part of build artifacts.
-if [[ -f $ENGBLD_BITS_DIR/artifacts.txt ]]; then
-    rm -f $ENGBLD_BITS_DIR/artifacts.txt
+if [[ -f $BITS_DIR/artifacts.txt ]]; then
+    rm -f $BITS_DIR/artifacts.txt
 fi
 
 find_upload_bits
 
 if [[ -z "$TIMESTAMP" ]]; then
-    LATEST_BUILD_STAMP=$ENGBLD_BITS_DIR/$NAME/latest-build-stamp
+    LATEST_BUILD_STAMP=$BITS_DIR/$NAME/latest-build-stamp
     # Pull the latest timestamp from the bits dir instead.
     if [[ -f $LATEST_BUILD_STAMP ]]; then
         TIMESTAMP=$(cat $LATEST_BUILD_STAMP)
     else
         echo "Missing timestamp, and no contents in $LATEST_BUILD_STAMP"
         echo "Did the 'prepublish' Makefile target run?"
-        fatal "Unable to derive latest timestamp from files in $ENGBLD_BITS_DIR"
+        fatal "Unable to derive latest timestamp from files in $BITS_DIR"
     fi
 fi
 
