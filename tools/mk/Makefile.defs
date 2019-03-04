@@ -53,7 +53,7 @@
 # destinations, but sometimes to modify the behavior of the build.
 #
 
-TOP := $(shell pwd)
+TOP ?= $(shell pwd)
 
 #
 # Mountain Gorilla-spec'd versioning.
