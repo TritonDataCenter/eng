@@ -124,7 +124,7 @@ DISTCLEAN_FILES	+= $(NODE_INSTALL) \
 	$(BUILD)/prebuilt-node-* $(BUILD)/prebuilt-npm-*
 
 NODE_PREBUILT_BRANCH ?= master
-NODE_PREBUILT_IMAGE ?= $(shell pfexec mdata-get sdc:image_uuid)
+NODE_PREBUILT_IMAGE ?= $(shell $(PFEXEC) mdata-get sdc:image_uuid)
 ifeq ($(NODE_PREBUILT_TAG),)
 	NODE_PREBUILT_NAME := $(NODE_PREBUILT_VERSION)-$(NODE_PREBUILT_IMAGE)
 else

@@ -200,3 +200,16 @@ BUILDIMAGE_MF           ?= \
     "version": "$(BUILDIMAGE_VERSION)",\
     "tags": {"smartdc_service": true}\
     }
+
+#
+# Crude detection of whether we're likely to need to use
+# pfexec to gain root-like privileges. Note that this means
+# $(PFEXEC) will only be defined if we're running the build
+# as non-root.
+#
+UID = $(shell /usr/bin/id -u)
+ifeq ($(UID), 0)
+    PFEXEC=
+else
+    PFEXEC=/usr/bin/pfexec
+endif
