@@ -425,8 +425,18 @@ endif
 
 endif
 
+#
+# We add a guard to ensure that users haven't invoked 'make buildimage'
+# by accident. It's better to bail out early with an clear error message
+# if a user has not declared that their component should $ENGBLD_USE_BUILDIMAGE.
+#
 .PHONY: buildimage
 buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
+	if [[ "$(ENGBLD_USE_BUILDIMAGE)" != "true" ]]; then \
+		echo "This component is not configured to use buildimage."; \
+		echo "Set 'ENGBLD_USE_BUILDIMAGE=true' in the component Makefile otherwise."; \
+		exit 1; \
+	fi
 	mkdir -p $(ENGBLD_BITS_DIR)/$(NAME)
 	mkdir -p $(BUILDIMAGE_STAGEDIR)
 	cd $(BUILDIMAGE_STAGEDIR) ; \
