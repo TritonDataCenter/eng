@@ -33,6 +33,7 @@
 # - the build environment has a $PATH with /opt/local/bin before /usr/bin et al
 # - our build platform for this component, BUILD_PLATFORM, matches uname -vish
 # - several non-pkgsrc programs needed by the build are availabe on the $PATH
+# - git submodules for this repository, if present, are up to date
 #
 
 #
@@ -613,6 +614,44 @@ function validate_non_pkgsrc_bins {
 }
 
 #
+# Validate that git submodules, if present, match the versions recorded in
+# the top-level git repository. Submodules that are not initialized are not
+# checked. We assume that the component's use of the 'deps/%/.git' make target
+# will initialize missing submodules as needed.
+# This check does not catch submodules containing uncommitted local changes.
+# For that case, we just end up issuing a warning via the verify_clean_repo(..)
+# check.
+#
+function validate_submodules {
+    if [[ -n "$ENGBLD_SKIP_VALIDATE_SUBMODULES" ]]; then
+        return 0
+    fi
+    # current git seems not to properly show submodules with merge conflicts,
+    # (^U, below) but we'll keep this in case it gets fixed in the future.
+    MODIFIED_SUBMODULES=$(git submodule | grep -e ^+ -e ^U | cut -d' ' -f 2)
+    if [[ -n "$MODIFIED_SUBMODULES" ]]; then
+        echo "The following submodules are not checked out to the versions"
+        echo "recorded in this repository:"
+        echo ""
+        for module in $MODIFIED_SUBMODULES; do
+            echo $module
+        done
+        echo ""
+        echo "To fix this, please run the following command:"
+        echo ""
+        echo "git submodule update"
+        echo ""
+        echo "If this was intentional (e.g. you're making changes to the"
+        echo "submodule, but have not yet staged those changes) and to disable"
+        echo "this check, set \$ENGBLD_SKIP_VALIDATE_SUBMODULES"
+        echo "in the environment."
+        echo ""
+        return 1
+    fi
+    return 0
+}
+
+#
 # Issue a warning to the developer if their workspace contains uncommitted
 # changes, which would result in bits-upload.sh not posting any built bits
 # to Manta or updates.joyent.com
@@ -673,6 +712,8 @@ else
     validate_opt_tools
     RESULT=$(( $RESULT + $? ))
     validate_non_pkgsrc_bins
+    RESULT=$(( $RESULT + $? ))
+    validate_submodules
     RESULT=$(( $RESULT + $? ))
     # this doesn't contribute to success/failure, but warns
     # developers that '-dirty' repositories will result in
