@@ -51,10 +51,22 @@ var CLI_OPTIONS = [
         helpArg: '{"name": "blah", "version": "1.0.0", ...}'
     },
     {
+        names: ['upgrade_first', 'u'],
+        type: 'bool',
+        help: 'pkgin update and full-upgrade before installing additional packages',
+        default: false
+    },
+    {
         names: ['packages', 'p'],
         type: 'string',
         help: 'Comma separated list of pkgsrc packages to install in image.',
         helpArg: 'pkg1,pkg2,...'
+    },
+    {
+        names: ['pkg_audit', 'a'],
+        type: 'bool',
+        help: 'perform a pkg audit after installing packages and save results in a .pkgaudit file',
+        default: false
     },
     {
         names: ['image_prefix', 'P'],
@@ -267,6 +279,64 @@ function replaceHttpProxy(opts, callback) {
     callback();
 }
 
+
+function pkginUpdate(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.bool(opts.upgrade_first, 'opts.upgrade_first');
+    assert.func(callback, 'callback');
+
+    if (!opts.upgrade_first) {
+        return callback();
+    }
+
+    logLine('pkgin update...');
+    const child = child_process.spawn('/usr/sbin/chroot', [
+        opts.mountpoint + '/root',
+        '/opt/local/bin/pkgin', 'update'
+    ], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        logLine('Child pkgin chroot exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to update pkgin'));
+            return;
+        }
+        callback();
+    });
+}
+
+
+function pkginFullUpgrade(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.bool(opts.upgrade_first, 'opts.upgrade_first');
+    assert.func(callback, 'callback');
+
+    if (!opts.upgrade_first) {
+        return callback();
+    }
+
+    logLine('pkgin full-upgrade...');
+    const child = child_process.spawn('/usr/sbin/chroot', [
+        opts.mountpoint + '/root',
+        '/opt/local/bin/pkgin', '-y', 'full-upgrade'
+    ].concat(opts.packages), {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onRsync(code) {
+        logLine('Child pkgsrc chroot exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to upgrade packages'));
+            return;
+        }
+        logLine('Installed ' + opts.packages.join(', '));
+        callback();
+    });
+}
+
+
 function installPkgsrcPkgs(opts, callback) {
     assert.object(opts, 'opts');
     assert.string(opts.mountpoint, 'opts.mountpoint');
@@ -328,6 +398,94 @@ function loadPkgsrcPkgs(opts, callback) {
 
         logLine('Packages:\n' + indent(pkgString));
 
+        callback();
+    });
+}
+
+
+function pkgAudit(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.bool(opts.pkg_audit, 'opts.pkg_audit');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.array(opts.packages, 'opts.packages');
+    assert.func(callback, 'callback');
+
+    if (!opts.pkg_audit) {
+        logLine('skipping pkg audit');
+        return callback();
+    }
+
+    // pkg_admin fetch-pkg-vulnerabilities && pkg_admin audit
+    vasync.pipeline({
+        arg: {},
+        funcs: [
+            function stepFetch(_, next) {
+                const child = child_process.spawn('/usr/sbin/chroot', [
+                    opts.mountpoint + '/root',
+                    '/opt/local/sbin/pkg_admin', 'fetch-pkg-vulnerabilities'
+                ], {
+                    stdio: ['ignore', process.stdout, process.stderr]
+                });
+
+                child.on('close', function _onAdmin(code) {
+                    logLine('Child pkgsrc chroot exited with code ' + code);
+                    if (code !== 0) {
+                        callback(new Error('failed fetch pkg vulnerabilities'));
+                        return;
+                    }
+                    next();
+                });
+            },
+            function stepAudit(stash, next) {
+                child_process.execFile('/usr/sbin/chroot', [
+                    opts.mountpoint + '/root',
+                    '/opt/local/sbin/pkg_admin', 'audit'
+                ], {
+                    maxBuffer: 10 * 1024 * 1024
+                }, function _onAudit(err, stdout, stderr) {
+                    // pkg_admin exits with 1 if there are any vulnerabilities.
+                    // This is intended as an informational service and not to
+                    // abort the build.
+                    if (err && err.code !== 1) {
+                        logExecError(err, stdout, stderr);
+                        return next(err);
+                    }
+                    logLine('audited vulnerabilities:')
+                    logLine(stdout);
+                    stash.vulnerabilities = stdout;
+                    next();
+                });
+            },
+            function stepSave(stash, next) {
+                const fname = ('/tmp/' + opts.image_prefix + '-' + opts.manifest.version +
+                               '.pkgaudit');
+                fs.writeFile(fname, stash.vulnerabilities, next);
+            }
+        ]}, callback);
+}
+
+
+function pkginCleanup(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.bool(opts.pkg_audit, 'opts.pkg_audit');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.array(opts.packages, 'opts.packages');
+    assert.func(callback, 'callback');
+
+    logLine('cleaning up pkgin files...');
+    const child = child_process.spawn('/usr/sbin/chroot', [
+        opts.mountpoint + '/root',
+        '/usr/bin/rm', '-rf', '/var/db/pkgin/'
+    ].concat(opts.packages), {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        logLine('Child rm chroot exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to cleanup pkgin files'));
+            return;
+        }
         callback();
     });
 }
@@ -497,6 +655,8 @@ function buildImage(opts, callback) {
     assert.string(opts.image_prefix, 'opts.image_prefix');
     assert.string(opts.manifest.name, 'opts.manifest.name');
     assert.string(opts.manifest.version, 'opts.manifest.version');
+    assert.bool(opts.upgrade_first, 'opts.upgrade_first');
+    assert.bool(opts.pkg_audit, 'opts.pkg_audit');
     assert.func(callback, 'callback');
 
     if (!opts.manifest.owner) {
@@ -536,8 +696,12 @@ function buildImage(opts, callback) {
             replaceHttpProxy,
             installFiles,
             setupChroot,
+            pkginUpdate,
+            pkginFullUpgrade,
             installPkgsrcPkgs,
             loadPkgsrcPkgs,
+            pkgAudit,
+            pkginCleanup,
             unsetupChroot,
             cleanupZoneAnalog,
             createImage,
@@ -675,7 +839,9 @@ function main() {
         image: opts.image,
         image_prefix: opts.image_prefix,
         manifest: manifest,
+        upgrade_first: opts.upgrade_first,
         packages: packages,
+        pkg_audit: opts.pkg_audit,
         verbose: opts.verbose
     }, function _onBuild(err) {
         if (err) {

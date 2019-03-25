@@ -210,6 +210,12 @@ BUILDIMAGE_PKGSRC = foobar-42 ook-1.0.1b cheese-0.4cheddar
 #
 
 #
+# Set for buildimage to have pkgin update and full-upgrade before installing
+# BUILDIMAGE_PKGSRC packages.
+#
+# BUILDIMAGE_DO_PKGSRC_UPGRADE=true
+
+#
 # Repo-specific targets
 #
 .PHONY: all

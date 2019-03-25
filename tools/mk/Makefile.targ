@@ -397,6 +397,15 @@ prepublish:
 	@echo "Generating $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json"
 	-/opt/tools/bin/npm ls --json > $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json
 
+
+#
+# Transform the boolean into the appropriate cli flag
+#
+ifdef BUILDIMAGE_DO_PKGSRC_UPGRADE
+BUILDIMAGE_DO_PKGSRC_UPGRADE_ARGS=-u
+endif
+
+
 #
 # The list of pkgsrc packages that should be installed in the
 # image that the 'buildimage' target constructs. Set here rather than
@@ -447,12 +456,16 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 		-i $(BASE_IMAGE_UUID) \
 		-d $(BUILDIMAGE_STAGEDIR)/root \
 		-m '$(BUILDIMAGE_MF)' \
+		$(BUILDIMAGE_DO_PKGSRC_UPGRADE_ARGS) \
 		$(BUILDIMAGE_PKGSRC_ARGS) \
+		-a \
 		-P $(NAME)-zfs
 	cp /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).zfs.gz $(ENGBLD_BITS_DIR)/$(NAME)
 	cp /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).imgmanifest $(ENGBLD_BITS_DIR)/$(NAME)
+	cp /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).pkgaudit $(ENGBLD_BITS_DIR)/$(NAME)
 	$(PFEXEC) rm /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).zfs.gz
 	$(PFEXEC) rm /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).imgmanifest
+	$(PFEXEC) rm /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).pkgaudit
 	$(PFEXEC) rm -rf $(BUILDIMAGE_STAGEDIR)
 
 #
