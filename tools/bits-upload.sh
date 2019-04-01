@@ -299,23 +299,25 @@ function publish_to_updates {
         set -o errexit
 
         MF=${file}
-        IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.zfs.gz/g')
+        MF_PREFIX=$(echo ${MF} | \
+            sed -e 's/\.imgmanifest$//g' -e 's/\.manifest$//g')
+        IMAGEFILE=${MF_PREFIX}.zfs.gz
         compression_flag=""
 
         # Some payloads are not zfs-based, look for likely alternatives.
         # This assumes that a single directory with <file>.manifest
         # contains only one of [<file>.zfs.gz, <file>.sh, <file>.tgz,
-	# <file>.tar.gz]
+        # <file>.tar.gz]
         if [[ ! -f "${IMAGEFILE}" ]]; then
-            IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.sh/g')
+            IMAGEFILE=${MF_PREFIX}.sh
             compression_flag="--compression=none"
         fi
         if [[ ! -f "${IMAGEFILE}" ]]; then
-            IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.tgz/g')
+            IMAGEFILE=${MF_PREFIX}.tgz
             compression_flag=""
         fi
         if [[ ! -f "${IMAGEFILE}" ]]; then
-            IMAGEFILE=$(echo ${MF} | sed -e 's/\..*manifest$/.tar.gz/g')
+            IMAGEFILE=${MF_PREFIX}.tar.gz
             compression_flag=""
         fi
 
