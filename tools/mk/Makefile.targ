@@ -33,6 +33,14 @@
 #
 # Targets defined in this Makefile:
 #
+#	bits-upload	Upload the bits produced by the component Makefile's
+#			'publish' target to Manta or a local filesystem,
+#			optionally publishing images to updates.joyent.com
+#
+#	bits-upload-latest
+#			As above, but use the bits/<component>/latest-build-stamp
+#			file to determine the $(STAMP) of the uploaded bits
+#
 #	buildimage	Builds an image
 #	check		Checks JavaScript files for lint and style
 #			Checks bash scripts for syntax
@@ -102,6 +110,10 @@
 #
 #	CSCOPE_DIRS	Directories to search for source files for the cscope
 #			index. (default: ".")
+#
+#	ENGBLD_BITS_UPLOAD_OVERRIDE
+#			Set this to allow a component Makefile to declare its
+#			own 'bits-upload' and 'bits-upload-latest' targets
 #
 #	ESLINT		Path to eslint (default: "eslint")
 #
@@ -470,8 +482,11 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 
 #
 # Upload the build products from this component's ./bits directory
-# to either manta or a filesystem path.
+# to either manta or a filesystem path. We allow consumers to override
+# this, supplying their own custom bits-upload* targets by setting
+# ENGBLD_BITS_UPLOAD_OVERRIDE.
 #
+ifndef ENGBLD_BITS_UPLOAD_OVERRIDE
 .PHONY: bits-upload
 bits-upload: publish $(BUILDIMAGE_TARG)
 	$(TOP)/deps/eng/tools/bits-upload.sh \
@@ -499,6 +514,7 @@ bits-upload-latest:
 		-d $(ENGBLD_DEST_OUT_PATH)/$(NAME) \
 		-D $(ENGBLD_BITS_DIR) \
 		-n $(NAME)
+endif
 
 #
 # Do an npm install for the dependencies of buildimage itself.
