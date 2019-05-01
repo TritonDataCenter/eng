@@ -51,7 +51,7 @@ endif
 $(GO_TARBALL):
 	rm -f $@
 	mkdir -p $(@D)
-	tools/download_go $(GO_PREBUILT_VERSION) solaris amd64 $(CACHE_DIR)
+	./deps/eng/tools/download_go $(GO_PREBUILT_VERSION) solaris amd64 $(CACHE_DIR)
 
 #
 # Extract the Go toolchain.  This stamp includes the version number of the
