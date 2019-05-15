@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -133,7 +133,7 @@ BUILD_PLATFORM=20151126T062538Z
 
 #
 # The manta path where the bits-upload target stores build artifacts, via
-# ./tools/bits-upload.sh. This can be a Manta path, or an absolute
+# ./deps/eng/tools/bits-upload.sh. This can be a Manta path, or an absolute
 # filesystem path. If the latter, be sure to also set
 # $ENGBLD_BITS_UPLOAD_LOCAL=true, see below.
 #

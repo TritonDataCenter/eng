@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -88,9 +88,9 @@ GO_GOOS ?=			solaris
 GO_GOARCH ?=			amd64
 
 #
-# The "tools/download_go" script will obtain a Go toolchain tar archive, which
-# we will store in the $(CACHE_DIR).  This directory is be removed entirely by
-# "make distclean".
+# The "deps/eng/tools/download_go" script will obtain a Go toolchain tar
+# archive, which we will store in the $(CACHE_DIR).  This directory is removed
+# entirely by "make distclean".
 #
 GO_TARBALL =			$(CACHE_DIR)/go-$(GO_PREBUILT_VERSION).tar.bz2
 

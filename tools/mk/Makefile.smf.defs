@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -44,7 +44,7 @@
 #
 
 SED 		?= sed
-SMF_DTD		?= tools/service_bundle.dtd.1
+SMF_DTD		?= deps/eng/tools/service_bundle.dtd.1
 XMLLINT		?= xmllint --noout
 
 SMF_MANIFESTS	+= $(SMF_MANIFESTS_IN:%.in=%)

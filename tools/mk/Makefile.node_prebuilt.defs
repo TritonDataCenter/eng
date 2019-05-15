@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -37,9 +37,10 @@
 # - Define `NODE_PREBUILT_VERSION` in your Makefile to choose a node version.
 #   E.g.: `NODE_PREBUILT_VERSION=v0.6.19`. See other optional variables
 #   below.
-# - `include tools/mk/Makefile.node_prebuilt.defs` after this in your Makefile.
-# - `include tools/mk/Makefile.node_prebuilt.targ` near the end of your
-#   Makefile.
+# - `include deps/eng/tools/mk/Makefile.node_prebuilt.defs` after this in
+#   your Makefile.
+# - `include deps/eng/tools/mk/Makefile.node_prebuilt.targ` near the end of
+#   your Makefile.
 # - Have at least one of your Makefile targets depend on either `$(NODE_EXEC)`
 #   or `$(NPM_EXEC)`. E.g.:
 #

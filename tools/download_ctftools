@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -26,7 +26,7 @@ if [[ -z $1 ]]; then
 	exit 1
 fi
 
-TOP=$(cd "$(dirname "$0")/.." && pwd)
+TOP=$(cd "$(dirname "$0")/../../.." && pwd)
 CACHE_DIR=$1
 TMPDIR="$TOP/$CACHE_DIR"
 CTFDIR="$TOP/$CACHE_DIR/ctftools"
