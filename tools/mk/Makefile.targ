@@ -45,6 +45,7 @@
 #	check		Checks JavaScript files for lint and style
 #			Checks bash scripts for syntax
 #			Checks SMF manifests for validity against the SMF DTD
+#			Checks rust files using `cargo check`
 #
 #	clean		Removes built files
 #
@@ -101,12 +102,16 @@
 #
 #	JSSTYLE_FILES	JavaScript files to be style-checked
 #
+#	RUST_CODE	Set this to enable rust code syntax checks.
+#
 # You can also override these variables:
 #
 #	BASH		Path to bash (default: "bash")
 #
 #	BUILD		top-level directory for node binaries, generated docs,
 #			and any other build output (default: "build")
+#
+#	CARGO		Path to cargo (default: "cargo")
 #
 #	CSCOPE_DIRS	Directories to search for source files for the cscope
 #			index. (default: ".")
@@ -141,6 +146,7 @@
 #
 BASH		?= bash
 BASHSTYLE   	?= $(NODE) deps/eng/tools/bashstyle
+CARGO		?= cargo
 CP		?= cp
 CSCOPE		?= cscope
 CSCOPE_DIRS	?= .
@@ -257,8 +263,13 @@ JSSTYLE_TARGET = $(if $(JSSTYLE_FILES), check-jsstyle)
 check-jsstyle:  $(JSSTYLE_EXEC)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $(JSSTYLE_FILES)
 
+RUST_CHECK_TARGET = $(if $(RUST_CODE), check-rust)
+.PHONY: check-rust
+check-rust:
+	$(CARGO) check
+
 .PHONY: check
-check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash
+check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash $(RUST_CHECK_TARGET)
 	@echo check ok
 
 .PHONY: clean
