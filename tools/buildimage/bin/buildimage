@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2019, Joyent, Inc.
+ * Copyright 2019 Joyent, Inc.
  */
 
 var child_process = require('child_process');
@@ -490,6 +490,30 @@ function pkginCleanup(opts, callback) {
     });
 }
 
+function removeZonerootConfigDir(opts, callback) {
+    // Despite the protections offered by OS-5975 which deletes the
+    // config dir during deployment, we'd like to ensure that images
+    // we create can run safely on PIs that don't have that fix.
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    logLine('removing zoneroot config dir ...');
+    const child = child_process.spawn('/usr/bin/rm', [
+        '-rf', opts.mountpoint + '/config'], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        if (code !== 0) {
+            logLine('Child rm zoneroot config dir exited with code ' + code);
+            callback(new Error('failed to remove zoneroot config dir'));
+            return;
+        }
+        callback();
+    });
+}
+
 function doChrootUmount(mountObj, callback) {
     assert.object(mountObj, 'mountObj');
     assert.string(mountObj.dest, 'mountObj.dest');
@@ -702,6 +726,7 @@ function buildImage(opts, callback) {
             loadPkgsrcPkgs,
             pkgAudit,
             pkginCleanup,
+            removeZonerootConfigDir,
             unsetupChroot,
             cleanupZoneAnalog,
             createImage,
