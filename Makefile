@@ -125,9 +125,9 @@ include ./deps/eng/tools/mk/Makefile.smf.defs
 # binary as part of the build process.  Other options are possible -- it depends
 # on the need of your repository.
 #
-NODE_PREBUILT_VERSION =	v4.9.0
+NODE_PREBUILT_VERSION =	v6.17.0
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG = zone
+	NODE_PREBUILT_TAG = zone64
 	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
 else
 	include ./deps/eng/tools/mk/Makefile.node.defs
@@ -195,8 +195,8 @@ RELEASE_TARBALL = $(NAME)-pkg-$(STAMP).tar.gz
 # image should be set here.
 #
 
-# This image is triton-origin-multiarch-15.4.1
-BASE_IMAGE_UUID = 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
+# This image is triton-origin-x86_64-18.4.0
+BASE_IMAGE_UUID = a9368831-958e-432d-a031-f8ce6768d1
 BUILDIMAGE_NAME = manta-myproject
 BUILDIMAGE_DESC	= My Project Has A Description
 AGENTS          = amon config registrar
