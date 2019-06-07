@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -101,6 +101,7 @@ TOP ?= $(error Unable to access eng.git submodule Makefiles.)
 # Configuration used by Makefile.defs and Makefile.targ to generate
 # "check" and "docs" targets.
 #
+BASH_FILES =		tools/check-copyright
 DOC_FILES =		index.md boilerplateapi.md
 JSON_FILES =		package.json
 JS_FILES :=		$(shell find lib test -name '*.js') tools/bashstyle
@@ -130,7 +131,10 @@ ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG = zone64
 	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
 else
-	include ./deps/eng/tools/mk/Makefile.node.defs
+	NPM=npm
+	NODE=node
+	NPM_EXEC=$(shell which npm)
+	NODE_EXEC=$(shell which node)
 endif
 
 #
@@ -279,8 +283,6 @@ ifeq ($(shell uname -s),SunOS)
 	include ./deps/eng/tools/mk/Makefile.node_prebuilt.targ
 	include ./deps/eng/tools/mk/Makefile.go_prebuilt.targ
 	include ./deps/eng/tools/mk/Makefile.agent_prebuilt.targ
-else
-	include ./deps/eng/tools/mk/Makefile.node.targ
 endif
 
 MAN_SECTION :=		1

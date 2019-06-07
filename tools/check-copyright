@@ -1,0 +1,203 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright 2019 Joyent, Inc.
+#
+
+#
+# Check that changed files (uncommitted and unpushed files) have the appropriate
+# Joyent copyright year and blessed format, per:
+# https://github.com/joyent/rfd/blob/master/rfd/0164/README.md#copyright-notice
+#
+# Usage: Run this anywhere in your git clone.
+#
+
+if [[ -n "$TRACE" ]]; then
+    # BASHSTYLED
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+#---- globals
+
+numErrors=0
+numWarnings=0
+year=
+top=$(git rev-parse --show-toplevel)
+optQuiet=
+optVerbose=
+optWarnOnlyOnFormat=
+declare -a optExcludePaths
+
+#---- support stuff
+
+function fatal
+{
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function usage {
+    echo "Check the Joyent Copyright line in uncommitted and unpushed changes."
+    echo ""
+    echo "Usage:"
+    echo "    check-copyright [-h] [-q] [-v] [-W] [-x FILE]"
+    echo ""
+    echo "Option:"
+    echo "    -h       Print this usage."
+    echo "    -q       Quiet: no pithy statements, only errors and warnings."
+    echo "    -v       Verbose: show a message for each file processed."
+    echo "    -W       Warn only (instead of error) on copyright line format:"
+    echo "                 'Copyright <year> Joyent, Inc.'"
+    echo "    -x FILE  Exclude the given FILE (relative path from base of repo)"
+    echo "             from copyright checking. This can be used multiple times"
+    echo "             for multiple files."
+}
+
+function check_file {
+    local file
+    local path
+    local hit
+
+    file=$1
+    path=$top/$file
+
+    if [[ ! -f "$path" ]]; then
+        # E.g. a changed directory (as from a git submodule update).
+        if [[ -n "$optVerbose" ]]; then
+            echo "info: $file: not a file" >&2
+        fi
+        return
+    fi
+
+    hit=$((grep -i "copyright.*joyent" "$path" 2>/dev/null || true) | head -1)
+
+    # No Copyright line in this file.
+    if [[ -z "$hit" ]]; then
+        if [[ -n "$optVerbose" ]]; then
+            echo "info: $file: skipping (no Joyent Copyright line)" >&2
+        fi
+        return
+    fi
+
+    # Wrong copyright year?
+    if [[ "$hit" != *$year* ]]; then
+        echo "error: $file: copyright year not updated to $year: '$hit'" >&2
+        (( numErrors++ ))
+        return
+    fi
+
+    # Wrong copyright format?
+    blessed='Copyright [0-9]{4} Joyent, Inc\.$'
+    if [[ ! "$hit" =~ $blessed ]]; then
+        if [[ -n "$optWarnOnlyOnFormat" ]]; then
+            echo "warning: $file: copyright not in RFD 164 form, '$hit'" \
+                "does not match /$blessed/" >&2
+            (( numWarnings++ ))
+        else
+            echo "error: $file: copyright not in RFD 164 form, '$hit'" \
+                "does not match /$blessed/" >&2
+            (( numErrors++ ))
+        fi
+        return
+    fi
+
+    if [[ -n "$optVerbose" ]]; then
+        echo "info: $file: good!" >&2
+    fi
+}
+
+
+# ---- mainline
+
+while getopts "hqvWx:" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        q)
+            optQuiet=1
+            ;;
+        v)
+            optVerbose=1
+            ;;
+        W)
+            optWarnOnlyOnFormat=1
+            ;;
+        x)
+            optExcludePaths+=("$OPTARG")
+            ;;
+        *)
+            usage 1>&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+# Gather the files to possibly check.
+committedFiles=$(git diff --name-only master..)
+stagedFiles=$(git diff --name-only --staged)
+unstagedFiles=$(git diff --name-only)
+uniqFiles=$(echo "
+$committedFiles
+$stagedFiles
+$unstagedFiles
+" | sort | uniq | sed '/^$/d')
+IFS=$'\n' read -rd '' -a files <<<"$uniqFiles" || true
+
+# Year to check: If we only have committed files, use the last commit year.
+# This will then work for changes reviewed only in the new year.
+if [[ -n "$committedFiles" && -z "$stagedFiles" && -z "$unstagedFiles" ]]; then
+    year=$(git log -1 --pretty="%aI" | cut -d- -f1)
+else
+    year=$(date +%Y)
+fi
+
+# Handle path excludes.
+declare -a filteredFiles
+for file in "${files[@]}"; do
+    excludeIt=
+    for excludePath in "${optExcludePaths[@]}"; do
+        if [[ "$file" == "$excludePath" ]]; then
+            excludeIt=1
+            break
+        fi
+    done
+    if [[ -n "$excludeIt" ]]; then
+        if [[ -n "$optVerbose" ]]; then
+            echo "info: $file: excluded via '-x'" >&2
+        fi
+    else
+        filteredFiles+=("$file")
+    fi
+done
+
+# Check the files and count the errors.
+for file in "${filteredFiles[@]}"; do
+    check_file "$file"
+done
+
+# Print a pithy status (unless running with '-q').
+if [[ -n "$optQuiet" ]]; then
+    true # pass
+elif [[ ${#files[@]} -eq 0 ]]; then
+    echo "You haven't changed anything. Get to work!" >&2
+elif (( numErrors == 0 && numWarnings == 0 )); then
+    echo "All clear! 🍻" >&2
+fi
+
+if (( numErrors != 0 )); then
+    exit 1
+else
+    exit 0
+fi

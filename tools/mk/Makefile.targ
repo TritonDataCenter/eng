@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -42,10 +42,19 @@
 #			file to determine the $(STAMP) of the uploaded bits
 #
 #	buildimage	Builds an image
-#	check		Checks JavaScript files for lint and style
-#			Checks bash scripts for syntax
-#			Checks SMF manifests for validity against the SMF DTD
-#			Checks rust files using `cargo check`
+#
+#	check		- check-jsl: Check JavaScript lint with 'jsl'
+#			  See JSL_ vars below.
+#			- check-jsstyle: Check JavaScript style with 'jsstyle'.
+#			  See JSSTYLE_ vars below.
+#			- check-bash: Checks $BASH_FILES for style.
+#			- check-manifests: Checks SMF manifests for validity
+#			  against the SMF DTD. See "Makefile.smf.defs".
+#			- check-rust: Checks rust files using `cargo check`.
+#			  See "RUST_" vars below.
+#			- check-copyright: Checks "Copyright" statements in
+#			  files different from master. See
+#			  "ENGBLD_CHECK_COPYRIGHT_" vars below.
 #
 #	clean		Removes built files
 #
@@ -104,6 +113,13 @@
 #
 #	RUST_CODE	Set this to enable rust code syntax checks.
 #
+#	ENGBLD_CHECK_COPYRIGHT_DISABLE
+#			Set this to disable "check-copyright".
+#	ENGBLD_CHECK_COPYRIGHT_ARGS
+#			Arguments to pass invocations of "check-copyright".
+# 			Run the following to see available options:
+#			    make check-copyright ENGBLD_CHECK_COPYRIGHT_ARGS=-h
+#
 # You can also override these variables:
 #
 #	BASH		Path to bash (default: "bash")
@@ -147,6 +163,8 @@
 BASH		?= bash
 BASHSTYLE   	?= $(NODE) deps/eng/tools/bashstyle
 CARGO		?= cargo
+ENGBLD_CHECK_COPYRIGHT ?= deps/eng/tools/check-copyright
+ENGBLD_CHECK_COPYRIGHT_ARGS ?= -q
 CP		?= cp
 CSCOPE		?= cscope
 CSCOPE_DIRS	?= .
@@ -268,8 +286,13 @@ RUST_CHECK_TARGET = $(if $(RUST_CODE), check-rust)
 check-rust:
 	$(CARGO) check
 
+_CHECK_COPYRIGHT_TARGET = $(if $(ENGBLD_CHECK_COPYRIGHT_DISABLE),,check-copyright)
+.PHONY: check-copyright
+check-copyright:
+	$(ENGBLD_CHECK_COPYRIGHT) $(ENGBLD_CHECK_COPYRIGHT_ARGS)
+
 .PHONY: check
-check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash $(RUST_CHECK_TARGET)
+check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash $(RUST_CHECK_TARGET) $(_CHECK_COPYRIGHT_TARGET)
 	@echo check ok
 
 .PHONY: clean
