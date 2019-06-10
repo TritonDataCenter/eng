@@ -90,7 +90,7 @@ function check_file {
     # Wrong copyright year?
     if [[ "$hit" != *$year* ]]; then
         echo "error: $file: copyright year not updated to $year: '$hit'" >&2
-        (( numErrors++ ))
+        numErrors=$(( numErrors + 1 ))
         return
     fi
 
@@ -100,11 +100,11 @@ function check_file {
         if [[ -n "$optWarnOnlyOnFormat" ]]; then
             echo "warning: $file: copyright not in RFD 164 form, '$hit'" \
                 "does not match /$blessed/" >&2
-            (( numWarnings++ ))
+            numWarnings=$(( numWarnings + 1 ))
         else
             echo "error: $file: copyright not in RFD 164 form, '$hit'" \
                 "does not match /$blessed/" >&2
-            (( numErrors++ ))
+            numErrors=$(( numErrors + 1 ))
         fi
         return
     fi
