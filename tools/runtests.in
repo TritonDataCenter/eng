@@ -97,40 +97,23 @@ mkdir -p $OUTPUT_DIR
 #---- start tests
 
 # TODO
-# Project specific setup and test running goes here.
+# Project specific setup and test running goes here:
+#
+# - Rule #1: exit non-zero if any tests failed. This is most easily done
+#   by running the test driver with all test files as the last command
+#   (assuming the test driver isn't broken -- see RFD 139). For example:
+#       $(TAP_EXEC) --jobs=$(TEST_JOBS) \
+#               --output-file=$(OUTPUT_DIR)/test.integration.tap \
+#               test/integration/**/*.test.js
+#
 # - TAP output should be redirected or tee'd to $OUTPUT_DIR/*.tap
 #   This is used (a) to summarize below and (b) for the Jenkins Job TAP
 #   parsing/reporting.
+#
 # - If reasonable, use $opt_test_pattern to filter the set of test files run.
 #
 # Some examples:
-# - https://mo.joyent.com/amon/blob/master/test/runtests
-# - https://mo.joyent.com/smartos-live/blob/master/src/vm/runtests
-# TODO
+# - https://github.com/joyent/sdcadm/blob/master/test/runtests
 
-
-
-#---- summary
-
-echo ""
-echo "# test results:"
-
-end_time=$(date +%s)
-elapsed=$((${end_time} - ${start_time}))
-
-tests=$(grep "^# tests [0-9]" $OUTPUT_DIR/*.tap | cut -d ' ' -f3 | xargs | tr ' ' '+' | bc)
-passed=$(grep "^# pass  [0-9]" $OUTPUT_DIR/*.tap | tr -s ' ' | cut -d ' ' -f3 | xargs | tr ' ' '+' | bc)
-[[ -z ${tests} ]] && tests=0
-[[ -z ${passed} ]] && passed=0
-fail=$((${tests} - ${passed}))
-
-echo "# Completed in ${elapsed} seconds."
-echo -e "# \033[32mPASS: ${passed} / ${tests}\033[39m"
-if [[ ${fail} -gt 0 ]]; then
-    echo -e "# \033[31mFAIL: ${fail} / ${tests}\033[39m"
-fi
-echo ""
-
-if [[ ${tests} != ${passed} ]]; then
-    exit 1
-fi
+retval=0
+exit $retval
