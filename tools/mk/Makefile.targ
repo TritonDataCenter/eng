@@ -465,6 +465,16 @@ BUILDIMAGE_PKGSRC_ARGS =
 endif
 
 #
+# If buildimage should not create an etc/motd file for the image, set
+# BUILDIMAGE_SKIP_MOTD.
+#
+ifndef BUILDIMAGE_SKIP_MOTD
+BUILDIMAGE_MOTD_ARGS = -M -S "$$(git -C $(TOP) remote get-url origin)"
+else
+BUILDIMAGE_MOTD_ARGS =
+endif
+
+#
 # BUILDIMAGE_PKG should nearly always be set to $(TOP)/$(RELEASE_TARBALL),
 # but ensure RELEASE_TARBALL is set before setting that default.
 #
@@ -504,6 +514,7 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 		-m '$(BUILDIMAGE_MF)' \
 		$(BUILDIMAGE_DO_PKGSRC_UPGRADE_ARGS) \
 		$(BUILDIMAGE_PKGSRC_ARGS) \
+		$(BUILDIMAGE_MOTD_ARGS) \
 		-a \
 		-P $(NAME)-zfs
 	cp /tmp/$(NAME)-zfs-$(BUILDIMAGE_VERSION).zfs.gz $(ENGBLD_BITS_DIR)/$(NAME)

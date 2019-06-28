@@ -17,6 +17,7 @@ var url = require('url');
 
 var assert = require('assert-plus');
 var dashdash = require('dashdash');
+var extsprintf = require('extsprintf');
 var uuidv4 = require('uuid/v4');
 var vasync = require('vasync');
 
@@ -24,6 +25,7 @@ var CLI = require('../lib/imgadm/lib/cli');
 var imgadmCommon = require('../lib/imgadm/lib/common');
 var indent = imgadmCommon.indent;
 
+var sprintf = extsprintf.sprintf;
 
 var CHROOT_MOUNT_DIRS = ['/dev', '/lib', '/proc', '/sbin', '/usr'];
 var CLI_OPTIONS = [
@@ -50,6 +52,11 @@ var CLI_OPTIONS = [
         help: 'A JSON object with manifest data. Must have at least name and version. [required]',
         helpArg: '{"name": "blah", "version": "1.0.0", ...}'
     },
+    {   names: ['motd', 'M'],
+        type: 'bool',
+        help: 'write an image motd file based on image metadata, origin image and git info',
+        default: false
+    },
     {
         names: ['upgrade_first', 'u'],
         type: 'bool',
@@ -73,6 +80,12 @@ var CLI_OPTIONS = [
         type: 'string',
         help: 'prefix name for output zfs and imgmanifest files.',
         helpArg: 'PREFIX'
+    },
+    {
+        names: ['source_repo', 'S'],
+        type: 'string',
+        help: 'git repo source, for use in -M motd message',
+        helpArg: 'URL'
     },
     {
         names: ['verbose', 'v'],
@@ -514,6 +527,67 @@ function removeZonerootConfigDir(opts, callback) {
     });
 }
 
+function writeMotd(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.bool(opts.motd, 'opts.motd');
+    assert.optionalString(opts.source_repo, 'opts.source_repo');
+    assert.string(opts.image, 'opts.image');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.string(opts.manifest.name, 'opts.manifest.name');
+    assert.string(opts.manifest.version, 'opts.manifest.version');
+
+    assert.func(callback, 'callback');
+
+    if (!opts.motd) {
+        return callback();
+    }
+
+    logLine('writing motd...');
+
+    var motd_data = {};
+    motd_data['name'] = opts.manifest.name;
+    motd_data['stamp'] = opts.manifest.version;
+    motd_data['source_repo'] = opts.source_repo;
+
+    // setup imgadm in order to obtain information about the origin image,
+    // which we should have downloaded by the time we're calling this function.
+    var cli = new CLI();
+    opts.cli = cli;
+
+    cli.init({}, {}, function _onInit(imgadm_err) {
+        if (imgadm_err) {
+            callback(imgadm_err);
+            return;
+        }
+        opts.dataroot = cli.tool.DEFAULT_ZPOOL;
+        var getOpts = {uuid: opts.image, zpool: opts.dataroot, children: false};
+        cli.tool.getImage(getOpts, function (err, imageInfo) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            motd_data['origin_desc'] = (
+                imageInfo.manifest.name + '@' + imageInfo.manifest.version);
+
+            // An example of the motd created here:
+            // =  J O Y E N T  =
+            //
+            // manta-storage (master-20190628T124752Z-g1199325)
+            // git@github.com:joyent/manta-mako.git
+            // triton-origin-multiarch-18.1.0@1.0.1
+            //
+            var motd = ' =  J O Y E N T  =\n\n';
+            motd += sprintf(
+                '    %s (%s)\n', motd_data['name'], motd_data['stamp']);
+            motd += sprintf('    %s\n', motd_data['source_repo']);
+            motd += sprintf('    %s\n\n', motd_data['origin_desc']);
+            fs.writeFileSync(opts.mountpoint + '/root/etc/motd', motd);
+            callback();
+            return;
+        });
+    });
+}
+
 function doChrootUmount(mountObj, callback) {
     assert.object(mountObj, 'mountObj');
     assert.string(mountObj.dest, 'mountObj.dest');
@@ -727,6 +801,7 @@ function buildImage(opts, callback) {
             pkgAudit,
             pkginCleanup,
             removeZonerootConfigDir,
+            writeMotd,
             unsetupChroot,
             cleanupZoneAnalog,
             createImage,
@@ -864,9 +939,11 @@ function main() {
         image: opts.image,
         image_prefix: opts.image_prefix,
         manifest: manifest,
+        motd: opts.motd,
         upgrade_first: opts.upgrade_first,
         packages: packages,
         pkg_audit: opts.pkg_audit,
+        source_repo: opts.source_repo,
         verbose: opts.verbose
     }, function _onBuild(err) {
         if (err) {
