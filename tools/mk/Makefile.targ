@@ -535,7 +535,7 @@ ifndef ENGBLD_BITS_UPLOAD_OVERRIDE
 .PHONY: bits-upload
 bits-upload: publish $(BUILDIMAGE_TARG)
 	$(TOP)/deps/eng/tools/bits-upload.sh \
-		-b $(BRANCH) \
+		-b "$(BRANCH)" \
 		-B "$(TRY_BRANCH)" \
 		$(BITS_UPLOAD_LOCAL_ARG) \
 		$(BITS_UPLOAD_IMGAPI_ARG) \
@@ -552,7 +552,7 @@ bits-upload: publish $(BUILDIMAGE_TARG)
 .PHONY: bits-upload-latest
 bits-upload-latest:
 	$(TOP)/deps/eng/tools/bits-upload.sh \
-		-b $(BRANCH) \
+		-b "$(BRANCH)" \
 		-B "$(TRY_BRANCH)" \
 		$(BITS_UPLOAD_LOCAL_ARG) \
 		$(BITS_UPLOAD_IMGAPI_ARG) \
