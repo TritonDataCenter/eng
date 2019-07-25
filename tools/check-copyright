@@ -145,7 +145,13 @@ done
 shift $((OPTIND - 1))
 
 # Gather the files to possibly check.
-committedFiles=$(git diff --name-only master..)
+committedFiles=
+if git branch -a | grep '^  remotes/origin/master$' >/dev/null 2>/dev/null; then
+    # The intent for committed files is to compare against the ultimate
+    # merge branch target. We assume that is "origin/master", the common case
+    # for Joyent eng repos.
+    committedFiles=$(git diff --name-only origin/master..)
+fi
 stagedFiles=$(git diff --name-only --staged)
 unstagedFiles=$(git diff --name-only)
 uniqFiles=$(echo "
