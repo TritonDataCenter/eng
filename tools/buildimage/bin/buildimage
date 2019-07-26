@@ -782,6 +782,9 @@ function buildImage(opts, callback) {
         }
         opts.manifest.requirements.min_platform['7.0'] = vers;
     }
+    if (!opts.manifest.published_at) {
+        opts.manifest.published_at = new Date().toISOString();
+    }
 
     logLine('Starting build for %s (%s)',
         opts.manifest.name, opts.manifest.version);
