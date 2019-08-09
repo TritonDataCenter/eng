@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -42,7 +42,7 @@
 # the output file and target link will be unaffected.
 #
 
-BASEURL='https://download.joyent.com/pub/build/go/adhoc/'
+BASEURL='https://us-east.manta.joyent.com/Joyent_Dev/public/releng/go/adhoc/'
 GOVERSION=$1
 GOOS=$2
 GOARCH=$3
@@ -58,13 +58,20 @@ if [[ ! -d $OUTDIR ]]; then
 	exit 1
 fi
 
+HAS_JSON=$(command -v json)
+if [[ -z "$HAS_JSON" ]]; then
+	printf 'ERROR: "json" command not found in $PATH'
+	exit 1
+fi
+
 TARGET="go-$GOVERSION.tar.bz2"
 
 #
-# Download the index page which lists the current set of available go
-# builds:
+# Download the Manta index which lists the current set of available go
+# builds. Note that this is assumed to be a application/x-json-stream
+# with one json record per line:
 #
-if ! list=$(curl -sSfL "$BASEURL") || [[ -z "$list" ]]; then
+if ! list=$(curl -sSfL "$BASEURL" | json -ag name) || [[ -z "$list" ]]; then
 	printf 'ERROR: could not download index page\n' >&2
 	exit 1
 fi
@@ -79,7 +86,7 @@ fi
 #
 if ! name=$(/usr/bin/awk -v "v=$GOVERSION" -v "o=$GOOS" -v "a=$GOARCH" -F\" '
     BEGIN { pattern = "^go"v"."o"-"a".tar.bz2$"; }
-    $1 == "<a href=" && $2 ~ pattern { print $2 }' <<< "$list") ||
+    $1 ~ pattern { print $1 }' <<< "$list") ||
     [[ -z "$name" ]]; then
 	printf 'ERROR: could not locate file name in index page\n' >&2
 	printf '\t(Does Go version %s (%s-%s) exist?)\n' \

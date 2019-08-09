@@ -69,7 +69,21 @@
 #				can either be a *local directory* or *a
 #				URL* dir (with trailing '/') which serves
 #				Apache/Nginx dir listing HTML.
-#				(default: sdcnode master build dir on stuff)
+#				(default: not set)
+#
+#	NODE_PREBUILT_MANTA_DIR
+#				Used in preference to NODE_PREBUILT_DIR,
+#				this is a http(s) URL to a Manta object,
+#				typically $(NODE_PREBUILT_BRANCH)-latest,
+#				which contains a Manta path to the build
+#				for that branch. The build expects that
+#				path to contain an 'sdcnode' subdirectory.
+#				Note that doing a curl on a Manta directory
+#				returns JSON results, with one object per
+#				line.
+#				(default: sdcnode master build dir on
+#				US-East manta for the given branch)
+#
 #
 #	NODE_PREBUILT_TAG	The 'sdcnode' project supports special
 #				configuration builds of node, e.g. say a
@@ -88,7 +102,7 @@
 #				for an sdcnode build that you want to use (potential compat
 #				issues be damned), then set this to the UUID of the sdcnode
 #				build you want. See here for available build image uuids:
-#				<https://download.joyent.com/pub/build/sdcnode/master-latest/sdcnode/>
+#				<https://us-east.manta.joyent.com/Joyent_Dev/public/releng/sdcnode>
 #
 #	BUILD			top-level directory for built binaries
 #				(default: "build")
@@ -132,9 +146,19 @@ else
 	NODE_PREBUILT_NAME := $(NODE_PREBUILT_VERSION)-$(NODE_PREBUILT_TAG)-$(NODE_PREBUILT_IMAGE)
 endif
 NODE_PREBUILT_PATTERN := sdcnode-$(NODE_PREBUILT_NAME)-$(NODE_PREBUILT_BRANCH)-.*\.tgz
-NODE_PREBUILT_DIR ?= https://download.joyent.com/pub/build/sdcnode/$(NODE_PREBUILT_IMAGE)/$(NODE_PREBUILT_BRANCH)-latest/sdcnode/
-ifeq ($(shell echo $(NODE_PREBUILT_DIR) | cut -c 1-4),http)
-	NODE_PREBUILT_BASE := $(shell curl -ksS --fail --connect-timeout 30 $(NODE_PREBUILT_DIR) | grep 'href=' | cut -d'"' -f2 | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
+NODE_PREBUILT_MANTA_URL ?= https://us-east.manta.joyent.com
+NODE_PREBUILT_MANTA_DIR ?= /Joyent_Dev/public/releng/sdcnode/$(NODE_PREBUILT_IMAGE)/$(NODE_PREBUILT_BRANCH)-latest
+
+# only use NODE_PREBUILT_DIR if it is set.
+ifeq ($(NODE_PREBUILT_DIR),)
+	NODE_PREBUILT_MANTA_REAL_DIR := $(shell curl -sS --fail --connect-timeout 30 $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_DIR))
+	NODE_PREBUILT_BASE := $(shell curl -sS --fail --connect-timeout 30 $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_REAL_DIR)/sdcnode | json -ag name | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
+	ifneq ($(NODE_PREBUILT_BASE),)
+		NODE_PREBUILT_TARBALL := $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_REAL_DIR)/sdcnode/$(NODE_PREBUILT_BASE)
+	endif
+else ifeq ($(shell echo $(NODE_PREBUILT_DIR) | cut -c 1-4),http)
+	# assume Apache/Nginx style indexing
+	NODE_PREBUILT_BASE := $(shell curl -sS --fail --connect-timeout 30 $(NODE_PREBUILT_DIR) | grep 'href=' | cut -d'"' -f2 | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
 	ifneq ($(NODE_PREBUILT_BASE),)
 		NODE_PREBUILT_TARBALL := $(NODE_PREBUILT_DIR)$(NODE_PREBUILT_BASE)
 	endif
