@@ -10,7 +10,7 @@ apisections:
 -->
 
 <!--
-    Copyright (c) 2019, Joyent, Inc.
+    Copyright 2019 Joyent, Inc.
 -->
 
 # Joyent Engineering Guide
@@ -318,7 +318,7 @@ When modifying existing code, the year should be updated to be the
 current year that the file was modified. There should only be a single
 year, not a list. For example:
 
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright 2019 Joyent, Inc.
 
 
 ## Testing
