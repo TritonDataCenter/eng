@@ -122,6 +122,7 @@ GO_ENV +=			GOPATH="$(TOP)/$(GO_GOPATH)"
 GO_ENV +=			GOARCH="$(GO_GOARCH)"
 GO_ENV +=			GOOS="$(GO_GOOS)"
 GO_ENV +=			PATH="$(TOP)/$(GO_INSTALL)/bin:$$PATH"
+GO_ENV +=			GOCACHE="$(shell realpath $(CACHE_DIR))/go_cache"
 
 #
 # The $(GO) variable should be used in place of bare invocations of "go".
