@@ -42,7 +42,6 @@
 # the following images versions are supported:
 #
 #    sdc-smartos@1.6.3: fd2cc906-8938-11e3-beab-4359c665ac99
-#    sdc-base@14.2.0: de411e86-548d-11e4-a4b7-3bb60478632a
 #    sdc-minimal-multiarch-lts@15.4.1: 18b094b0-eb01-11e5-80c1-175dac7ddf02
 #    triton-origin-multiarch-15.4.1@1.0.1: 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
 #    minimal-multiarch@18.1.0: 1ad363ec-3b83-11e8-8521-2f68a4a34d5d
@@ -75,7 +74,6 @@ fi
 # Used to cross-check declared NODE_PREBUILT_IMAGE to pkgsrc version.
 declare -A PKGSRC_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=2011Q4
-    [de411e86-548d-11e4-a4b7-3bb60478632a]=2014Q2
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=2015Q4
     [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=2015Q4
     [1ad363ec-3b83-11e8-8521-2f68a4a34d5d]=2018Q1
@@ -90,7 +88,6 @@ declare -A PKGSRC_MAP=(
 # NODE_PREBUILT_IMAGE uuid to the human-friendly image name.
 declare -A SDC_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=sdc-smartos@1.6.3
-    [de411e86-548d-11e4-a4b7-3bb60478632a]=sdc-base@14.2.0
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=sdc-minimal-multiarch-lts@15.4.1
     [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=triton-origin-multiarch-15.4.1@1.0.1
     [1ad363ec-3b83-11e8-8521-2f68a4a34d5d]=minimal-multiarch@18.1.0
@@ -107,7 +104,6 @@ declare -A SDC_MAP=(
 declare -A JENKINS_AGENT_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=956f365d-2444-4163-ad48-af2f377726e0
     [b4bdc598-8939-11e3-bea4-8341f6861379]=7b1ac281-3fe4-4cf7-858c-2ff73ec64f4e
-    [de411e86-548d-11e4-a4b7-3bb60478632a]=83708aad-20a8-45ff-bfc0-e53de610e418
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=1356e735-456e-4886-aebd-d6677921694c
     [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=1356e735-456e-4886-aebd-d6677921694c
     [1ad363ec-3b83-11e8-8521-2f68a4a34d5d]=8b297456-1619-4583-8a5a-727082323f77
@@ -137,15 +133,6 @@ PKGSRC_PKGS_2011Q4="
     gsharutils
     cdrtools
     coreutils
-    pigz"
-
-PKGSRC_PKGS_2014Q2="
-    grep
-    build-essential
-    python27
-    py27-expat
-    coreutils
-    gsharutils
     pigz"
 
 PKGSRC_PKGS_2015Q4="
