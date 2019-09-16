@@ -235,8 +235,11 @@ deps/%/.git:
 # would invoke bash with zero files), and you can check individual files from
 # the command line with "make filename.bashchk".
 #
+# Since bashstyle is a node program, we need our node runtime as a dependency
+# for running $(BASHSTYLE)
+#
 .PHONY: check-bash
-check-bash: $(BASH_FILES:%=%.bashchk) $(BASH_FILES:%=%.bashstyle)
+check-bash: $(NODE_EXEC) $(BASH_FILES:%=%.bashchk) $(BASH_FILES:%=%.bashstyle)
 
 %.bashchk: %
 	$(BASH) -n $^

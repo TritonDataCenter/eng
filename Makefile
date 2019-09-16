@@ -129,6 +129,8 @@ include ./deps/eng/tools/mk/Makefile.smf.defs
 NODE_PREBUILT_VERSION =	v6.17.0
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG = zone64
+	# Use the sdcnode build for minimal-64-lts@18.4.0
+	NODE_PREBUILT_IMAGE = c2c31b00-1d60-11e9-9a77-ff9f06554b0f
 	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
 else
 	NPM=npm
