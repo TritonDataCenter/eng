@@ -82,6 +82,8 @@ declare -A PKGSRC_MAP=(
     [a9368831-958e-432d-a031-f8ce6768d190]=2018Q4
     [fbda7200-57e7-11e9-bb3a-8b0b548fcc37]=2019Q1
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=2019Q1
+    [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=2019Q2
+    [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=2019Q2
 )
 
 # Used to provide useful error messages to the user, mapping the
@@ -96,6 +98,8 @@ declare -A SDC_MAP=(
     [a9368831-958e-432d-a031-f8ce6768d190]=triton-origin-x86_64-18.4.0@master-20190410T193647Z-g982b0ce
     [fbda7200-57e7-11e9-bb3a-8b0b548fcc37]=minimal-64@19.1.0
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=triton-origin-x86_64-19.1.0@master-20190417T143547Z-g119675b
+    [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=minimal-64@19.2.0
+    [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=triton-origin-x86_64-19.2.0@master-20190919T182250Z-g363e57e
 )
 
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
@@ -112,6 +116,8 @@ declare -A JENKINS_AGENT_MAP=(
     [a9368831-958e-432d-a031-f8ce6768d190]=29b70133-1e97-47d9-a4c1-e4b2ee1a1451
     [fbda7200-57e7-11e9-bb3a-8b0b548fcc37]=fb751f94-3202-461d-b98d-4465560945ec
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=fb751f94-3202-461d-b98d-4465560945ec
+    [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
+    [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
 )
 
 # For each pkgsrc version, set a list of packages that must be present
@@ -172,6 +178,19 @@ PKGSRC_PKGS_2018Q4="
     pigz"
 
 PKGSRC_PKGS_2019Q1="
+    grep
+    build-essential
+    python27
+    py27-expat
+    coreutils
+    gsed
+    gsharutils
+    flex
+    pcre
+    pigz
+    rust"
+
+PKGSRC_PKGS_2019Q2="
     grep
     build-essential
     python27
