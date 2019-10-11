@@ -53,6 +53,10 @@
 # destinations, but sometimes to modify the behavior of the build.
 #
 
+
+# Be explicit about assuming bash for inline shell execution
+SHELL ?= /bin/bash
+
 TOP ?= $(shell pwd)
 
 #
