@@ -13,6 +13,11 @@
 # Check if the current build machine is supported for building this component
 # and that the build environment seems sane.
 #
+# Most Joyent software is built using a common build environment described in
+# https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md.
+# The quickest path to having a sane build environment likely involves following
+# that document.
+#
 # Ideally, rather than checking the sanity of any random shell environment,
 # we'd have a way to fully specify the build environment, sanitizing it so that
 # only specific user-set environment variables are allowed. That is not done
@@ -751,6 +756,13 @@ else
     # bits-upload not posting to Manta/updates.joyent.com.
     verify_clean_repo
     if [[ "$RESULT" -gt 0 ]]; then
+        echo ""
+        echo "Build zone setup typically requires almost no work if you are"
+        echo "using the right image.  See:"
+        echo ""
+        echo "https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md"
+        echo ""
+
         exit 1
     else
         exit 0

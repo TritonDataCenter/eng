@@ -5,7 +5,7 @@
 -->
 
 <!--
-    Copyright (c) 2016, Joyent, Inc.
+    Copyright 2019 Joyent, Inc.
 -->
 
 # eng: Joyent Engineering Guide
@@ -42,6 +42,12 @@ After the boilerplate paragraph, write a brief description about your repo.
 
 
 ## Development
+
+To ensure maximum compatibility, release builds are performed on a build zone
+that is old enough to allow new and updated components to run on all supported
+platform images.  If you are not using the Joyent Jenkins instance for
+performing builds, you should build using an appropriate build zone.  See
+[Build Zone Setup for Manta and Triton](https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md).
 
 Describe steps necessary for development here.
 

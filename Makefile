@@ -202,7 +202,7 @@ RELEASE_TARBALL = $(NAME)-pkg-$(STAMP).tar.gz
 #
 
 # This image is triton-origin-x86_64-18.4.0
-BASE_IMAGE_UUID = a9368831-958e-432d-a031-f8ce6768d1
+BASE_IMAGE_UUID = a9368831-958e-432d-a031-f8ce6768d190
 BUILDIMAGE_NAME = manta-myproject
 BUILDIMAGE_DESC	= My Project Has A Description
 AGENTS          = amon config registrar
