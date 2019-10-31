@@ -299,7 +299,7 @@ check-jsstyle:  $(JSSTYLE_EXEC)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $(JSSTYLE_FILES)
 
 # We run `cargo clean` before `cargo clippy` because, at least in Rust v1.35
-# clippy with not check already compiled files.
+# clippy will not check already compiled files.
 # https://github.com/rust-lang/cargo/pull/7157 might fix this.
 RUST_CHECK_TARGET = $(if $(RUST_CODE), check-rust)
 .PHONY: check-rust
