@@ -66,18 +66,15 @@ endif
 # time to install everything in "dependencies" and (b) even if "dependencies"
 # won't install/build on the current platform.
 #
-# Note that `--only=dev` is silently ignored by the `npm` in node 0.10 and
-# below.
-#
 # NPM_EXEC will be defined if either of "Makefile.{node,node_prebuilt}.defs"
 # is included.
 ifdef NPM
 $(ESLINT_EXEC): package.json | $(NPM_EXEC)
-	$(NPM) install --only=dev && \
+	$(NPM) install --no-save $(shell $(NODE) -e 'd = require("./package.json").devDependencies; console.log(Object.keys(d).map(function (k) { return k + "@" + d[k] }).join(" "))') && \
 	    touch $(ESLINT_EXEC)
 else
 $(ESLINT_EXEC): package.json
-	npm install --only=dev && \
+	npm install --no-save $(shell node -e 'd = require("./package.json").devDependencies; console.log(Object.keys(d).map(function (k) { return k + "@" + d[k] }).join(" "))') && \
 	    touch $(ESLINT_EXEC)
 endif
 
