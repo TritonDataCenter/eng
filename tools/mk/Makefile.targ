@@ -115,8 +115,8 @@
 #			of `make check`.
 #	RUST_CLIPPY_ARGS
 #			Alternative options to pass to `cargo clippy` as part
-#			of `make check`. By default it is
-#			"-- -D clippy::all -D clippy::pedantic". Other options:
+#			of `make check`. By default it is "-- -D clippy::all".
+#			Other potential options:
 #			- full clippy:
 #			  RUST_CLIPPY_ARGS="-- -D clippy::all -D clippy::pedantic -D clippy::nursery -D clippy::cargo"
 #			- just warn:
@@ -190,7 +190,7 @@ MV		?= mv
 RESTDOWN_FLAGS	?=
 RESTDOWN_EXT	?= .md
 RMTREE		?= rm -rf
-RUST_CLIPPY_ARGS ?= -- -D clippy::all -D clippy::pedantic
+RUST_CLIPPY_ARGS ?= -- -D clippy::all
 JSL_FLAGS  	?= --nologo --nosummary
 
 ifeq ($(shell uname -s),SunOS)
