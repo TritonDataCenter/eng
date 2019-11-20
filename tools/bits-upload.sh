@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -347,8 +347,10 @@ function publish_to_updates {
             else
                 BRANCH_NAME=${BRANCH}
             fi
-            if [[ -z "$TRY_BRANCH" && "$(echo ${BRANCH} \
-                    | grep '^release-[0-9]\{8\}$' || true)" ]]; then
+            if [[ -z "$TRY_BRANCH" && \
+                ( -n "$(echo ${BRANCH} | grep '^release-[0-9]\{8\}$' || true)" || \
+                  -n "$(echo ${BRANCH} | grep '^mantav1$' || true)" ) \
+                ]]; then
                 export UPDATES_IMGADM_CHANNEL=staging
             else
                 if [[ "${BRANCH_NAME}" == "master" ]]; then
