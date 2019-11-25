@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -351,7 +351,8 @@ function publish_to_updates {
                     | grep '^release-[0-9]\{8\}$' || true)" ]]; then
                 export UPDATES_IMGADM_CHANNEL=staging
             else
-                if [[ "${BRANCH_NAME}" == "master" ]]; then
+                if [[ "${BRANCH_NAME}" == "master" || \
+                      "${BRANCH_NAME}" == "mantav1" ]]; then
                     export UPDATES_IMGADM_CHANNEL=dev
                 else
                     export UPDATES_IMGADM_CHANNEL=experimental
