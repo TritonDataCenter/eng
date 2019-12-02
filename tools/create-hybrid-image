@@ -24,41 +24,45 @@ DESC=
 HOMEPAGE=
 OUTPUT_DIR=.
 PROTOTYPE=
+ZFS_DIR=/data
 
 BUILD_DATE=$(date +%Y%m%d)
 
-SDC_VMMANIFEST=$(cd "$(dirname "$0")"; pwd)/sdc-vmmanifest
+ENGDIR=$(dirname "$(cd "$(dirname "$0")"; pwd)")
 
 VM_UUID=$(uuidgen)
 
 usage() {
 cat <<EOF
 
-Create a hybrid (kvm, bhyve) Debian image from a given ISO file.  This should be
-run from a SmartOS (joyent brand) zone that has been set up for this purpose.
+Create a hybrid (kvm, bhyve) image from a given ISO file. This should be run
+from a joyent brand zone that is as described in the "Build environment" section
+of https://github.com/joyent/eng/tree/master/docs/hybridimages.md
+or $ENGDIR/tools/hybridimages.md.
 
 Usage:
-  $0 -i <ISO> -n <IMAGE_NAME> -d <DESC> -u <HOMEPAGE> -p <PROTOTYPE> \
-      [-o <OUTDIR>] [-- QEMUARGS]
+  create-hybrid-image -i <ISO> -n <IMAGE_NAME> -d <DESC> -u <HOMEPAGE> \\
+      -p <PROTOTYPE> [-o <OUTDIR>] [-z <ZFS-DIR>] [-- QEMUARGS]
 
 Example:
-  $0 -i binary.iso -n debian-10 \\
+  create-hybrid-image -i binary.iso -n debian-10 \\
       -d "Debian 10 (bionic) 64-bit image with just essential packages... " \\
       -u https://docs.joyent.com/images/hvm/debian
 
 OPTIONS:
+  -h Show this message
   -i The ISO
   -n The name of the image as it would appear in the manifest
   -d The description of the image
   -o Directory in which to place output.  Default is ".".
   -p Prototype manifest file
   -u The homepage URL for the image
-  -h Show this message
+  -z Use the ZFS dataset mounted at this directory.  Default is "/data"
 
 EOF
 }
 
-while getopts "hi:n:d:o:p:u:" OPTION; do
+while getopts "hi:n:d:o:p:u:z:" OPTION; do
 	case $OPTION in
 	h)
 		usage
@@ -81,6 +85,9 @@ while getopts "hi:n:d:o:p:u:" OPTION; do
 		;;
 	u)
 		HOMEPAGE=${OPTARG}
+		;;
+	z)
+		ZFS_DIR=${OPTARG}
 		;;
 	?)
 		usage 1>&2
@@ -116,14 +123,17 @@ function sanity_check
 {
 	sane=true
 
-	topds=$(zfs list -Ho name /data || true)
+	topds=$(zfs list -Ho name ${ZFS_DIR} || true)
 	if [[ -z "$topds" ]]; then
 		sane=false
-		topds=zones/$(zonename)/data
-		echo "$0: No zfs filesystem mounted at /data" 1>&2
+		topds=zones/$(zonename)$ZFS_DIR
+		echo "$0: No zfs filesystem mounted at $ZFS_DIR" 1>&2
 		echo "" 1>&2
-		echo "Fix by running the following in the global zone:" 1>&2
-		echo "  zfs create -o zoned=on -o mountpoint=/data $topds" 1>&2
+		echo "Fix by using '-z <ZFSDIR>' to specify where the" 1>&2
+		echo "top-level zfs file system is mounted or by running" 1>&2
+		echo "the following in the global zone:" 1>&2
+		echo "  zfs create -o zoned=on -o mountpoint=$ZFS_DIR" \
+		    "$topds" 1>&2
 		echo "  zonecfg -z $(zonename) 'add dataset; set name=$topds;" \
 		    "end'" 1>&2
 		echo "" 1>&2
@@ -150,9 +160,19 @@ function sanity_check
 		echo "" 1>&2
 	fi
 
+	if (( $(pfexec bash -c 'echo $EUID') != 0 )); then
+		sane=false
+		local user=$(id -un)
+		echo "$0: Insufficient privileges" 1>&2
+		echo "" 1>&2
+		echo "Fix by running as root or by assinging Primary" 1>&2
+		echo "Administrator profile to $user:" 1>&2
+		echo "  usermod -P 'Primary Administrator' $user" 1>&2
+	fi
+
 	if [[ $sane == false ]]; then
-		echo "$0: Reboot the zone after making the changes described" \
-		    "above." 1>&2
+		echo "$0: Reboot the zone after making the changes to the" \
+		    "zone configuration." 1>&2
 		exit 1
 	fi
 }
