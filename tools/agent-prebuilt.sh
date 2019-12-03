@@ -78,7 +78,7 @@ function do_clone {
         fi
         # ensure there are no uncommitted changes before attempting to
         # rebase
-        uncommitted=$(git status --porcelain)
+        uncommitted=$(git status --porcelain -uno)
         if [[ -n "$uncommitted" ]]; then
             echo "ERROR: uncommitted changes in $agent_cache_dir/$repo_name"
             echo "Please commit these before attempting to rebase."
