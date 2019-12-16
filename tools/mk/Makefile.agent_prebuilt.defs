@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -98,6 +98,7 @@ AGENT_PREBUILT_DIR ?= /var/tmp/agent-cache.$(AGENT_USER)
 #
 # <AGENT>_PREBUILT_GIT_URL			the git repository to clone
 # <AGENT>_PREBUILT_REPO				the local repository name
+# <AGENT>_PREBUILT_AGENT_ENV		environment variables needed for the agent build
 # <AGENT>_PREBUILT_AGENT_TARGETS	the make targets in that repository to build
 # <AGENT>_PREBUILT_ROOTDIR			where in the image the package resides
 # <AGENT>_PREBUILT_TARBALL_PATTERN	a regexp to match the built/downloaded agent
@@ -111,6 +112,7 @@ AGENT_PREBUILT_DIR ?= /var/tmp/agent-cache.$(AGENT_USER)
 #
 AMON_PREBUILT_GIT_URL = 		https://github.com/joyent/sdc-amon.git
 AMON_PREBUILT_REPO = 			sdc-amon
+AMON_PREBUILT_AGENT_ENV =		THIS=that
 AMON_PREBUILT_AGENT_TARGETS =		distclean agent pkg_agent
 AMON_PREBUILT_ROOTDIR = 		root/opt
 AMON_PREBUILT_TARBALL_PATTERN =		build/amon-agent-.*.tgz

@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -37,6 +37,7 @@ trap cleanup EXIT
 # -p <name>_PREBUILT_TARBALL_PATTERN  a glob pattern to match the built or
 #                                     downloaded agent
 # -r <name>_PREBUILT_REPO           the local repository name
+# -e <name>_PREBUILT_AGENT_ENV      environment key=value pairs needed to build
 # -t <name>_PREBUILT_AGENT_TARGETS  the make targets in that repository to build
 # -u <name>_PREBUILT_GIT_URL        the git repository containing the agent
 #                                   source
@@ -58,6 +59,7 @@ function usage {
     echo "  -B <agent_branch>   the agent_branch to checkout and build"
     echo "  -c <dir>            the location of the agent_cache"
     echo "  -d <dir>            where in the image the package resides"
+    echo "  -e <keyval pairs>   environment variables to pass to 'make'"
     echo "  -p <pattern>        a glob pattern to match the built agent tarball"
     echo "  -r <repo name>      the local repository directory name"
     echo "  -t <target>         the make targets to build"
@@ -152,7 +154,7 @@ function do_build {
     # create dependencies against /opt/local, that would be
     # bad.
     #
-    ENGBLD_SKIP_VALIDATE_BUILDENV=true gmake $agent_targets
+    ENGBLD_SKIP_VALIDATE_BUILDENV=true $agent_env gmake $agent_targets
     return $?
 }
 
@@ -338,6 +340,9 @@ while getopts "B:b:c:d:hp:r:t:u:U:" opt; do
                 esac
             fi
             ;;
+	e)
+	    agent_env="$OPTARG"
+	    ;;
         h)
             do_usage=true
             ;;

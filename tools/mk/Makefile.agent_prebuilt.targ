@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -60,6 +60,7 @@ waferlock-prebuilt: $(WAFERLOCK_PREBUILT_TARGETS)
 		-c '$(AGENT_PREBUILT_DIR)' \
 		-p '$($*_PREBUILT_TARBALL_PATTERN)' \
 		-r '$($*_PREBUILT_REPO)' \
+		-e '$($*_PREBUILT_AGENT_ENV)' \
 		-t '$($*_PREBUILT_AGENT_TARGETS)' build
 
 #
