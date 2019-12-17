@@ -112,7 +112,6 @@ AGENT_PREBUILT_DIR ?= /var/tmp/agent-cache.$(AGENT_USER)
 #
 AMON_PREBUILT_GIT_URL = 		https://github.com/joyent/sdc-amon.git
 AMON_PREBUILT_REPO = 			sdc-amon
-AMON_PREBUILT_AGENT_ENV =		THIS=that
 AMON_PREBUILT_AGENT_TARGETS =		distclean agent pkg_agent
 AMON_PREBUILT_ROOTDIR = 		root/opt
 AMON_PREBUILT_TARBALL_PATTERN =		build/amon-agent-.*.tgz

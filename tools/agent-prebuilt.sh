@@ -154,7 +154,7 @@ function do_build {
     # create dependencies against /opt/local, that would be
     # bad.
     #
-    ENGBLD_SKIP_VALIDATE_BUILDENV=true $agent_env gmake $agent_targets
+    env ENGBLD_SKIP_VALIDATE_BUILDENV=true $agent_env gmake $agent_targets
     return $?
 }
 
