@@ -119,3 +119,18 @@ waferlock-prebuilt: $(WAFERLOCK_PREBUILT_TARGETS)
 
 $(AGENT_PREBUILT_DIR):
 	mkdir -p $@
+
+#
+# Some agents (amon at least) need to build with python2, but have
+# "#!/bin/env python" scripts that will otherwise find the default
+# python on the build machine. Since modern pkgsrc installations have
+# the default as python3, this will break the build.
+# This target will forge a symlink at $(TOP)/build/agent-python which
+# can be passed to e.g. the sdc-amon agent build using
+# AMON_PREBUILT_AGENT_ENV = ENGBLD_PATH=$(TOP)/build/agent-python
+#
+python2-symlink:
+	mkdir -p $(TOP)/build/agent-python
+	rm -f $(TOP)/build/agent-python/python
+	ln -s /opt/local/bin/python2 $(TOP)/build/agent-python/python
+
