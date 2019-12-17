@@ -825,10 +825,12 @@ function buildImage(opts, callback) {
                         cb();
                         return;
                     }
-                    unsetupChroot(opts, function _onUnsetup(err) {
-                        // ignore errors, this is best effort.
-                        console.error('WARN: failed to unsetup chroot: ' +
-                            err.message);
+                    unsetupChroot(opts, function _onUnsetup(unsetupErr) {
+                        if (unsetupErr) {
+                            // ignore errors, this is best effort.
+                            console.error('WARN: failed to unsetup chroot: ' +
+                                unsetupErr.message);
+                        }
                         cb();
                     });
                 }, function _destroyZoneAnalog(_, cb) {

@@ -314,7 +314,7 @@ function cleanup {
 #
 # Main
 #
-while getopts "B:b:c:d:hp:r:t:u:U:" opt; do
+while getopts "B:b:c:d:e:hp:r:t:u:U:" opt; do
     case "${opt}" in
         b)
             branch=$OPTARG
@@ -340,9 +340,9 @@ while getopts "B:b:c:d:hp:r:t:u:U:" opt; do
                 esac
             fi
             ;;
-	e)
-	    agent_env="$OPTARG"
-	    ;;
+        e)
+            agent_env="$OPTARG"
+            ;;
         h)
             do_usage=true
             ;;
