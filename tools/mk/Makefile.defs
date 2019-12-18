@@ -217,3 +217,13 @@ ifeq ($(UID), 0)
 else
     PFEXEC=/usr/bin/pfexec
 endif
+
+#
+# Avoid pkgsrc curl because that lacks modern TLS support on the ancient
+# pkgsrcs still used on some smartos@1.6.3-based builds.
+#
+ifeq ($(shell uname -s),SunOS)
+	CURL	?= /usr/bin/curl
+else
+	CURL	?= curl
+endif

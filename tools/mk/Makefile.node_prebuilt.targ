@@ -29,6 +29,7 @@
 #
 
 NODE_PREBUILT_TARBALL ?= $(error NODE_PREBUILT_TARBALL is not set: was Makefile.node_prebuilt.defs included?)
+CURL ?= $(error CURL is not set: was Makefile.defs included?)
 
 
 # TODO: remove this limitation
