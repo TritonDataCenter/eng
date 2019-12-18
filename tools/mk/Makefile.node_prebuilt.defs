@@ -151,14 +151,14 @@ NODE_PREBUILT_MANTA_DIR ?= /Joyent_Dev/public/releng/sdcnode/$(NODE_PREBUILT_IMA
 
 # only use NODE_PREBUILT_DIR if it is set.
 ifeq ($(NODE_PREBUILT_DIR),)
-	NODE_PREBUILT_MANTA_REAL_DIR := $(shell curl -sS --fail --connect-timeout 30 $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_DIR))
-	NODE_PREBUILT_BASE := $(shell curl -sS --fail --connect-timeout 30 $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_REAL_DIR)/sdcnode | json -ag name | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
+	NODE_PREBUILT_MANTA_REAL_DIR := $(shell $(CURL) -sS --fail --connect-timeout 30 $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_DIR))
+	NODE_PREBUILT_BASE := $(shell $(CURL) -sS --fail --connect-timeout 30 $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_REAL_DIR)/sdcnode | json -ag name | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
 	ifneq ($(NODE_PREBUILT_BASE),)
 		NODE_PREBUILT_TARBALL := $(NODE_PREBUILT_MANTA_URL)$(NODE_PREBUILT_MANTA_REAL_DIR)/sdcnode/$(NODE_PREBUILT_BASE)
 	endif
 else ifeq ($(shell echo $(NODE_PREBUILT_DIR) | cut -c 1-4),http)
 	# assume Apache/Nginx style indexing
-	NODE_PREBUILT_BASE := $(shell curl -sS --fail --connect-timeout 30 $(NODE_PREBUILT_DIR) | grep 'href=' | cut -d'"' -f2 | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
+	NODE_PREBUILT_BASE := $(shell $(CURL) -sS --fail --connect-timeout 30 $(NODE_PREBUILT_DIR) | grep 'href=' | cut -d'"' -f2 | grep "^$(NODE_PREBUILT_PATTERN)$$" | sort | tail -1)
 	ifneq ($(NODE_PREBUILT_BASE),)
 		NODE_PREBUILT_TARBALL := $(NODE_PREBUILT_DIR)$(NODE_PREBUILT_BASE)
 	endif
