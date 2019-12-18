@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -38,6 +38,7 @@ mackerel-prebuilt: $(MACKEREL_PREBUILT_TARGETS)
 minnow-prebuilt: $(MINNOW_PREBUILT_TARGETS)
 registrar-prebuilt: $(REGISTRAR_PREBUILT_TARGETS)
 waferlock-prebuilt: $(WAFERLOCK_PREBUILT_TARGETS)
+rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 
 %-prebuilt-download:
 	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
