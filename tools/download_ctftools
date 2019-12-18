@@ -48,7 +48,7 @@ if [[ ! -f "$TMPDIR/$TARBALL" ]]; then
 			exit 1
 		fi
 
-		if ! curl -sSf -o "$TMPDIR/$TARBALL.tmp" \
+		if ! /usr/bin/curl -sSf -o "$TMPDIR/$TARBALL.tmp" \
 		    "$MANTA_URL/$BASE_PATH/$TARBALL"; then
 			printf 'WARNING: download failure (retrying)\n' >&2
 			sleep 5
