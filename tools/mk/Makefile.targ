@@ -204,7 +204,7 @@ endif
 ifeq ($(shell uname -s),SunOS)
 	CURL	?= /usr/bin/curl
 else
-	CURL	?= tar
+	CURL	?= curl
 endif
 
 
