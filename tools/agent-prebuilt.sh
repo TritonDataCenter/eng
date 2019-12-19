@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -69,6 +69,9 @@ function usage {
 
 function do_clone {
     set +o errexit
+    # Use git_exit to accumulate exit codes from the various
+    # git commands we run. We'll reset this to 0 any time we're
+    # doing a fallback a different potential agent branch.
     git_exit=0
     if [[ -d $agent_cache_dir/$repo_name ]]; then
         cd $agent_cache_dir/$repo_name
@@ -76,43 +79,57 @@ function do_clone {
             echo "ERROR: unable to cd to $agent_cache_dir/$repo_name"
             return 1
         fi
-        # ensure there are no uncommitted changes before attempting to
-        # rebase
+
+        # ensure there are no uncommitted changes
         uncommitted=$(git status --porcelain -uno)
         if [[ -n "$uncommitted" ]]; then
             echo "ERROR: uncommitted changes in $agent_cache_dir/$repo_name"
-            echo "Please commit these before attempting to rebase."
+            echo "Please commit these before attempting to update."
             return 1
         fi
-        git pull --rebase
+
+        git fetch -p origin
         if [[ $? -ne 0 ]]; then
-            echo "WARNING: Pulling from $git_url failed, which might be ok if"
-            echo "the branch the existing repository is checked out to doesn't"
-            echo "exist upstream."
+            echo "WARNING: Fetching from $git_url failed, which might be ok "
+            echo "if the branch the existing repository is checked out to "
+            echo "doesn't exist upstream."
         fi
+
         git checkout $agent_branch --
-        if [[ $? -ne 0 ]]; then
+        git_exit=$(( $git_exit + $? ))
+
+        if [[ $git_exit -ne 0 ]]; then
             echo "Checking out $agent_branch failed, falling back to $branch"
+            git_exit=0
             git checkout $branch --
+            git_exit=$(( $git_exit + $? ))
         fi
-        if [[ $? -ne 0 ]]; then
+
+        if [[ $git_exit -ne 0 ]]; then
             # at this point, failures are really fatal.
+            git_exit=0
             set -o errexit
             echo "Checking out $branch also failed, falling back to master"
             git checkout master --
-            git_exit=$?
+            git_exit=$(( $git_exit + $? ))
         fi
+
+        # fast-forward to the current bits on this branch
+        git pull
+        git_exit=$(( $git_exit + $? ))
     else
         cd $agent_cache_dir
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unable to cd to $agent_cache_dir"
             return 1
         fi
+
         git clone -b $agent_branch $git_url $repo_name
         if [[ $? -ne 0 ]]; then
             echo "Cloning branch $agent_branch failed, falling back to $branch"
             git clone -b $branch $git_url $repo_name
         fi
+
         if [[ $? -ne 0 ]]; then
             set -o errexit
             echo "Cloning branch $branch also failed, falling back to master"
