@@ -71,7 +71,7 @@ function do_clone {
     set +o errexit
     # Use git_exit to accumulate exit codes from the various
     # git commands we run. We'll reset this to 0 any time we're
-    # doing a fallback to a different potential agent branch.
+    # doing a fallback a different potential agent branch.
     git_exit=0
     if [[ -d $agent_cache_dir/$repo_name ]]; then
         cd $agent_cache_dir/$repo_name
@@ -80,16 +80,15 @@ function do_clone {
             return 1
         fi
 
-        # ensure there are no uncommitted changes before attempting to
-        # rebase
+        # ensure there are no uncommitted changes
         uncommitted=$(git status --porcelain -uno)
         if [[ -n "$uncommitted" ]]; then
             echo "ERROR: uncommitted changes in $agent_cache_dir/$repo_name"
-            echo "Please commit these before attempting to rebase."
+            echo "Please commit these before attempting to update."
             return 1
         fi
 
-        git fetch
+        git fetch -p origin
         if [[ $? -ne 0 ]]; then
             echo "WARNING: Fetching from $git_url failed, which might be ok "
             echo "if the branch the existing repository is checked out to "
@@ -99,16 +98,10 @@ function do_clone {
         git checkout $agent_branch --
         git_exit=$(( $git_exit + $? ))
 
-        git rebase
-        git_exit=$(( $git_exit + $? ))
-
         if [[ $git_exit -ne 0 ]]; then
             echo "Checking out $agent_branch failed, falling back to $branch"
             git_exit=0
             git checkout $branch --
-            git_exit=$(( $git_exit + $? ))
-
-            git rebase
             git_exit=$(( $git_exit + $? ))
         fi
 
@@ -120,6 +113,10 @@ function do_clone {
             git checkout master --
             git_exit=$(( $git_exit + $? ))
         fi
+
+        # fast-forward to the current bits on this branch
+        git pull
+        git_exit=$(( $git_exit + $? ))
     else
         cd $agent_cache_dir
         if [[ $? -ne 0 ]]; then
