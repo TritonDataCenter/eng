@@ -461,7 +461,7 @@ prepublish:
 		echo image_uuid: $$BUILD_IMG_UUID >> $(ENGBLD_BITS_DIR)/$(NAME)/build-environment; \
 	fi
 	@echo "Generating $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json"
-	-/opt/tools/bin/npm ls --json > $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json
+	-$(NPM) ls --json > $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json
 
 
 #

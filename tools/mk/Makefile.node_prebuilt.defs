@@ -98,10 +98,11 @@
 #				with the default.
 #				(default: master)
 #
-#	NODE_PREBUILT_IMAGE		If you have a zone image that differs from that
-#				for an sdcnode build that you want to use (potential compat
-#				issues be damned), then set this to the UUID of the sdcnode
-#				build you want. See here for available build image uuids:
+#	NODE_PREBUILT_IMAGE	If you have a zone image that differs from that
+#				for an sdcnode build that you want to use
+#				(potential compat issues be damned), then set
+#				this to the UUID of the sdcnode build you want.
+#				See here for available build image uuids:
 #				<https://us-east.manta.joyent.com/Joyent_Dev/public/releng/sdcnode>
 #
 #	BUILD			top-level directory for built binaries

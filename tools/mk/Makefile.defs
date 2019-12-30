@@ -55,7 +55,13 @@
 
 
 # Be explicit about assuming bash for inline shell execution
-SHELL ?= /bin/bash
+SHELL = /bin/bash
+
+# With Linux we are explicit about $PATH.  The /native directories in PATH are
+# to enable bootstrapping Linux CN development using lx zones on SmartOS.
+ifeq ($(shell uname -s),Linux)
+export PATH = /usr/bin:/bin:/usr/sbin:/sbin:/native/usr/bin:/native/usr/sbin
+endif
 
 TOP ?= $(shell pwd)
 
@@ -213,9 +219,11 @@ BUILDIMAGE_MF           ?= \
 #
 UID = $(shell /usr/bin/id -u)
 ifeq ($(UID), 0)
-    PFEXEC=
+	PFEXEC =
+else ifeq ($(shell uname -s),SunOS)
+	PFEXEC = /usr/bin/pfexec
 else
-    PFEXEC=/usr/bin/pfexec
+	PFEXEC = sudo -n
 endif
 
 #
@@ -224,6 +232,8 @@ endif
 #
 ifeq ($(shell uname -s),SunOS)
 	CURL	?= /usr/bin/curl
+	NPM	?= /opt/local/bin/npm
 else
 	CURL	?= curl
+	NPM	?= npm
 endif

@@ -13,6 +13,8 @@
 # Check if the current build machine is supported for building this component
 # and that the build environment seems sane.
 #
+# XXX-linuxcn: update developer guide
+#
 # Most Joyent software is built using a common build environment described in
 # https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md.
 # The quickest path to having a sane build environment likely involves following
@@ -42,6 +44,10 @@
 #
 
 #
+# XXX-linuxcn: the following URL is out of date and the list of images is also
+# out of date.  When we have proper information for linux builds, update all of
+# this.
+#
 # For the NODE_PREBUILT_IMAGE checks, we use this list from
 # From https://download.joyent.com/pub/build/sdcnode/README.html
 # the following images versions are supported:
@@ -68,7 +74,8 @@ if [[ -n "$ENGBLD_SKIP_VALIDATE_BUILDENV" ]]; then
     exit 0
 fi
 
-if [[ $(uname -s) != "SunOS" ]]; then
+OS=$(uname -s)
+if [[ $OS != SunOS && $OS != Linux ]]; then
     echo "Only illumos build machines are supported."
     echo "Set \$ENGBLD_SKIP_VALIDATE_BUILDENV in the environment"
     echo "to override this."
@@ -89,6 +96,7 @@ declare -A PKGSRC_MAP=(
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=2019Q1
     [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=2019Q2
     [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=2019Q2
+    [63d6e664-3f1f-11e8-aef6-a3120cf8dd9d]=none		# debian9
 )
 
 # Used to provide useful error messages to the user, mapping the
@@ -105,6 +113,7 @@ declare -A SDC_MAP=(
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=triton-origin-x86_64-19.1.0@master-20190417T143547Z-g119675b
     [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=minimal-64@19.2.0
     [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=triton-origin-x86_64-19.2.0@master-20190919T182250Z-g363e57e
+    [63d6e664-3f1f-11e8-aef6-a3120cf8dd9d]=debian920180404
 )
 
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
@@ -123,6 +132,7 @@ declare -A JENKINS_AGENT_MAP=(
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=fb751f94-3202-461d-b98d-4465560945ec
     [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
     [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
+    [63d6e664-3f1f-11e8-aef6-a3120cf8dd9d]=XXX-linuxcn-TBD
 )
 
 # For each pkgsrc version, set a list of packages that must be present
@@ -221,7 +231,7 @@ function get_pkgsrc_sdcnode_versions {
     REQUIRED_IMAGE=$(
         make -s --no-print-directory print-BASE_IMAGE_UUID 2> /dev/null |
             cut -d= -f2)
-    PKGSRC_RELEASE=$(
+    PKGSRC_RELEASE=$([[ $OS == SunOS ]] &&
         grep ^release: /etc/pkgsrc_version | cut -d: -f2 | sed -e 's/ //g')
 
     # If there's no BASE_IMAGE_UUID, use NODE_PREBUILT_IMAGE instead.
@@ -251,9 +261,18 @@ function get_pkgsrc_sdcnode_versions {
 # let's start here, since we know that failing this test definitely breaks
 # builds.
 #
+# On SmartOS, $PATH is whatever gibberish the developer has set in their
+# environment.  On Linux, Makefile.defs sets $PATH.  If a Makefile overrides
+# this default, it knows best.  For these reasons, this check is a no-op on
+# Linux but still important on SmartOS.
+#
 # Return 0 if it looks like $PATH is correctly set.
 #
 function validate_build_path {
+    if [[ $OS == Linux ]]; then
+        return 0
+    fi
+
     echo $PATH | awk '{
         pathlen = split($0, path_arr, ":");
         found_optlocalbin = "false";
@@ -305,6 +324,9 @@ function validate_build_path {
 # images if this machine is not appropriate.
 #
 function validate_pkgsrc_version {
+    if [[ $OS == Linux ]]; then
+        return 0
+    fi
 
     # Add an escape hatch.
     if [[ -n "$ENGBLD_SKIP_VALIDATE_BUILD_PKGSRC" ]]; then
@@ -368,8 +390,9 @@ function validate_pkgsrc_version {
 }
 
 #
-# Return 0 if uid==0 or the current user has the 'Primary Administrator'
-# profile, returning 1 otherwise. Checking for uid==0 shouldn't really imply
+# Return 0 if uid==0 or the current user has root access via the 'Primary
+# Administrator' profile on SmartOS or sudo on other operating systems.
+# Returning 1 otherwise. Checking for uid==0 shouldn't really imply
 # privilege, but that's the current reality in illumos (sorry casper!)
 #
 function validate_rbac_profile {
@@ -378,25 +401,48 @@ function validate_rbac_profile {
         return 0
     fi
 
-    /usr/bin/profiles | grep -q 'Primary Administrator'
-    if [[ $? -eq 0 ]]; then
-        return 0
-    fi
+    case $OS in
+    SunOS)
+        /usr/bin/profiles | grep -q 'Primary Administrator'
+        if [[ $? -eq 0 ]]; then
+            return 0
+        fi
 
-    echo "The current user should have the 'Primary Administrator' profile"
-    echo "which is needed to perform some parts of the build, e.g."
-    echo "'buildimage'."
-    echo "To configure this, as root, run:"
-    echo "    usermod -P 'Primary Administrator' $USER"
-    echo ""
-    return 1
+        echo "The current user should have the 'Primary Administrator' profile"
+        echo "which is needed to perform some parts of the build, e.g."
+        echo "'buildimage'."
+        echo "To configure this, as root, run:"
+        echo "    usermod -P 'Primary Administrator' $USER"
+        echo ""
+        return 1
+        ;;
+    Linux)
+        local uid=$(sudo -n bash -c 'echo $EUID' 2>/dev/null)
+        if (( $uid == 0 )); then
+            return 0
+        fi
+
+        echo "The current user should have passwordless root access via sudo"
+        echo "which is needed to perform some parts of the build, e.g."
+        echo "'buildimage'."
+        echo "To configure this, add the following to /etc/sudoers.d/$USER:"
+        echo ""
+        echo "$USER ALL=(ALL) NOPASSWD:ALL"
+        echo ""
+        return 1
+        ;;
+    *)
+        echo "Unsupported operating system: $OS"
+        return 1
+        ;;
+    esac
 }
 
 #
 # Return 0 if it looks like we have a delegated dataset for this VM
 #
 function validate_delegated_dataset {
-    zonename=$(/usr/bin/zonename)
+    zonename=$(zonename)
     # it seems unlikely that someone's building in a gz, but it should be fine.
     if [[ "$zonename" == "global" ]]; then
         return 0
@@ -430,11 +476,17 @@ function validate_delegated_dataset {
 #
 function validate_build_platform {
 
+    # XXX-linuxcn fix when the first build platform is released.
+    if [[ $OS == Linux ]]; then
+        echo "NOTICE: Linux does not yet have an official build platform"
+        return 0
+    fi
+
     if [[ -n "$ENGBLD_SKIP_VALIDATE_BUILD_PLATFORM" ]]; then
         return 0
     fi
 
-    current_platform=$(/usr/bin/uname -v | sed -e 's/.*_//')
+    current_platform=$(uname -v | sed -e 's/.*_//')
     component_platform=$(
         make -s --no-print-directory print-BUILD_PLATFORM 2> /dev/null |
             cut -d= -f2)
@@ -479,6 +531,9 @@ function print_required_pkgsrc_version {
 # installed. For now, we don't care about version numbers.
 #
 function validate_pkgsrc_pkgs {
+    if [[ $OS == Linux ]]; then
+        return 0
+    fi
 
     # Add an escape hatch.
     if [[ -n "$ENGBLD_SKIP_VALIDATE_BUILD_PKGSRC" ]]; then
@@ -541,6 +596,10 @@ function validate_pkgsrc_pkgs {
 # /opt/local/bin.
 #
 function validate_opt_tools {
+    if [[ $OS == Linux ]]; then
+        return 0
+    fi
+
     if [[ ! -f /opt/tools/bin/pkgin ]]; then
 
         local JENKINS_IMAGE="${JENKINS_AGENT_MAP[${REQUIRED_IMAGE}]}"
@@ -642,7 +701,7 @@ function validate_non_pkgsrc_bins {
         echo "Otherwise, the following command will install the required"
         echo "programs:"
         echo ""
-        echo "    npm install manta imgapi-cli"
+        echo "    npm install -g manta https://github.com/joyent/sdc-imgapi-cli"
         echo ""
         return 1
     fi
