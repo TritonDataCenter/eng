@@ -17,7 +17,7 @@
 # NOTE: This makefile comes from the "eng" repo. If you find yourself changing
 # this file, you should ensure that you test all consumers of it, since
 # eng.git is a git submodule of several repositories. After testing, push
-# changes to the eng.git gerrit project as normal, then do the following for
+# changes to the eng.git repository as normal, then do the following for
 # each component that uses eng.git, likely reusing the original ticket subject
 # for the commit message as was used for the eng.git push.
 #
@@ -25,7 +25,7 @@
 #    $ git add deps/eng
 #    $ git commit -m "TOOLS-xxxx some description" deps/eng
 #
-# Then push those changes to gerrit as usual for review.
+# Then create a PR as usual for review.
 #
 
 NODE_PREBUILT_TARBALL ?= $(error NODE_PREBUILT_TARBALL is not set: was Makefile.node_prebuilt.defs included?)
