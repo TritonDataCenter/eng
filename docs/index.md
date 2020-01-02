@@ -216,9 +216,7 @@ operations are not authenticated in any way and can be hijacked by malicious
 WiFi or other network man-in-the-middle attacks (e.g. at airports and coffee
 shops - yes, this actually happens). The use of `git+ssh://` URLs is discouraged
 because it prevents users from being able to clone and build the package on a
-machine that does not have their GitHub private key on it. In particular, some
-Joyent CI bots (like the Gerrit `make check` bot) will complain if you use these
-URLs.
+machine that does not have their GitHub private key on it.
 
     "dependencies": {
       "joyent-module": "git+https://github.com/joyent/node-joyent-module.git#016977"
@@ -1377,9 +1375,9 @@ See the top-level Makefile in eng.git for the complete details.
 
 # Software development process
 
-Team synchronization begins daily with our morning scrum. We use
-continuous integration with Git/Gerrit. Bugs and feature requests are tracked in Jira.
-For more details on Joyent's morning scrum please read the: [Onboarding
+Team synchronization begins daily with our morning scrum. We use continuous
+integration with GitHub and Jenkins. Bugs and feature requests are tracked in
+Jira. For more details on Joyent's morning scrum please read the: [Onboarding
 Guide](https://mo.joyent.com/docs/engdoc/master/engguide/onboard.html#scrum).
 
 In general, process is shrink-to-fit: we adopt process that help us work better,
