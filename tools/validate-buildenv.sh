@@ -442,6 +442,12 @@ function validate_rbac_profile {
 # Return 0 if it looks like we have a delegated dataset for this VM
 #
 function validate_delegated_dataset {
+    # If building on native Linux, there's no such thing as a delegated dataset.
+    # XXX-linuxcn revisit once we look into ZFS datasets in containers.
+    if [[ $OS == Linux ]] && ! type -path zonename >/dev/null 2>&1; then
+        return 0
+    fi
+
     zonename=$(zonename)
     # it seems unlikely that someone's building in a gz, but it should be fine.
     if [[ "$zonename" == "global" ]]; then

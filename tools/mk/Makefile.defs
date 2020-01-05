@@ -60,7 +60,7 @@ SHELL = /bin/bash
 # With Linux we are explicit about $PATH.  The /native directories in PATH are
 # to enable bootstrapping Linux CN development using lx zones on SmartOS.
 ifeq ($(shell uname -s),Linux)
-export PATH = /usr/bin:/bin:/usr/sbin:/sbin:/native/usr/bin:/native/usr/sbin
+export PATH = /usr/bin:/bin:/usr/sbin:/sbin:/native/usr/bin:/native/usr/sbin:/usr/node/bin
 endif
 
 TOP ?= $(shell pwd)
