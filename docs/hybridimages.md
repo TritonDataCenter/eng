@@ -10,7 +10,7 @@ apisections:
 -->
 
 <!--
-    Copyright 2019 Joyent, Inc.
+    Copyright 2020 Joyent, Inc.
 -->
 
 # Joyent Hybrid Images
@@ -23,7 +23,7 @@ The key characteristics of a hybrid image are:
 - Must be capable of booting from BIOS.  The version of QEMU supported by
   SmartOS does not have UEFI boot support.
 - Must be tolerant of disks and other virtual hardware appearing at different
-  locations in the device tree, perhaps with different model identifers, serial
+  locations in the device tree, perhaps with different model identifiers, serial
   numbers. etc.
 - Must configure networking using the [mdata
   protocol](https://eng.joyent.com/mdata/protocol.html) on the second serial
@@ -134,7 +134,7 @@ support for Ubuntu to  mi-debian-hvm.
 
 Each of those repositories has this ([eng](https://github.com/joyent/eng)) and
 [sdc-vmtools](https://github.com/joyent/sdc-vmtools) as subrepos.  The eng repo
-his home to common tools used for building the images and the sdc-vmtools repo
+is home to common tools used for building the images and the sdc-vmtools repo
 is used for things that are added to the image.
 
 Some images may require software that is specific to the OS version and is
@@ -150,7 +150,7 @@ steps for each image specified in the `Jenkinsfile` in each repository.
 
 ## `create-hybrid-image` script
 
-The [`create-hybrid-image`](../tools/create-hybrid-iamge) script is typically
+The [`create-hybrid-image`](../tools/create-hybrid-image) script is typically
 invoked by an image-specific `create-image` script that resides in a
 `mi-<mumble>-hvm` repository.  See the usage message for details on options that
 are supported.
@@ -160,7 +160,7 @@ are supported.
 
 This script is designed to be able to be run as any user that has the `Primary
 Administrator` profile.  Usually it will be invoked as root, who has sufficient
-permissions in all but the oddest of circumstnaces.  To make the script usable
+permissions in all but the oddest of circumstances.  To make the script usable
 by alice:
 
 ```
@@ -223,18 +223,19 @@ to TCP port 5901 is is highly recommended.
 QEMU networking is configured such that a network that a private network exists
 within the QEMU process.  QEMU intercepts DHCP requests and provides basic
 networking configuration to the guest.  This network has access to other
-networks that are accessible by the zone via a NAT inplementation that exists
+networks that are accessible by the zone via a NAT implementation that exists
 within QEMU.
 
 
 ### `create-hybrid-image` arbitrary QEMU arguments
 
-When an image-specific `create-image` script needs to add additional device,
+When an image-specific `create-image` script needs to add additional devices,
 have specialized control over the boot loader, etc., additional arguments can be
 specified on the command line.
 
-A key example of how this is used is in the CentOS images.  Rather than
-remastering the image to add the appropriate boot options, the installation
+A key example of how this is used is in the [CentOS
+images](https://github.com/joyent/mi-centos-hvm/blob/master/create-image).Rather
+than remastering the image to add the appropriate boot options, the installation
 media is mounted in the host and QEMU is started with options that specify the
 kernel, initrd, kernel command line, and a secondary CD which contains the
 kickstart configuration.  This allows the CentOS `create-image` to avoid

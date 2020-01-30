@@ -7,7 +7,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -123,7 +123,7 @@ function sanity_check
 {
 	sane=true
 
-	topds=$(zfs list -Ho name ${ZFS_DIR} || true)
+	topds=$(zfs list -Ho name "$ZFS_DIR" 2>/dev/null || true)
 	if [[ -z "$topds" ]]; then
 		sane=false
 		topds=zones/$(zonename)$ZFS_DIR
@@ -160,12 +160,12 @@ function sanity_check
 		echo "" 1>&2
 	fi
 
-	if (( $(pfexec bash -c 'echo $EUID') != 0 )); then
+	if (( $(pfexec /bin/id -u) != 0 )); then
 		sane=false
 		local user=$(id -un)
 		echo "$0: Insufficient privileges" 1>&2
 		echo "" 1>&2
-		echo "Fix by running as root or by assinging Primary" 1>&2
+		echo "Fix by running as root or by assigning Primary" 1>&2
 		echo "Administrator profile to $user:" 1>&2
 		echo "  usermod -P 'Primary Administrator' $user" 1>&2
 	fi
@@ -227,7 +227,7 @@ function start_blank {
 	args+=( "-vga" "std" "-vnc" ":1" )
 	args+=( "-usb" "-usbdevice" "tablet" "-k" "en-us")
 
-	# Go into the background after initilization.  We will later wait with:
+	# Go into the background after initialization.  We will later wait with:
 	#   pwait $(pfexec cat "$PIDFILE")
 	args+=( "-daemonize" )
 	args+=( "-pidfile" "$PIDFILE" )
