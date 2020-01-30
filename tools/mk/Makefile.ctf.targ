@@ -5,15 +5,14 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
 # Makefile.ctf.targ: see Makefile.ctf.defs.
 #
 # We need to build some C software, and to make it debuggable we should
-# include CTF information.  Download the program used to download and deploy
-# the Manta CTF tools.
+# include CTF information.
 #
 
 #
