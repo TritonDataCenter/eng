@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -133,7 +133,7 @@ MAKE_STAMP_CREATE =	mkdir -p $(@D); touch $(@)
 # be running this platform image, validated as part of validate-buildenv.sh.
 # Makefiles that allow newer platforms should override this.
 #
-BUILD_PLATFORM=20151126T062538Z
+BUILD_PLATFORM=20181206T011455Z
 
 #
 # The manta path where the bits-upload target stores build artifacts, via
