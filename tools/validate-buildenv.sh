@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -36,7 +36,7 @@
 # - the RBAC profiles(1) of the user, looking for 'Primary Administrator' or
 #   uid=0
 # - the build environment has a $PATH with /opt/local/bin before /usr/bin et al
-# - our build platform for this component, BUILD_PLATFORM, matches uname -vish
+# - our build platform for this component matches uname -vish
 # - several non-pkgsrc programs needed by the build are availabe on the $PATH
 # - git submodules for this repository, if present, are up to date
 #
@@ -51,6 +51,7 @@
 #    triton-origin-multiarch-15.4.1@1.0.1: 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
 #    minimal-multiarch@18.1.0: 1ad363ec-3b83-11e8-8521-2f68a4a34d5d
 #    triton-origin-multiarch-18.1.0: b6ea7cb4-6b90-48c0-99e7-1d34c2895248
+#    triton-origin-x86_64-19.4.0:
 #
 # In the future, we would prefer if the pkgsrc versions were declared
 # directly in Makefiles without needing this lookup. (see TOOLS-2038)
@@ -89,6 +90,8 @@ declare -A PKGSRC_MAP=(
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=2019Q1
     [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=2019Q2
     [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=2019Q2
+    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=2019Q4
+    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=2019Q4
 )
 
 # Used to provide useful error messages to the user, mapping the
@@ -105,6 +108,8 @@ declare -A SDC_MAP=(
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=triton-origin-x86_64-19.1.0@master-20190417T143547Z-g119675b
     [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=minimal-64@19.2.0
     [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=triton-origin-x86_64-19.2.0@master-20190919T182250Z-g363e57e
+    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=minimal-64-lts@19.4.0
+    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=triton-origin-x86_64-19.4.0@master-20200130T200825Z-gbb45b8d
 )
 
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
@@ -123,6 +128,8 @@ declare -A JENKINS_AGENT_MAP=(
     [cbf116a0-43a5-447c-ad8c-8fa57787351c]=fb751f94-3202-461d-b98d-4465560945ec
     [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
     [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
+    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=23a48c86-8b59-4629-a2f1-5dac3cba09b1
+    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=23a48c86-8b59-4629-a2f1-5dac3cba09b1
 )
 
 # For each pkgsrc version, set a list of packages that must be present
@@ -196,6 +203,19 @@ PKGSRC_PKGS_2019Q1="
     rust"
 
 PKGSRC_PKGS_2019Q2="
+    grep
+    build-essential
+    python27
+    py27-expat
+    coreutils
+    gsed
+    gsharutils
+    flex
+    pcre
+    pigz
+    rust"
+
+PKGSRC_PKGS_2019Q4="
     grep
     build-essential
     python27
