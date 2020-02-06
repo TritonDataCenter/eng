@@ -34,6 +34,6 @@ $(STAMP_CTF_TOOLS):
 	$(MAKE_STAMP_REMOVE)
 	rm -rf $(CTFTOOLS)
 	mkdir -p $(CTFTOOLS)
-	deps/eng/tools/download_ctftools $(CACHE_DIR)
+	deps/eng/tools/download_ctftools $(BUILD_PLATFORM) $(CACHE_DIR)
 	touch $@
 	$(MAKE_STAMP_CREATE)

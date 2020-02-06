@@ -16,7 +16,7 @@
 #
 
 MANTA_HOST="https://us-east.manta.joyent.com"
-MIN_PLATFORM="20181206T011455Z"
+MIN_PLATFORM="$1"
 MPATH="/Joyent_Dev/public/builds/SmartOS/ctftools/master/built.joyent_$MIN_PLATFORM"
 TARBALL="ctftools.tar.gz"
 
@@ -26,7 +26,7 @@ if [[ -z $1 ]]; then
 fi
 
 TOP=$(cd "$(dirname "$0")/../../.." && pwd)
-CACHE_DIR=$1
+CACHE_DIR=$2
 TMPDIR="$TOP/$CACHE_DIR"
 CTFDIR="$TOP/$CACHE_DIR/ctftools"
 
