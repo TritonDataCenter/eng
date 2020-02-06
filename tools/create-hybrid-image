@@ -1,0 +1,332 @@
+#!/bin/bash
+
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright 2020 Joyent, Inc.
+#
+
+if [[ -n "$TRACE" ]]; then
+	export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+	set -o xtrace
+fi
+
+set -euo pipefail
+IFS=$'\n\t'
+
+ISO=
+IMAGE_NAME=
+DESC=
+HOMEPAGE=
+OUTPUT_DIR=.
+PROTOTYPE=
+ZFS_DIR=/data
+
+BUILD_DATE=$(date +%Y%m%d)
+
+ENGDIR=$(dirname "$(cd "$(dirname "$0")"; pwd)")
+
+VM_UUID=$(uuidgen)
+
+usage() {
+cat <<EOF
+
+Create a hybrid (kvm, bhyve) image from a given ISO file. This should be run
+from a joyent brand zone that is as described in the "Build environment" section
+of https://github.com/joyent/eng/tree/master/docs/hybridimages.md
+or $ENGDIR/tools/hybridimages.md.
+
+Usage:
+  create-hybrid-image -i <ISO> -n <IMAGE_NAME> -d <DESC> -u <HOMEPAGE> \\
+      -p <PROTOTYPE> [-o <OUTDIR>] [-z <ZFS-DIR>] [-- QEMUARGS]
+
+Example:
+  create-hybrid-image -i binary.iso -n debian-10 \\
+      -d "Debian 10 (bionic) 64-bit image with just essential packages... " \\
+      -u https://docs.joyent.com/images/hvm/debian
+
+OPTIONS:
+  -h Show this message
+  -i The ISO
+  -n The name of the image as it would appear in the manifest
+  -d The description of the image
+  -o Directory in which to place output.  Default is ".".
+  -p Prototype manifest file
+  -u The homepage URL for the image
+  -z Use the ZFS dataset mounted at this directory.  Default is "/data"
+
+EOF
+}
+
+while getopts "hi:n:d:o:p:u:z:" OPTION; do
+	case $OPTION in
+	h)
+		usage
+		exit 0
+		;;
+	i)
+		ISO=${OPTARG}
+		;;
+	n)
+		IMAGE_NAME=${OPTARG}
+		;;
+	d)
+		DESC=${OPTARG}
+		;;
+	o)
+		OUTPUT_DIR=${OPTARG}
+		;;
+	p)
+		PROTOTYPE=${OPTARG}
+		;;
+	u)
+		HOMEPAGE=${OPTARG}
+		;;
+	z)
+		ZFS_DIR=${OPTARG}
+		;;
+	?)
+		usage 1>&2
+		exit 1
+		;;
+	esac
+done
+
+if [[ -z ${ISO} || -z ${IMAGE_NAME} || -z ${DESC} || -z ${HOMEPAGE} || \
+    -z ${PROTOTYPE} ]]; then
+	echo "FATAL: All of -i, -n, -d, -p, and -u are required." 1>&2
+	usage 1>&2
+	exit 1
+fi
+
+if [[ ! -f $PROTOTYPE ]]; then
+	echo "FATAL: Manifest prototype file '$PROTOTYPE' does not exist" 1>&2
+	exit 1
+fi
+
+shift $((OPTIND - 1))
+if (( $# == 0 )); then
+	# Set to a scalar value that will work for a test later.  bash is
+	# unhappy if QEMU_ARGS is declared as an empty array and it is used.
+	QEMU_ARGS=
+else
+	QEMU_ARGS=( "$@" )
+fi
+
+PIDFILE=/tmp/qemu-$IMAGE_NAME.pid
+
+function sanity_check
+{
+	sane=true
+
+	topds=$(zfs list -Ho name "$ZFS_DIR" 2>/dev/null || true)
+	if [[ -z "$topds" ]]; then
+		sane=false
+		topds=zones/$(zonename)$ZFS_DIR
+		echo "$0: No zfs filesystem mounted at $ZFS_DIR" 1>&2
+		echo "" 1>&2
+		echo "Fix by using '-z <ZFSDIR>' to specify where the" 1>&2
+		echo "top-level zfs file system is mounted or by running" 1>&2
+		echo "the following in the global zone:" 1>&2
+		echo "  zfs create -o zoned=on -o mountpoint=$ZFS_DIR" \
+		    "$topds" 1>&2
+		echo "  zonecfg -z $(zonename) 'add dataset; set name=$topds;" \
+		    "end'" 1>&2
+		echo "" 1>&2
+	fi
+
+	if [[ ! -f /smartdc/bin/qemu-system-x86_64 ]]; then
+		sane=false
+		echo "$0: qemu executable not present." 1>&2
+		echo "" 1>&2
+		echo "Fix by running the following in the global zone:" 1>&2
+		echo "  zonecfg -z $(zonename) 'add fs; set type=lofs;" \
+		    "set dir=/smartdc; set special=/smartdc;" \
+		    "set options=ro; end'" 1>&2
+		echo "" 1>&2
+	fi
+
+	if [[ ! -c /dev/kvm ]]; then
+		sane=false
+		echo "$0: kvm device not present." 1>&2
+		echo "" 1>&2
+		echo "Fix by running the following in the global zone:" 1>&2
+		echo "  zonecfg -z $(zonename) 'add device; set match=kvm;" \
+		    "end'" 1>&2
+		echo "" 1>&2
+	fi
+
+	if (( $(pfexec /bin/id -u) != 0 )); then
+		sane=false
+		local user=$(id -un)
+		echo "$0: Insufficient privileges" 1>&2
+		echo "" 1>&2
+		echo "Fix by running as root or by assigning Primary" 1>&2
+		echo "Administrator profile to $user:" 1>&2
+		echo "  usermod -P 'Primary Administrator' $user" 1>&2
+	fi
+
+	if [[ $sane == false ]]; then
+		echo "$0: Reboot the zone after making the changes to the" \
+		    "zone configuration." 1>&2
+		exit 1
+	fi
+}
+
+function create_blank {
+	echo -n "==> Creating blank $IMAGE_NAME virtual disk..."
+
+	# /dev/zvol is buggy in zones, sometimes leaving ghost entries around
+	# hiding newer ones of the same name.  Using a random UUID in each zvol
+	# name avoids this problem.
+	DISKVOL=$topds/$IMAGE_NAME.$VM_UUID.disk0
+	if zfs list "$DISKVOL" >/dev/null 2>&1; then
+		pfexec zfs destroy -r "$DISKVOL"
+	fi
+	pfexec zfs create -s -V 10g "$DISKVOL"
+	echo "done!"
+	echo "==>"
+}
+
+function start_blank {
+	echo "==> Starting ${IMAGE_NAME} with cdrom=$ISO:"
+
+	local version=7.$(uname -v | sed 's/joyent_//')
+	typeset -a args
+
+	# 2 CPUs and 2 GiB RAM
+	args+=( "-cpu" "qemu64" "-smp" "2" )
+	args+=( "-m" "2048" )
+
+	args+=( "-name" "$IMAGE_NAME" )
+	args+=( "-uuid" "$VM_UUID" )
+	args+=( "-smbios" "type=1,manufacturer=Joyent,product=SmartDC HVM,version=$version,serial=$VM_UUID,uuid=$VM_UUID,sku=001,family=Virtual Machine" )
+
+	# CD and disk
+	args+=( "-drive" "file=$ISO,if=ide,index=0,media=cdrom" )
+	args+=( "-drive" "file=/dev/zvol/rdsk/$DISKVOL,if=virtio" )
+	args+=( "-boot" "order=cd,once=d" )
+	args+=( "-no-reboot" )
+
+	# User space network device.  Not the best device, but it avoids
+	# the need for vndadm to be run in the global zone with each boot
+	local netargs="user,id=network0,net=192.168.76.0/24,ip=eth0:dhcp"
+	args+=( "-netdev" "$netargs" )
+	args+=( "-device" "e1000,netdev=network0,mac=52:54:00:12:34:56" )
+
+	# Installers should write logs to /dev/ttyS0 so that the jenkins log
+	# captures what happened inside the VM.
+	args+=( "-chardev" "file,id=serial0,path=/dev/stdout" )
+	args+=( "-serial" "chardev:serial0" )
+
+	# A graphical console via VNC at port 5901 (VNC display 1)
+	args+=( "-vga" "std" "-vnc" ":1" )
+	args+=( "-usb" "-usbdevice" "tablet" "-k" "en-us")
+
+	# Go into the background after initialization.  We will later wait with:
+	#   pwait $(pfexec cat "$PIDFILE")
+	args+=( "-daemonize" )
+	args+=( "-pidfile" "$PIDFILE" )
+
+	[[ -n $QEMU_ARGS ]] && args+=( "${QEMU_ARGS[@]}" )
+
+	pfexec /smartdc/bin/qemu-system-x86_64 "${args[@]}"
+	echo "==>"
+}
+
+function get_VNC {
+	echo "==> Getting VNC info for $IMAGE_NAME:"
+	ifconfig -au | awk '$1 == "inet" && $2 != "127.0.0.1" {
+	    printf("==> VNC on: %s:5901\n", $2) }'
+	echo "==>"
+}
+
+function check_state {
+	echo -n "==> Waiting for '$IMAGE_NAME' VM to stop..."
+
+	pwait $(pfexec cat "$PIDFILE")
+	sync
+	echo "ready!"
+	echo "==> The '$IMAGE_NAME' VM is stopped."
+	echo "==>"
+}
+
+function snapshot {
+	echo "==> Creating snapshot..."
+	pfexec zfs snapshot "$DISKVOL@final"
+	echo "==> done!"
+	echo "==>"
+}
+
+function create_image {
+	IMAGE_FILE=$OUTPUT_DIR/${IMAGE_NAME}-${BUILD_DATE}.zfs.gz
+	IMAGE_MANIFEST=$OUTPUT_DIR/${IMAGE_NAME}-${BUILD_DATE}.imgmanifest
+	local gzip sha zvol_size size now
+
+	echo "==> Creating image file..."
+
+	gzip=$(type -path pigz gzip | head -1)
+	mkdir -p "$OUTPUT_DIR"
+	sha=$(pfexec zfs send "$DISKVOL@final" | "$gzip" -9 |
+	    tee "$IMAGE_FILE" | digest -a sha1)
+	zvol_size=$(( $(zfs list -Hpo volsize "$DISKVOL") / 1024 / 1024 ))
+	size=$(stat -c %s "$IMAGE_FILE")
+	now=$(date -u +%Y-%m-%dT%TZ)
+
+	sed -e "s/@NAME@/$IMAGE_NAME/g" \
+	    -e "s/@DATE@/$BUILD_DATE/g" \
+	    -e "s/@DESC@/$DESC/g" \
+	    -e "s/@ZVOL_SIZE@/$zvol_size/g" \
+	    -e "s/@GZIP_SIZE@/$size/g" \
+	    -e "s/@TIME_NOW@/$now/g" \
+	    -e "s/@IMAGE_UUID@/$VM_UUID/g" \
+	    -e "s/@IMAGE_SHA@/$sha/g" \
+	    < "$PROTOTYPE" > "$IMAGE_MANIFEST.new"
+	mv "$IMAGE_MANIFEST.new" "$IMAGE_MANIFEST"
+
+	echo "==> done!"
+	echo "==>"
+}
+
+function show_image_files {
+	echo "*** Image creation complete ***"
+	echo "==> Image files:"
+	echo "  $IMAGE_MANIFEST"
+	echo "  $IMAGE_FILE"
+	echo ""
+}
+
+function clean_up {
+	echo "==> Cleaning up:"
+	local pid=$(pfexec cat "$PIDFILE" || true)
+	if [[ -n $pid ]] && pfexec kill -0 "$pid" >/dev/null 2>&1; then
+		echo "==> Killing qemu PID $pid and waiting for it to exit"
+		pfexec kill $pid 2>/dev/null || true
+		pwait $pid 2>/dev/null || true
+	fi
+	if [[ -n "$DISKVOL" ]]; then
+		echo "==> Destroying $DISKVOL"
+		pfexec zfs destroy -r "$DISKVOL"
+	fi
+}
+
+# MAIN
+
+echo "*** Starting image creation process! ***"
+
+trap clean_up EXIT
+
+sanity_check
+create_blank
+start_blank
+get_VNC
+check_state
+snapshot
+create_image
+show_image_files
+
+exit 0
