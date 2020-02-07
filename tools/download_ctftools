@@ -40,7 +40,7 @@ if [[ ! -f "$TMPDIR/$TARBALL" ]]; then
 	# Try to download the tarball from Manta.
 	#
 
-	LATEST="$(curl -sSf $MANTA_HOST/$MPATH/latest)"
+	LATEST="$(/usr/bin/curl -sSf $MANTA_HOST/$MPATH/latest)"
 	if [[ -z "$LATEST" ]]; then
 		printf "ERROR: failed to read $MANTA_HOST/$MPATH/latest\n" >&2
 		exit 1
