@@ -5,15 +5,14 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
 # Makefile.ctf.targ: see Makefile.ctf.defs.
 #
 # We need to build some C software, and to make it debuggable we should
-# include CTF information.  Download the program used to download and deploy
-# the Manta CTF tools.
+# include CTF information.
 #
 
 #
@@ -35,6 +34,6 @@ $(STAMP_CTF_TOOLS):
 	$(MAKE_STAMP_REMOVE)
 	rm -rf $(CTFTOOLS)
 	mkdir -p $(CTFTOOLS)
-	deps/eng/tools/download_ctftools $(CACHE_DIR)
+	deps/eng/tools/download_ctftools $(BUILD_PLATFORM) $(CACHE_DIR)
 	touch $@
 	$(MAKE_STAMP_CREATE)

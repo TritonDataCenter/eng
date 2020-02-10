@@ -6,33 +6,32 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
-# This program will download a prebuilt copy of the CTF tools from Manta.
-# These tools have been built using a technique to ensure they can be run on a
-# sufficiently old platform.  More details are available at:
-#
-#	https://github.com/jclulow/ctftools
+# This program will download a prebuilt copy of the CTF tools from Manta
+# corresponding to the min_platform. The tools are built and uploaded via a
+# Jenkins job.
 #
 
-MANTA_URL='https://us-east.manta.joyent.com'
-BASE_PATH='/Joyent_Dev/public/ctftools'
-TARBALL='ctftools.20141030T081701Z.9543159.tar.gz'
+MANTA_HOST="https://us-east.manta.joyent.com"
+MIN_PLATFORM="$1"
+MPATH="/Joyent_Dev/public/builds/SmartOS/ctftools/master/built.joyent_$MIN_PLATFORM"
+TARBALL="ctftools.tar.gz"
 
-if [[ -z $1 ]]; then
-	printf 'ERROR: usage: download_ctftools <destination dir>\n' 2>&1
+if [[ $# -ne 2 ]]; then
+	printf "usage: download_ctftools min_platform destdir\n" 2>&1
 	exit 1
 fi
 
 TOP=$(cd "$(dirname "$0")/../../.." && pwd)
-CACHE_DIR=$1
+CACHE_DIR=$2
 TMPDIR="$TOP/$CACHE_DIR"
 CTFDIR="$TOP/$CACHE_DIR/ctftools"
 
 if ! /usr/bin/mkdir -p "$TMPDIR"; then
-	printf 'ERROR: could not mkdir "%s"\n' "$TMPDIR" >&2
+	printf "ERROR: could not mkdir \"%s\"\n" "$TMPDIR" >&2
 	exit 1
 fi
 
@@ -40,29 +39,38 @@ if [[ ! -f "$TMPDIR/$TARBALL" ]]; then
 	#
 	# Try to download the tarball from Manta.
 	#
+
+	LATEST="$(/usr/bin/curl -sSf $MANTA_HOST/$MPATH/latest)"
+	if [[ -z "$LATEST" ]]; then
+		printf "ERROR: failed to read $MANTA_HOST/$MPATH/latest\n" >&2
+		exit 1
+	fi
+	URL="$MANTA_HOST/$LATEST/$TARBALL"
+
 	start_time=$SECONDS
 	rm -f "$TMPDIR/$TARBALL.tmp"
 	while :; do
 		if (( $SECONDS > start_time + 120 )); then
-			printf 'ERROR: timed out trying to download tools\n' >&2
+			printf "ERROR: timed out trying to download tools\n" >&2
 			exit 1
 		fi
 
-		if ! /usr/bin/curl -sSf -o "$TMPDIR/$TARBALL.tmp" \
-		    "$MANTA_URL/$BASE_PATH/$TARBALL"; then
-			printf 'WARNING: download failure (retrying)\n' >&2
+		echo "Downloading $URL"
+
+		if ! /usr/bin/curl -f -o "$TMPDIR/$TARBALL.tmp" "$URL"; then
+			printf "WARNING: download failure (retrying)\n" >&2
 			sleep 5
 			continue
 		fi
 
 		if ! /usr/bin/gzip -t "$TMPDIR/$TARBALL.tmp"; then
-			printf 'WARNING: download gzip invalid (retrying)\n' >&2
+			printf "WARNING: download gzip invalid (retrying)\n" >&2
 			sleep 5
 			continue
 		fi
 
 		if ! /usr/bin/mv "$TMPDIR/$TARBALL.tmp" "$TMPDIR/$TARBALL"; then
-			printf 'ERROR: could not move tarball into place\n' >&2
+			printf "ERROR: could not move tarball into place\n" >&2
 			exit 1
 		fi
 
@@ -74,7 +82,7 @@ fi
 # Extract the tarball
 #
 if ! /usr/bin/mkdir -p "$CTFDIR"; then
-	printf 'ERROR: could not mkdir "%s"\n' "$CTFDIR" >&2
+	printf "ERROR: could not mkdir \"%s\"\n" "$CTFDIR" >&2
 	exit 1
 fi
 
@@ -83,7 +91,7 @@ if ! cd "$CTFDIR"; then
 fi
 
 if ! /usr/bin/tar xfz "$TMPDIR/$TARBALL"; then
-	printf 'ERROR: could not extract tarball\n' >&2
+	printf "ERROR: could not extract tarball\n" >&2
 	exit 1
 fi
 

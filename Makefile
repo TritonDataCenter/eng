@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -146,6 +146,10 @@ endif
 #
 include ./deps/eng/tools/mk/Makefile.agent_prebuilt.defs
 
+#
+# CTF support.
+#
+include ./tools/mk/Makefile.ctf.defs
 
 #
 # If a project includes some components written in the Go language, the Go
@@ -157,12 +161,6 @@ ifeq ($(shell uname -s),SunOS)
 	GO_TARGETS =		$(STAMP_GO_TOOLCHAIN)
 	GO_TEST_TARGETS =	test_go
 	include ./deps/eng/tools/mk/Makefile.go_prebuilt.defs
-endif
-
-ifeq ($(shell uname -s),SunOS)
-	CTF_TARGETS =		helloctf
-	CTF_TEST_TARGETS =	test_ctf
-	include ./tools/mk/Makefile.ctf.defs
 endif
 
 #
@@ -253,6 +251,9 @@ test_go: $(STAMP_GO_TOOLCHAIN)
 	@$(GO) version
 	$(GO) run src/tellmewhereto.go
 
+#
+# Example ctfconvert usage
+#
 HELLOCTF_OBJS =		helloctf.o
 HELLOCTF_CFLAGS =	-gdwarf-2 -m64 -std=c99 -D__EXTENSIONS__ \
 			-Wall -Wextra -Werror \
@@ -262,17 +263,13 @@ HELLOCTF_OBJDIR =	$(CACHE_DIR)/helloctf.obj
 
 helloctf: $(HELLOCTF_OBJS:%=$(HELLOCTF_OBJDIR)/%) $(STAMP_CTF_TOOLS)
 	gcc -o $@ $(HELLOCTF_OBJS:%=$(HELLOCTF_OBJDIR)/%) $(HELLOCTF_CFLAGS)
-	$(CTFCONVERT) -l $@ $@
+	$(CTFCONVERT) $@
 
 $(HELLOCTF_OBJDIR)/%.o: src/%.c
 	@mkdir -p $(@D)
 	gcc -o $@ -c $(HELLOCTF_CFLAGS) $<
 
 CLEAN_FILES += $(HELLOCTF_OBJDIR) helloctf
-
-.PHONY: test_ctf
-test_ctf: helloctf $(STAMP_CTF_TOOLS)
-	src/testctf.sh $(CTFDUMP) ./helloctf
 
 #
 # Target definitions.  This is where we include the target Makefiles for
