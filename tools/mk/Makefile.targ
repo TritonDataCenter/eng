@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -428,7 +428,8 @@ prepush: check test
 #
 .PHONY: validate-buildenv
 validate-buildenv:
-	$(TOP)/deps/eng/tools/validate-buildenv.sh
+	ENGBLD_SKIP_VALIDATE_BUILDENV=$(ENGBLD_SKIP_VALIDATE_BUILDENV) \
+	   $(TOP)/deps/eng/tools/validate-buildenv.sh
 
 .PHONY: show-buildenv
 show-buildenv:
