@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright (c) 2020 Joyent, Inc.
 #
 
 #
@@ -46,12 +46,15 @@ endif
 # _target_ for any executables built with the Go compiler.  Though it is
 # likely, at least for now, that these values are the same in our environment
 # for the build and target machines, they are nonetheless distinct concepts and
-# the use of GO_GOOS and GO_GOARCH here would not be correct.
+# the use of GO_GOOS and GO_GOARCH here would not be correct. We specify
+# 'solarisish' here as a special value for download_go to first look for
+# 'illumos' and then fall back to 'solaris' for older (pre-go1.13) releases that
+# don't have the 'illumos' GOOS value.
 #
 $(GO_TARBALL):
 	rm -f $@
 	mkdir -p $(@D)
-	./deps/eng/tools/download_go $(GO_PREBUILT_VERSION) solaris amd64 $(CACHE_DIR)
+	./deps/eng/tools/download_go $(GO_PREBUILT_VERSION) solarisish amd64 $(CACHE_DIR)
 
 #
 # Extract the Go toolchain.  This stamp includes the version number of the
