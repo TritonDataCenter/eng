@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -31,6 +31,7 @@ numErrors=0
 numWarnings=0
 year=
 top=$(git rev-parse --show-toplevel)
+optBranch=master
 optQuiet=
 optVerbose=
 optWarnOnlyOnFormat=
@@ -48,10 +49,11 @@ function usage {
     echo "Check the Joyent Copyright line in uncommitted and unpushed changes."
     echo ""
     echo "Usage:"
-    echo "    check-copyright [-h] [-q] [-v] [-W] [-x FILE]"
+    echo "    check-copyright [-h] [-b BRANCH] [-q] [-v] [-W] [-x FILE]"
     echo ""
     echo "Option:"
     echo "    -h       Print this usage."
+    echo "    -b       Branch to compare against (defaults to 'master')."
     echo "    -q       Quiet: no pithy statements, only errors and warnings."
     echo "    -v       Verbose: show a message for each file processed."
     echo "    -W       Warn only (instead of error) on copyright line format:"
@@ -117,13 +119,16 @@ function check_file {
 
 # ---- mainline
 
-while getopts "hqvWx:" opt
+while getopts "hb:qvWx:" opt
 do
     case "$opt" in
         h)
             usage
             exit 0
             ;;
+        b)
+            optBranch=$OPTARG
+	    ;;
         q)
             optQuiet=1
             ;;
@@ -146,11 +151,13 @@ shift $((OPTIND - 1))
 
 # Gather the files to possibly check.
 committedFiles=
-if git branch -a | grep '^  remotes/origin/master$' >/dev/null 2>/dev/null; then
+if git branch -a | \
+        grep '^  remotes/origin/'${optBranch}'$' \
+        >/dev/null 2>/dev/null; then
     # The intent for committed files is to compare against the ultimate
     # merge branch target. We assume that is "origin/master", the common case
     # for Joyent eng repos.
-    committedFiles=$(git diff --name-only origin/master..)
+    committedFiles=$(git diff --name-only origin/${optBranch}..)
 fi
 stagedFiles=$(git diff --name-only --staged)
 unstagedFiles=$(git diff --name-only)
