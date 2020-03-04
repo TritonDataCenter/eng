@@ -128,7 +128,7 @@ do
             ;;
         b)
             optBranch=$OPTARG
-	    ;;
+        ;;
         q)
             optQuiet=1
             ;;
