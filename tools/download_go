@@ -84,7 +84,7 @@ fi
 #
 # One word to describe this process might be "brittle".
 #
-if [[ "$GOOS" = 'solarisish' ]]; then
+if [[ "$GOOS" = 'illumosElseSolaris' ]]; then
 	printf 'Searching for illumos or solaris Go versions\n' >&2
 	for os_val in illumos solaris; do
 		GOOS=$os_val
