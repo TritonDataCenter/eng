@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -84,14 +84,34 @@ fi
 #
 # One word to describe this process might be "brittle".
 #
-if ! name=$(/usr/bin/awk -v "v=$GOVERSION" -v "o=$GOOS" -v "a=$GOARCH" -F\" '
-    BEGIN { pattern = "^go"v"."o"-"a".tar.bz2$"; }
-    $1 ~ pattern { print $1 }' <<< "$list") ||
-    [[ -z "$name" ]]; then
-	printf 'ERROR: could not locate file name in index page\n' >&2
-	printf '\t(Does Go version %s (%s-%s) exist?)\n' \
-	    "$GOVERSION" "$GOOS" "$GOARCH" >&2
-	exit 1
+if [[ "$GOOS" = 'illumosElseSolaris' ]]; then
+	printf 'Searching for illumos or solaris Go versions\n' >&2
+	for os_val in illumos solaris; do
+		GOOS=$os_val
+		FOUND_GOOS=''
+		if ! name=$(/usr/bin/awk -v "v=$GOVERSION" -v "o=$os_val" -v "a=$GOARCH" -F\" '
+			BEGIN { pattern = "^go"v"."o"-"a".tar.bz2$"; }
+			$1 ~ pattern { print $1 }' <<< "$list") ||
+			[[ -n "$name" ]]; then
+				FOUND_GOOS=$os_val
+				break
+			fi
+	done
+	if [[ -z "$FOUND_GOOS" ]]; then
+		printf 'ERROR: could not locate file name in index page\n' >&2
+		printf '\t(Does Go version %s (illumos-%s) or (solaris-%s) exist?)\n' \
+			"$GOVERSION" "$GOARCH" "$GOARCH" >&2
+	fi
+else
+	if ! name=$(/usr/bin/awk -v "v=$GOVERSION" -v "o=$GOOS" -v "a=$GOARCH" -F\" '
+		BEGIN { pattern = "^go"v"."o"-"a".tar.bz2$"; }
+		$1 ~ pattern { print $1 }' <<< "$list") ||
+		[[ -z "$name" ]]; then
+		printf 'ERROR: could not locate file name in index page\n' >&2
+		printf '\t(Does Go version %s (%s-%s) exist?)\n' \
+			"$GOVERSION" "$GOOS" "$GOARCH" >&2
+		exit 1
+	fi
 fi
 
 
