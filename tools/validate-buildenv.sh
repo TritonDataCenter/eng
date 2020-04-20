@@ -43,15 +43,13 @@
 
 #
 # For the NODE_PREBUILT_IMAGE checks, we use this list from
-# From https://download.joyent.com/pub/build/sdcnode/README.html
+# From https://us-east.manta.joyent.com/Joyent_Dev/public/releng/sdcnode/README.html
 # the following images versions are supported:
 #
 #    sdc-smartos@1.6.3: fd2cc906-8938-11e3-beab-4359c665ac99
 #    sdc-minimal-multiarch-lts@15.4.1: 18b094b0-eb01-11e5-80c1-175dac7ddf02
-#    triton-origin-multiarch-15.4.1@1.0.1: 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
-#    minimal-multiarch@18.1.0: 1ad363ec-3b83-11e8-8521-2f68a4a34d5d
-#    triton-origin-multiarch-18.1.0: b6ea7cb4-6b90-48c0-99e7-1d34c2895248
-#    triton-origin-x86_64-19.4.0:
+#    minimal-64-lts@18.4.0: c2c31b00-1d60-11e9-9a77-ff9f06554b0f
+#    minimal-64-lts@19.4.0: 59ba2e5e-976f-4e09-8aac-a4a7ef0395f5
 #
 # In the future, we would prefer if the pkgsrc versions were declared
 # directly in Makefiles without needing this lookup. (see TOOLS-2038)
@@ -82,14 +80,8 @@ declare -A PKGSRC_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=2011Q4
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=2015Q4
     [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=2015Q4
-    [1ad363ec-3b83-11e8-8521-2f68a4a34d5d]=2018Q1
-    [b6ea7cb4-6b90-48c0-99e7-1d34c2895248]=2018Q1
     [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=2018Q4
     [a9368831-958e-432d-a031-f8ce6768d190]=2018Q4
-    [fbda7200-57e7-11e9-bb3a-8b0b548fcc37]=2019Q1
-    [cbf116a0-43a5-447c-ad8c-8fa57787351c]=2019Q1
-    [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=2019Q2
-    [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=2019Q2
     [5417ab20-3156-11ea-8b19-2b66f5e7a439]=2019Q4
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=2019Q4
 )
@@ -100,14 +92,8 @@ declare -A SDC_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=sdc-smartos@1.6.3
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=sdc-minimal-multiarch-lts@15.4.1
     [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=triton-origin-multiarch-15.4.1@1.0.1
-    [1ad363ec-3b83-11e8-8521-2f68a4a34d5d]=minimal-multiarch@18.1.0
-    [b6ea7cb4-6b90-48c0-99e7-1d34c2895248]=triton-origin-multiarch-18.1.0@1.0.1
     [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=minimal-64-lts@18.4.0
     [a9368831-958e-432d-a031-f8ce6768d190]=triton-origin-x86_64-18.4.0@master-20190410T193647Z-g982b0ce
-    [fbda7200-57e7-11e9-bb3a-8b0b548fcc37]=minimal-64@19.1.0
-    [cbf116a0-43a5-447c-ad8c-8fa57787351c]=triton-origin-x86_64-19.1.0@master-20190417T143547Z-g119675b
-    [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=minimal-64@19.2.0
-    [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=triton-origin-x86_64-19.2.0@master-20190919T182250Z-g363e57e
     [5417ab20-3156-11ea-8b19-2b66f5e7a439]=minimal-64-lts@19.4.0
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=triton-origin-x86_64-19.4.0@master-20200130T200825Z-gbb45b8d
 )
@@ -115,19 +101,14 @@ declare -A SDC_MAP=(
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
 # image uuid to a corresponding jenkins-agent image uuid.
 # Jenkins agent images are built by https://github.com/joyent/jenkins-agent
+# XXX timf this all has to change now
 declare -A JENKINS_AGENT_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=956f365d-2444-4163-ad48-af2f377726e0
     [b4bdc598-8939-11e3-bea4-8341f6861379]=7b1ac281-3fe4-4cf7-858c-2ff73ec64f4e
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=1356e735-456e-4886-aebd-d6677921694c
     [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=1356e735-456e-4886-aebd-d6677921694c
-    [1ad363ec-3b83-11e8-8521-2f68a4a34d5d]=8b297456-1619-4583-8a5a-727082323f77
-    [b6ea7cb4-6b90-48c0-99e7-1d34c2895248]=8b297456-1619-4583-8a5a-727082323f77
     [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=29b70133-1e97-47d9-a4c1-e4b2ee1a1451
     [a9368831-958e-432d-a031-f8ce6768d190]=29b70133-1e97-47d9-a4c1-e4b2ee1a1451
-    [fbda7200-57e7-11e9-bb3a-8b0b548fcc37]=fb751f94-3202-461d-b98d-4465560945ec
-    [cbf116a0-43a5-447c-ad8c-8fa57787351c]=fb751f94-3202-461d-b98d-4465560945ec
-    [7f4d80b4-9d70-11e9-9388-6b41834cbeeb]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
-    [a0d5f456-ba0f-4b13-bfdc-5e9323837ca7]=c177a02f-5eb7-4dc7-b087-89f86d1f9eec
     [5417ab20-3156-11ea-8b19-2b66f5e7a439]=23a48c86-8b59-4629-a2f1-5dac3cba09b1
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=23a48c86-8b59-4629-a2f1-5dac3cba09b1
 )
@@ -165,18 +146,6 @@ PKGSRC_PKGS_2015Q4="
     pcre-8.41
     pigz"
 
-PKGSRC_PKGS_2018Q1="
-    grep
-    build-essential
-    python27
-    py27-expat
-    coreutils
-    gsed
-    gsharutils
-    flex
-    pcre-8.42
-    pigz"
-
 PKGSRC_PKGS_2018Q4="
     grep
     build-essential
@@ -188,32 +157,6 @@ PKGSRC_PKGS_2018Q4="
     flex
     pcre-8.42
     pigz"
-
-PKGSRC_PKGS_2019Q1="
-    grep
-    build-essential
-    python27
-    py27-expat
-    coreutils
-    gsed
-    gsharutils
-    flex
-    pcre
-    pigz
-    rust"
-
-PKGSRC_PKGS_2019Q2="
-    grep
-    build-essential
-    python27
-    py27-expat
-    coreutils
-    gsed
-    gsharutils
-    flex
-    pcre
-    pigz
-    rust"
 
 PKGSRC_PKGS_2019Q4="
     grep
@@ -575,8 +518,8 @@ function validate_opt_tools {
         echo "which deliver /opt/tools. Run the following:"
         echo ""
         BOOTSTRAP_URL="https://pkgsrc.joyent.com/packages/SmartOS/bootstrap/"
-        BOOTSTRAP_TAR="bootstrap-2018Q3-tools.tar.gz"
-        BOOTSTRAP_SHA="2244695a8ec0960e26c6f83cbe159a5269033d6a"
+        BOOTSTRAP_TAR="bootstrap-2019Q4-tools.tar.gz"
+        BOOTSTRAP_SHA="e7bcc5352d0f4ecdad3143cb6c39c251bac2d0b6"
         echo "    curl -k -o /var/tmp/${BOOTSTRAP_TAR} \\"
         echo "        ${BOOTSTRAP_URL}/${BOOTSTRAP_TAR}"
         echo ""
@@ -596,8 +539,10 @@ function validate_opt_tools {
             git-docs
             git-contrib
             openjdk8
-            nodejs-6.14.4
-            npm"
+            nodejs-8.17.0nb1
+            npm
+            gcc7
+            coreutils"
 
         MISSING_PKGS=""
         for pkg in ${EXPECTED_PKGS}; do
