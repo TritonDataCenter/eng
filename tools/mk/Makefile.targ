@@ -529,7 +529,8 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 	$(TOP)/deps/eng/tools/buildimage-extract-pkg.sh $(BUILDIMAGE_PKG)
 	$(PFEXEC) chown -R root:root $(BUILDIMAGE_STAGEDIR)
 	cd $(BUILDIMAGE_STAGEDIR); \
-	$(PFEXEC) $(BUILDIMAGE) \
+	BUILDIMAGE=$$(cat $(TOP)/$(STAMP_BUILDIMAGE_PREP)); \
+	$(PFEXEC) $$BUILDIMAGE \
 		-i $(BASE_IMAGE_UUID) \
 		-d $(BUILDIMAGE_STAGEDIR)/root \
 		-m '$(BUILDIMAGE_MF)' \
@@ -583,13 +584,35 @@ bits-upload-latest:
 endif
 
 #
-# Do an npm install for the dependencies of buildimage itself.
+# Determine whether we need to build buildimage, or use the copy in
+# /opt/tools. Write the path to $(STAMP_BUILDIMAGE_PREP) for later
+# use in the 'buildimage' target. We use a crude version comparison here,
+# choosing the deps/eng copy if it's different to the copy in /opt/tools.
 #
-$(STAMP_BUILDIMAGE_PREP):
-	$(MAKE_STAMP_REMOVE); \
-	cd $(TOP)/deps/eng/tools/buildimage; \
-	$(MAKE) buildimage-prep
-	$(MAKE_STAMP_CREATE)
+$(STAMP_BUILDIMAGE_PREP): $(TOP)/deps/eng/tools/buildimage/package.json
+	$(MAKE_STAMP_REMOVE)
+	if [[ -n "$(ENGBLD_FORCE_LOCAL_BUILDIMAGE)" ]]; then \
+		LOCAL_BUILDIMAGE=true; \
+	elif [[ ! -f /opt/tools/bin/buildimage ]]; then \
+		LOCAL_BUILDIMAGE=true; \
+	else \
+		LOCAL_BUILDIMAGE_VER=$$( \
+		    json -f $(TOP)/deps/eng/tools/buildimage/package.json version); \
+		TOOLS_BUILDIMAGE_VER=$$( \
+		    json -f \
+		        /opt/tools/lib/node_modules/buildimage/package.json version); \
+		if [[ "$$LOCAL_BUILDIMAGE_VER" != "$$TOOLS_BUILDIMAGE_VER" ]]; then \
+		    LOCAL_BUILDIMAGE=true; \
+		fi; \
+	fi; \
+	if [[ -n "$$LOCAL_BUILDIMAGE" ]]; then \
+		echo $(TOP)/deps/eng/tools/buildimage/bin/buildimage > \
+		    $(STAMP_BUILDIMAGE_PREP); \
+		cd $(TOP)/deps/eng/tools/buildimage; \
+		$(MAKE) buildimage-prep; \
+	else \
+		echo /opt/tools/bin/buildimage > $(STAMP_BUILDIMAGE_PREP); \
+	fi;
 
 #
 # This rule automatically exposes every "stamp" file as a target that can be
