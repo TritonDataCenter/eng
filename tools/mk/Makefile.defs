@@ -185,11 +185,6 @@ ifdef BITS_DIR
   ENGBLD_BITS_DIR = $(BITS_DIR)
 endif
 
-#
-# A pointer to the buildimage tool, and a stamp-name used to install
-# its dependencies.
-#
-BUILDIMAGE = $(TOP)/deps/eng/tools/buildimage/bin/buildimage
 STAMP_BUILDIMAGE_PREP := $(MAKE_STAMPS_DIR)/buildimage-prep
 
 #
