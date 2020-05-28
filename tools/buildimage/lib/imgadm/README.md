@@ -10,8 +10,6 @@ The following modifications were made:
  - we should attempt to locate a delegated dataset within
    this instance.
 
-A recursive diff of the changes are available in imgadm.patch
-
 The files from smartos-live.git duplicated in this directory are:
 
 smartos-live.git:src/img
