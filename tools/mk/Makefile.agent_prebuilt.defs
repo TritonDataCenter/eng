@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -42,7 +42,6 @@
 # minnow     minnow-pkg       minnow/minnow-pkg-*.tar.gz
 # registrar  registrar-pkg    registrar/registrar-pkg-*.tar.gz
 # waferlock  waferlock        waferlock/waferlock-pkg-*.tar.gz
-# rebalancer rebalancer-agent rebalancer/rebalancer-agent-*.tar.gz
 #
 # These can then be reused by the buildimage utility when assembling component
 # images. The agent deliverables get extracted to $(BUILDIMAGE_STAGEDIR)
@@ -206,20 +205,3 @@ else
 	WAFERLOCK_PREBUILT_TARGETS = WAFERLOCK-prebuilt-clone WAFERLOCK-prebuilt-build
 endif
 WAFERLOCK_PREBUILT_TARGETS += WAFERLOCK-prebuilt-extract
-
-#
-# rebalancer
-#
-REBALANCER_PREBUILT_GIT_URL =			https://github.com/joyent/manta-rebalancer.git
-REBALANCER_PREBUILT_REPO =				manta-rebalancer
-REBALANCER_PREBUILT_AGENT_TARGETS =		distclean agent pkg_agent
-# intentionally left blank as the tarball includes root/opt/smartdc
-REBALANCER_PREBUILT_ROOTDIR =
-REBALANCER_PREBUILT_TARBALL_PATTERN =	rebalancer-agent-.*.tar.gz
-
-ifdef AGENT_PREBUILT_DOWNLOAD_URL
-	REBALANCER_PREBUILT_TARGETS = REBALANCER-prebuilt-download
-else
-	REBALANCER_PREBUILT_TARGETS = REBALANCER-prebuilt-clone REBALANCER-prebuilt-build
-endif
-REBALANCER_PREBUILT_TARGETS += REBALANCER-prebuilt-extract
