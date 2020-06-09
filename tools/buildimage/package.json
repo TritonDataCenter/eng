@@ -9,7 +9,8 @@
         "dashdash": "1.14.1",
         "extsprintf": "1.4.0",
         "uuid": "3.3.2",
-        "vasync": "2.2.0"
+        "vasync": "2.2.0",
+        "qlocker": "git+https://github.com/joyent/node-qlocker#1413d3a8d8c6015852e031019df88abd9edd16d8"
     },
     "license": "MPL-2.0"
 }
