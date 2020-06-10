@@ -19,7 +19,7 @@
     "node-uuid": "1.4.1",
     "once": "1.3.1",
     "progbar": "1.1.0",
-    "qlocker": "github:joyent/node-qlocker",
+    "qlocker": "git+https://github.com/joyent/node-qlocker#1413d3a8d8c6015852e031019df88abd9edd16d8",
     "restify": "7.2.2",
     "rimraf": "2.2.8",
     "sdc-clients": "git://github.com/joyent/node-sdc-clients.git#28209ab",
