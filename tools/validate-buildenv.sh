@@ -101,16 +101,14 @@ declare -A SDC_MAP=(
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
 # image uuid to a corresponding jenkins-agent image uuid.
 # Jenkins agent images are built by https://github.com/joyent/jenkins-agent
-# XXX timf this all has to change now
 declare -A JENKINS_AGENT_MAP=(
-    [fd2cc906-8938-11e3-beab-4359c665ac99]=956f365d-2444-4163-ad48-af2f377726e0
-    [b4bdc598-8939-11e3-bea4-8341f6861379]=7b1ac281-3fe4-4cf7-858c-2ff73ec64f4e
-    [18b094b0-eb01-11e5-80c1-175dac7ddf02]=1356e735-456e-4886-aebd-d6677921694c
-    [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=1356e735-456e-4886-aebd-d6677921694c
-    [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=29b70133-1e97-47d9-a4c1-e4b2ee1a1451
-    [a9368831-958e-432d-a031-f8ce6768d190]=29b70133-1e97-47d9-a4c1-e4b2ee1a1451
-    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=23a48c86-8b59-4629-a2f1-5dac3cba09b1
-    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=23a48c86-8b59-4629-a2f1-5dac3cba09b1
+    [fd2cc906-8938-11e3-beab-4359c665ac99]=4cb0b430-e636-4d68-b9f2-ec21c14777c7
+    [18b094b0-eb01-11e5-80c1-175dac7ddf02]=6c8eefec-93a5-43c1-a184-4abef1b7fc68
+    [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=6c8eefec-93a5-43c1-a184-4abef1b7fc68
+    [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=13bab5af-23fd-42c3-93f3-eccb7e05b829
+    [a9368831-958e-432d-a031-f8ce6768d190]=13bab5af-23fd-42c3-93f3-eccb7e05b829
+    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=53f404ac-4ae7-4fe5-a013-dda17c9ed3ea
+    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=53f404ac-4ae7-4fe5-a013-dda17c9ed3ea
 )
 
 # For each pkgsrc version, set a list of packages that must be present
