@@ -102,13 +102,13 @@ declare -A SDC_MAP=(
 # image uuid to a corresponding jenkins-agent image uuid.
 # Jenkins agent images are built by https://github.com/joyent/jenkins-agent
 declare -A JENKINS_AGENT_MAP=(
-    [fd2cc906-8938-11e3-beab-4359c665ac99]=4cb0b430-e636-4d68-b9f2-ec21c14777c7
-    [18b094b0-eb01-11e5-80c1-175dac7ddf02]=6c8eefec-93a5-43c1-a184-4abef1b7fc68
-    [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=6c8eefec-93a5-43c1-a184-4abef1b7fc68
-    [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=13bab5af-23fd-42c3-93f3-eccb7e05b829
-    [a9368831-958e-432d-a031-f8ce6768d190]=13bab5af-23fd-42c3-93f3-eccb7e05b829
-    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=53f404ac-4ae7-4fe5-a013-dda17c9ed3ea
-    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=53f404ac-4ae7-4fe5-a013-dda17c9ed3ea
+    [fd2cc906-8938-11e3-beab-4359c665ac99]=3e8e972d-1d38-4b68-a3b2-00861b2ec89a
+    [18b094b0-eb01-11e5-80c1-175dac7ddf02]=f00a393d-a1c8-4e93-a13e-c364a7d0a2a9
+    [04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f]=f00a393d-a1c8-4e93-a13e-c364a7d0a2a9
+    [c2c31b00-1d60-11e9-9a77-ff9f06554b0f]=d639b789-ce4e-4c81-a230-a28172dd0360
+    [a9368831-958e-432d-a031-f8ce6768d190]=d639b789-ce4e-4c81-a230-a28172dd0360
+    [5417ab20-3156-11ea-8b19-2b66f5e7a439]=e6539349-b85c-4401-92ef-ea4dad86c2bc
+    [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=e6539349-b85c-4401-92ef-ea4dad86c2bc
 )
 
 # For each pkgsrc version, set a list of packages that must be present
