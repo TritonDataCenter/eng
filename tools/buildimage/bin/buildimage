@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright 2019 Joyent, Inc.
+ * Copyright 2020 Joyent, Inc.
  */
 
 var child_process = require('child_process');
@@ -424,13 +424,16 @@ function pkgAudit(opts, callback) {
     assert.func(callback, 'callback');
 
     if (!opts.pkg_audit) {
-        logLine('skipping pkg audit');
-        return callback();
+        logLine('skipping pkgAudit');
+        callback();
+        return;
+    } else {
+        logLine('starting pkgAudit');
     }
 
     // pkg_admin fetch-pkg-vulnerabilities && pkg_admin audit
     vasync.pipeline({
-        arg: {},
+        arg: {
         funcs: [
             function stepFetch(_, next) {
                 const child = child_process.spawn('/usr/sbin/chroot', [
@@ -816,8 +819,9 @@ function buildImage(opts, callback) {
             callback();
             return;
         }
-        console.error(JSON.stringify(err));
+        console.error('buildImage error:', err);
 
+        // Cleanup, but only warn on cleanup errors.
         vasync.pipeline({
             funcs: [
                 function _cleanupChroot(_, cb) {
@@ -825,10 +829,12 @@ function buildImage(opts, callback) {
                         cb();
                         return;
                     }
-                    unsetupChroot(opts, function _onUnsetup(err) {
+                    unsetupChroot(opts, function _onUnsetup(unChrootErr) {
                         // ignore errors, this is best effort.
-                        console.error('WARN: failed to unsetup chroot: ' +
-                            err.message);
+                        if (unChrootErr) {
+                            console.error('WARN: failed to unsetup chroot: ' +
+                                unChrootErr.message);
+                        }
                         cb();
                     });
                 }, function _destroyZoneAnalog(_, cb) {
@@ -836,10 +842,13 @@ function buildImage(opts, callback) {
                         cb();
                         return;
                     }
-                    destroyZoneAnalog(opts, function _onDestroy(err) {
+                    destroyZoneAnalog(opts, function _onDestroy(analogErr) {
                         // ignore errors, this is best effort.
-                        console.error('WARN: failed to destroy zone analog: ' +
-                            err.message);
+                        if (analogErr) {
+                            console.error(
+                                'WARN: failed to destroy zone analog: ' +
+                                analogErr.message);
+                        }
                         cb();
                     });
                 }, function _destroyMountdir(_, cb) {
@@ -847,17 +856,20 @@ function buildImage(opts, callback) {
                         cb();
                         return;
                     }
-                    destroyMountdir(opts, function _onDestroy(err) {
+                    destroyMountdir(opts, function _onDestroy(mountdirErr) {
                         // ignore errors, this is best effort.
-                        console.error('WARN: failed to destroy mount dir: ' +
-                            err.message);
+                        if (mountdirErr) {
+                            console.error(
+                                'WARN: failed to destroy mount dir: ' +
+                                mountdirErr.message);
+                        }
                         cb();
                     });
                 }
             ]
         }, function _onCleanup() {
-            // Ignore err, since we did what we could and we're already
-            // returning the original err.
+            // Ignore any error during cleanup, since we did what we could and
+            // we're already returning the original `err`.
             callback(err);
         });
     });
