@@ -433,7 +433,7 @@ function pkgAudit(opts, callback) {
 
     // pkg_admin fetch-pkg-vulnerabilities && pkg_admin audit
     vasync.pipeline({
-        arg: {
+        arg: {},
         funcs: [
             function stepFetch(_, next) {
                 const child = child_process.spawn('/usr/sbin/chroot', [
