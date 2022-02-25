@@ -7,7 +7,7 @@
 #
 
 #
-# Copyright 2020 Joyent, Inc.
+# Copyright 2022 Joyent, Inc.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -269,7 +269,13 @@ function create_image {
 
 	echo "==> Creating image file..."
 
-	gzip=$(type -path pigz gzip | head -1)
+	if command -v pigz ; then
+	    gzip=$(type -path pigz)
+	else
+	    # gzip is part of the platform image so we always know where it
+	    # will be.
+	    gzip=/usr/bin/gzip
+	fi
 	mkdir -p "$OUTPUT_DIR"
 	sha=$(pfexec zfs send "$DISKVOL@final" | "$gzip" -9 |
 	    tee "$IMAGE_FILE" | digest -a sha1)
