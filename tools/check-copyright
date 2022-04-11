@@ -7,11 +7,12 @@
 
 #
 # Copyright 2020 Joyent, Inc.
+# Copyright 2022 MNX Solutions, Inc.
 #
 
 #
 # Check that changed files (uncommitted and unpushed files) have the appropriate
-# Joyent copyright year and blessed format, per:
+# MNX copyright year and blessed format, per:
 # https://github.com/joyent/rfd/blob/master/rfd/0164/README.md#copyright-notice
 #
 # Usage: Run this anywhere in your git clone.
@@ -46,7 +47,7 @@ function fatal
 }
 
 function usage {
-    echo "Check the Joyent Copyright line in uncommitted and unpushed changes."
+    echo "Check the MNX Copyright line in uncommitted and unpushed changes."
     echo ""
     echo "Usage:"
     echo "    check-copyright [-h] [-b BRANCH] [-q] [-v] [-W] [-x FILE]"
@@ -57,7 +58,7 @@ function usage {
     echo "    -q       Quiet: no pithy statements, only errors and warnings."
     echo "    -v       Verbose: show a message for each file processed."
     echo "    -W       Warn only (instead of error) on copyright line format:"
-    echo "                 'Copyright <year> Joyent, Inc.'"
+    echo "                 'Copyright <year> MNX Solutions, Inc.'"
     echo "    -x FILE  Exclude the given FILE (relative path from base of repo)"
     echo "             from copyright checking. This can be used multiple times"
     echo "             for multiple files."
@@ -84,7 +85,7 @@ function check_file {
     # No Copyright line in this file.
     if [[ -z "$hit" ]]; then
         if [[ -n "$optVerbose" ]]; then
-            echo "info: $file: skipping (no Joyent Copyright line)" >&2
+            echo "info: $file: skipping (no MNX Copyright line)" >&2
         fi
         return
     fi
@@ -97,7 +98,7 @@ function check_file {
     fi
 
     # Wrong copyright format?
-    blessed='Copyright [0-9]{4} Joyent, Inc\.$'
+    blessed='Copyright [0-9]{4} MNX Solutions, Inc\.$'
     if [[ ! "$hit" =~ $blessed ]]; then
         if [[ -n "$optWarnOnlyOnFormat" ]]; then
             echo "warning: $file: copyright not in RFD 164 form, '$hit'" \
@@ -156,7 +157,7 @@ if git branch -a | \
         >/dev/null 2>/dev/null; then
     # The intent for committed files is to compare against the ultimate
     # merge branch target. We assume that is "origin/master", the common case
-    # for Joyent eng repos.
+    # for Triton eng repos.
     committedFiles=$(git diff --name-only origin/${optBranch}...)
 fi
 stagedFiles=$(git diff --name-only --staged)
