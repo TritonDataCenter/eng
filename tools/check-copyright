@@ -7,7 +7,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
-# Copyright 2022 MNX Solutions, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -58,7 +58,7 @@ function usage {
     echo "    -q       Quiet: no pithy statements, only errors and warnings."
     echo "    -v       Verbose: show a message for each file processed."
     echo "    -W       Warn only (instead of error) on copyright line format:"
-    echo "                 'Copyright <year> MNX Solutions, Inc.'"
+    echo "                 'Copyright <year> MNX Cloud, Inc.'"
     echo "    -x FILE  Exclude the given FILE (relative path from base of repo)"
     echo "             from copyright checking. This can be used multiple times"
     echo "             for multiple files."
@@ -98,7 +98,7 @@ function check_file {
     fi
 
     # Wrong copyright format?
-    blessed='Copyright [0-9]{4} MNX Solutions, Inc\.$'
+    blessed='Copyright [0-9]{4} MNX Cloud, Inc\.$'
     if [[ ! "$hit" =~ $blessed ]]; then
         if [[ -n "$optWarnOnlyOnFormat" ]]; then
             echo "warning: $file: copyright not in RFD 164 form, '$hit'" \
