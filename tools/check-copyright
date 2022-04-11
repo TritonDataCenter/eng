@@ -80,12 +80,12 @@ function check_file {
         return
     fi
 
-    hit=$((grep -i "copyright.*joyent" "$path" 2>/dev/null || true) | head -1)
+    hit=$( (grep -i -E "copyright.*(joyent|mnx)" "$path" 2>/dev/null || true) | head -1)
 
     # No Copyright line in this file.
     if [[ -z "$hit" ]]; then
         if [[ -n "$optVerbose" ]]; then
-            echo "info: $file: skipping (no MNX Copyright line)" >&2
+            echo "info: $file: skipping (no MNX or Joyent Copyright line)" >&2
         fi
         return
     fi
