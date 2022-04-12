@@ -101,6 +101,19 @@ function check_file {
         return
     fi
 
+    # Wrong company?
+    joyent='Copyright [0-9]{4} Joyent, Inc\.$'
+    if [[ "$hit" =~ $joyent ]]; then
+        if [[ -n "$optWarnOnlyOnFormat" ]]; then
+            echo "warning: $file: Joyent copyright, but MNX missing, '$hit'" >&2
+            numWarnings=$(( numWarnings + 1 ))
+        else
+            echo "error: $file: Joyent copyright, but MNX missing, '$hit'" >&2
+            numErrors=$(( numErrors + 1 ))
+        fi
+        return
+    fi
+
     # Wrong copyright format?
     blessed='Copyright [0-9]{4} MNX Cloud, Inc\.$'
     if [[ ! "$hit" =~ $blessed ]]; then
