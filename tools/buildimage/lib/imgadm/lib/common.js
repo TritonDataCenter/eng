@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- * Copyright 2018, Joyent, Inc.
+ * Copyright 2018 Joyent, Inc.
  * Copyright 2022 MNX Cloud, Inc.
  *
  * * *
