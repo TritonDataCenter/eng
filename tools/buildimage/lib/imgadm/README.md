@@ -14,6 +14,7 @@ The following modifications were made:
 * we should attempt to locate a delegated dataset within
    this instance.
 * we should use /opt/tools/bin/node instead of platform node
+* TRITON-2304 New image server names
 
 The files from smartos-live.git duplicated in this directory are:
 

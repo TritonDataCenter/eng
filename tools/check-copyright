@@ -83,6 +83,7 @@ function check_file {
     hit=$( (grep -i "copyright.*mnx" "$path" 2>/dev/null || true) | head -1)
     if [[ $hit == "" ]]; then
         # No MNX hit. Look for a Joyent one that needs updating.
+        # BASHSTYLED
         hit=$( (grep -i "copyright.*joyent" "$path" 2>/dev/null || true) | head -1)
     fi
 

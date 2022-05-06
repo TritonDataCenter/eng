@@ -6,6 +6,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -166,8 +167,8 @@ BITS_UPLOAD_LOCAL_ARG =
 endif
 
 #
-# If bits-upload should publish images to updates.joyent.com, set that argument
-# based on $ENGBLD_BITS_UPLOAD_IMGAPI in the environment.
+# If bits-upload should publish images to updates.tritondatacenter.com, set that
+# argument based on $ENGBLD_BITS_UPLOAD_IMGAPI in the environment.
 #
 ifeq ($(ENGBLD_BITS_UPLOAD_IMGAPI), true)
 BITS_UPLOAD_IMGAPI_ARG = -p
