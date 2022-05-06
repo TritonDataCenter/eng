@@ -7,6 +7,7 @@
 
 #
 # Copyright 2022 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -187,8 +188,8 @@ PKGSRC_PKGS_2021Q4="
     pigz
     rust"
 
-UPDATES_URL="https://updates.joyent.com?channel=experimental"
-UPDATES_IMG_URL="https://updates.joyent.com/images/"
+UPDATES_URL="https://updates.tritondatacenter.com?channel=experimental"
+UPDATES_IMG_URL="https://updates.tritondatacenter.com/images/"
 
 #
 # Determine the pkgsrc release of this build machine and the sdcnode prebuilt
@@ -671,14 +672,14 @@ function validate_submodules {
 #
 # Issue a warning to the developer if their workspace contains uncommitted
 # changes, which would result in bits-upload.sh not posting any built bits
-# to Manta or updates.joyent.com
+# to Manta or updates.tritondatacenter.com
 #
 function verify_clean_repo {
     HAS_DIRTY=$(git describe --all --long --dirty | grep '\-dirty$')
     if [[ -n "$HAS_DIRTY" ]]; then
         echo "WARNING: this workspace contains uncommitted changes,"
         echo "which means that any build artifacts will not be uploaded by"
-        echo "bits-upload.sh to either Manta or updates.joyent.com"
+        echo "bits-upload.sh to either Manta or updates.tritondatacenter.com"
     fi
 }
 
@@ -734,7 +735,7 @@ else
     RESULT=$(( $RESULT + $? ))
     # this doesn't contribute to success/failure, but warns
     # developers that '-dirty' repositories will result in
-    # bits-upload not posting to Manta/updates.joyent.com.
+    # bits-upload not posting to Manta/updates.tritondatacenter.com.
     verify_clean_repo
     if [[ "$RESULT" -gt 0 ]]; then
         echo ""

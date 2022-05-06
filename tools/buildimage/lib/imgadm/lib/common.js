@@ -20,7 +20,8 @@
  *
  * CDDL HEADER END
  *
- * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ * Copyright 2018 Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  *
  * * *
  * Dump for shared stuff for this package.
@@ -48,7 +49,7 @@ var errors = require('./errors'),
 
 var NAME = 'imgadm';
 var MANIFEST_V = 2;
-var DEFAULT_SOURCE = {type: 'imgapi', url: 'https://images.joyent.com'};
+var DEFAULT_SOURCE = {type: 'imgapi', url: 'https://images.smartos.org'};
 
 var DB_DIR = '/var/imgadm';
 

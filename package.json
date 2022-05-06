@@ -2,12 +2,12 @@
   "name": "triton-component",
   "description": "Triton Component Example",
   "version": "1.0.0",
-  "author": "Joyent (joyent.com)",
+  "author": "MNX Cloud (mnx.io)",
   "private": true,
   "dependencies": {
     "assert-plus": "^1.0.0",
     "jsprim": "^1.4.0",
-    "verror": "git+https://github.com/joyent/node-verror.git#ecddeda07827742bd2c598033a02f4c42a6fdc26"
+    "verror": "git+https://github.com/TritonDataCenter/node-verror.git#ecddeda07827742bd2c598033a02f4c42a6fdc26"
   },
   "devDependencies": {
     "tape": "^4.6.0"

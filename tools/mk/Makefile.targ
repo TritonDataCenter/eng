@@ -6,6 +6,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -35,7 +36,8 @@
 #
 #	bits-upload	Upload the bits produced by the component Makefile's
 #			'publish' target to Manta or a local filesystem,
-#			optionally publishing images to updates.joyent.com
+#			optionally publishing images to
+#			updates.tritondatacenter.com
 #
 #	bits-upload-latest
 #			As above, but use the bits/<component>/latest-build-stamp

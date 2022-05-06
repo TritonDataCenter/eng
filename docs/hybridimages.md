@@ -1,5 +1,5 @@
 ---
-title: Joyent Hybrid Images
+title: Triton Hybrid Images
 markdown2extras: code-friendly
 apisections:
 ---
@@ -11,6 +11,7 @@ apisections:
 
 <!--
     Copyright 2020 Joyent, Inc.
+    Copyright 2022 MNX Cloud, Inc.
 -->
 
 # Joyent Hybrid Images
@@ -57,7 +58,7 @@ The typical hybrid image creation process involves the following steps.
    markers in the log output described above.
 6. Generate an image, which is comprised of a zfs stream and a
    [manifest](https://github.com/joyent/sdc-imgapi/blob/master/docs/index.md#image-manifests).
-7. Optionally upload to Manta and/or https://updates.joyent.com.
+7. Optionally upload to Manta and/or https://updates.tritondatacenter.com.
 
 The steps described above are generally handled with automation.  Steps 1, 2,
 and 5 are specific to the image being created.  Image-specific tools then invoke

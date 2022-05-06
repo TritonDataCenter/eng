@@ -35,7 +35,7 @@ here):
  * Modify the manifest of the created manifest.
  * Push the updated manifest to manta.
  * Delete the temporary VM image from JPC.
- * Use the image and manifest (e.g. upload to updates.joyent.com)
+ * Use the image and manifest (e.g. upload to updates.tritondatacenter.com)
 
 With the tools here, the process is intended to change to:
 
@@ -59,7 +59,7 @@ With the tools here, the process is intended to change to:
        analog using manifest parameters passed in.
      * Delete the zone analog dataset.
  * Use the image and manifest (e.g. upload to manta and update
-   updates.joyent.com with the image)
+   updates.tritondatacenter.com with the image)
 
 The reasons this is much faster and more reliable include:
 

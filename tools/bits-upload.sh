@@ -7,6 +7,7 @@
 
 #
 # Copyright 2019 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -78,7 +79,7 @@ function usage {
     echo "  -D <bits_dir>       local dir with the bits to upload (default: ./bits) "
     echo "  -L                  indicate the -d arg is a local path"
     echo "  -n <name>           the name of component to upload"
-    echo "  -p                  also publish images to updates.joyent.com"
+    echo "  -p                  also publish images to updates.tritondatacenter.com"
     echo "  -t <timestamp>      the timestamp (optional, derived otherwise)"
     echo ""
     echo "Upload bits to Manta or a local destination from <bits_dir>"
@@ -100,7 +101,7 @@ declare -A STORED_MANTA_PATHS
 # A simple wrapper to emit manta command-lines before running them.
 #
 function manta_run {
-    echo $@
+    echo "$@"
     "$@"
     return $?
 }
@@ -281,14 +282,14 @@ function find_upload_bits {
 }
 
 #
-# Publish build artifacts to updates.joyent.com.
+# Publish build artifacts to updates.tritondatacenter.com.
 #
 function publish_to_updates {
     local manta_path
     local msigned_url
     local compression_flag
 
-    echo "Publishing updates to updates.joyent.com"
+    echo "Publishing updates to updates.tritondatacenter.com"
     for file in ${FILES}; do
         set +o errexit
         echo ${file} | grep -q '.*manifest$'
@@ -323,14 +324,14 @@ function publish_to_updates {
 
         if [[ ! -f ${IMAGEFILE} ]]; then
             echo "Unable to determine image file for ${MF}."
-            echo "Skipping publishing ${MF} to updates.joyent.com"
+            echo "Skipping publishing ${MF} to updates.tritondatacenter.com"
             continue
         fi
 
         UUID=$(json -f ${MF} uuid)
         if [[ -z "${UUID}" ]]; then
             echo "Unable to determine UUID of ${MF}."
-            echo "Skipping publishing ${MF} to updates.joyent.com"
+            echo "Skipping publishing ${MF} to updates.tritondatacenter.com"
             continue
         fi
 
