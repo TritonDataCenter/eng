@@ -58,6 +58,34 @@ UPDATES_IMGADM=/root/opt/imgapi-cli/bin/updates-imgadm
 
 PATH=$PATH:/root/opt/node_modules/manta/bin:/opt/tools/bin
 
+function content_type
+{
+	filename="$1"
+	# basename <name> <.ext> will strip .ext off. Will be == name if it's
+	# not .ext.
+	if [[ "$(basename $filename .tgz)" != "$filename" ]]; then
+	    content_type="content-type: application/gzip"
+	elif [[ "$(basename $filename .gz)" != "$filename" ]]; then
+	    content_type="content-type: application/gzip"
+	elif [[ "$(basename $filename .txt)" != "$filename" ]]; then
+	    content_type="content-type: text/plain"
+	elif [[ "$(basename $filename .log)" != "$filename" ]]; then
+	    content_type="content-type: text/plain"
+	elif [[ "$(basename $filename .html)" != "$filename" ]]; then
+	    content_type="content-type: text/html"
+	elif [[ "$(basename $filename .json)" != "$filename" ]]; then
+	    content_type="content-type: application/json"
+	elif [[ "$(basename $filename .iso)" != "$filename" ]]; then
+	    content_type="content-type: application/octet-stream"
+	else
+	    # Default value... XXX KEBE ASKS use text/plain instead?
+	    content_type="content-type: application/octet-stream"
+	fi
+
+	# Caller should use quotes around this.
+	echo $content_type
+}
+
 function fatal {
     echo "$(basename $0): error: $1"
     exit 1
@@ -155,7 +183,8 @@ function manta_upload {
 
         if [[ -z ${manta_md5} ]]; then
             # file doesn't exist, upload it
-            manta_run mput ${MANTA_VERBOSE} -f ${file} ${manta_object}
+            manta_run mput -H "$(content_type ${file})" ${MANTA_VERBOSE} \
+		-f ${file} ${manta_object}
             [[ $? == 0 ]] || fatal "Failed to upload ${file} to ${manta_object}"
         elif [[ "$BITS_UPLOAD_OVERWRITE" == "false" ]]; then
             echo "${manta_object} already exists and matches local file,"
