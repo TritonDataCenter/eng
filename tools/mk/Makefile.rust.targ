@@ -1,0 +1,58 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright 2023 MNX Cloud, Inc.
+#
+
+#
+# Makefile.node.targ: See Makefile.node.defs.
+#
+
+#
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to the eng.git repository as normal, then do the following for
+# each component that uses eng.git, likely reusing the original ticket subject
+# for the commit message as was used for the eng.git push.
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "TOOLS-xxxx some description" deps/eng
+#
+# Then create a PR as usual for review.
+
+
+$(RUSTUP_HOME):
+	--default-toolchain none
+
+
+$(CARGO_EXEC): $(RUSTUP_HOME)
+
+
+# ifeq ($(shell uname -s),SunOS)
+# $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC): | deps/node/.git
+# 	(cd deps/node; ./configure $(NODE_CONFIG_FLAGS) && $(MAKE) && $(MAKE) install)
+# else
+# $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC):
+# 	(mkdir -p $(BUILD) \
+# 		&& cd $(BUILD) \
+# 		&& [[ -d src-node ]] && (cd src-node && git checkout master && git pull) || git clone https://github.com/joyent/node.git src-node \
+# 		&& cd src-node \
+# 		&& git checkout $(NODE_PREBUILT_VERSION) \
+# 		&& ./configure $(NODE_CONFIG_FLAGS) \
+# 		&& $(MAKE) && $(MAKE) install)
+# endif
+
+DISTCLEAN_FILES += $(NODE_INSTALL) $(BUILD)/src-node
+
+distclean::
+	rm -rf target
+
+check::
+	cargo check
+

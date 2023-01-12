@@ -1,0 +1,103 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright 2023 MNX Cloud, Inc.
+#
+
+#
+# Makefile.rust.defs: Makefile for providing a rust toolchain.
+#
+
+#
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to the eng.git repository as normal, then do the following for
+# each component that uses eng.git, likely reusing the original ticket subject
+# for the commit message as was used for the eng.git push.
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "TOOLS-xxxx some description" deps/eng
+#
+# Then create a PR as usual for review.
+#
+
+#
+# This Makefile facilitates building and bundling your own copy of rust in
+# your repo.  All it does is define variables for cargo for you to use
+# elsewhere in your Makefile and rules to build these tools when needed.
+#
+# To use this facility, include "Makefile.rust.defs", use the variables as
+# described below to define targets, and then include "Makefile.rust.targ".
+#
+# There are two use cases addressed here:
+#
+# (1) Invoking cargo as part of the build process, as in "cargo build".
+#     To facilitate this, this Makefile defines Make the variable CARGO
+#     that you can use to invoke these commands during the build process.
+#     You MUST NOT assume that these variables just evaluate to the filenames
+#     themselves, as they may have environment variable definitions and other
+#     things that prevent you from using them directly as a filename.
+#     If you want that, see (2).
+#
+#     Wherever you use one of these variables, you MUST include a dependency on
+#     the corresponding *_EXEC variable as well, like so:
+#
+#	target/release/example: src/main.rs $(CARGO_EXEC)
+#		$(CARGO) build --release
+#
+#     or better, use an order-only dependency to avoid spurious rebuilds:
+#
+#	target/release/example: src/main.rs | $(CARGO_EXEC)
+#		$(CARGO) build --release
+#
+#     Otherwise, the underlying file will not get built.  We don't
+#     automatically build them as part of "all" because that approach is
+#     brittle.
+#
+# When including this Makefile, you MAY also specify:
+#
+#	BUILD			top-level directory for built binaries
+#				(default: "build")
+#
+#	RUSTUP_HOME		where rust should install its built items
+#				(default: "$BUILD/node")
+#
+#	RUST_CLIPPY_ARGS	extra flags to pass to clippy
+#				(default: "--with-dtrace" on SmartOS; empty
+#				otherwise.)
+#
+#	RUST_TOOLCHAIN		The rust toolchain to be installed.
+#				This is passed directly to rustup. You may
+#				instead have a rust-toolchain.toml file.
+
+TOP ?= $(error You must include Makefile.defs before this makefile)
+
+BUILD		 ?= build
+RUSTUP_HOME	  = $(BUILD)/rustup
+CARGO_HOME	  = $(BUILD)/cargo
+DISTCLEAN_FILES	 += $(RUSTUP_HOME)
+
+RS_FILES	  = $(shell find $(TOP)/src -name *.rs)
+
+RUSTUP_ARGS	 ?= -y --no-modify-path
+RUST_CLIPPY_ARGS ?= -- -D clippy::all
+RUSTFMT_ARGS	 ?= -- --check
+
+CARGO_EXEC	 = $(CARGO_HOME)/bin/cargo
+
+#
+# These paths should be used during the build process to invoke cargo and
+# related build tools.  All paths are fully qualified so that they work
+# regardless of the current working directory at the point of invocation.
+#
+# Note that where PATH is overridden, the value chosen must cause execution of
+# "cargo" to find the same binary to which the CARGO macro refers.
+#
+
+CARGO		:= $(TOP)/$(CARGO_EXEC)
