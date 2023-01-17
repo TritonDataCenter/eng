@@ -9,7 +9,7 @@
 #
 
 #
-# Makefile.node.targ: See Makefile.node.defs.
+# Makefile.rust.targ: See Makefile.rust.defs.
 #
 
 #
@@ -26,33 +26,44 @@
 #
 # Then create a PR as usual for review.
 
+CURL ?= $(error CURL is not set: was Makefile.defs included?)
 
-$(RUSTUP_HOME):
-	--default-toolchain none
+$(CACHE_DIR):
+	@mkdir -p $(CACHE_DIR)
 
+ifeq ($(RUST_USE_BOOTSTRAP),true)
 
-$(CARGO_EXEC): $(RUSTUP_HOME)
+rust-fetch: $(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ)
+	@mkdir -p $(RUST_BOOTSTRAP_PATH)
+	$(TAR) -xmzf $(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ) --strip-components=1 -C \
+		$(RUST_BOOTSTRAP_PATH)
 
+$(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ): | $(CACHE_DIR)
+	$(CURL) -L $(RUST_BOOTSTRAP_URL)/$(RUST_BOOTSTRAP_TGZ) -o \
+		$(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ)
 
-# ifeq ($(shell uname -s),SunOS)
-# $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC): | deps/node/.git
-# 	(cd deps/node; ./configure $(NODE_CONFIG_FLAGS) && $(MAKE) && $(MAKE) install)
-# else
-# $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC):
-# 	(mkdir -p $(BUILD) \
-# 		&& cd $(BUILD) \
-# 		&& [[ -d src-node ]] && (cd src-node && git checkout master && git pull) || git clone https://github.com/joyent/node.git src-node \
-# 		&& cd src-node \
-# 		&& git checkout $(NODE_PREBUILT_VERSION) \
-# 		&& ./configure $(NODE_CONFIG_FLAGS) \
-# 		&& $(MAKE) && $(MAKE) install)
-# endif
+else
 
-DISTCLEAN_FILES += $(NODE_INSTALL) $(BUILD)/src-node
+rust-fetch: $(CACHE_DIR)/rustup-init.sh
+	@mkdir -p $(RUST_TOOLCHAIN_DIR)
+	RUSTUP_HOME=$(RUST_TOOLCHAIN_DIR) CARGO_HOME=$(CARGO_HOME) \
+		$(SHELL) $(CACHE_DIR)/rustup-init.sh $(RUSTUP_ARGS)
 
-distclean::
-	rm -rf target
+$(CACHE_DIR)/rustup-init.sh: | $(CACHE_DIR)
+	$(CURL) -sSf https://sh.rustup.rs > $(CACHE_DIR)/rustup-init.sh
+	chmod +x $(CACHE_DIR)/rustup-init.sh
 
-check::
-	cargo check
+endif
 
+$(CARGO_EXEC): rust-fetch
+
+.PHONY: clean
+clean::
+	$(RMTREE) $(CARGO_TARGET_DIR)
+
+.PHONY: check
+check:: | $(CARGO_EXEC)
+	$(CARGO) version
+	$(CARGO) check --all-targets
+	$(CARGO) clippy $(RUST_CLIPPY_ARGS)
+	$(CARGO) fmt $(RUSTFMT_ARGS)

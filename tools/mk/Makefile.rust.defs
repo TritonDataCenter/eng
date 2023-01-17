@@ -28,76 +28,147 @@
 #
 
 #
-# This Makefile facilitates building and bundling your own copy of rust in
-# your repo.  All it does is define variables for cargo for you to use
-# elsewhere in your Makefile and rules to build these tools when needed.
+# This Makefile facilitates bundling your own copy of rust in your repo.
+# All it does is define variables for cargo for you to use elsewhere in your
+# Makefile and rules to install these tools when needed.
 #
 # To use this facility, include "Makefile.rust.defs", use the variables as
 # described below to define targets, and then include "Makefile.rust.targ".
 #
-# There are two use cases addressed here:
+# The use case of addressed here is when invoking cargo as part of the build
+# process, as in "cargo build".
 #
-# (1) Invoking cargo as part of the build process, as in "cargo build".
-#     To facilitate this, this Makefile defines Make the variable CARGO
-#     that you can use to invoke these commands during the build process.
-#     You MUST NOT assume that these variables just evaluate to the filenames
-#     themselves, as they may have environment variable definitions and other
-#     things that prevent you from using them directly as a filename.
-#     If you want that, see (2).
+# To facilitate this, this Makefile defines the variable CARGO that you can use
+# to invoke these commands during the build process. You MUST NOT assume that
+# these variables just evaluate to the filenames themselves, as they may have
+# environment variable definitions and other things that prevent you from using
+# them directly as a filename.
 #
-#     Wherever you use one of these variables, you MUST include a dependency on
-#     the corresponding *_EXEC variable as well, like so:
+# Wherever you use one of these variables, you MUST include a dependency on the
+# corresponding *_EXEC variable as well, like so:
 #
 #	target/release/example: src/main.rs $(CARGO_EXEC)
 #		$(CARGO) build --release
 #
-#     or better, use an order-only dependency to avoid spurious rebuilds:
+# or better, use an order-only dependency to avoid spurious rebuilds:
 #
 #	target/release/example: src/main.rs | $(CARGO_EXEC)
 #		$(CARGO) build --release
 #
-#     Otherwise, the underlying file will not get built.  We don't
-#     automatically build them as part of "all" because that approach is
-#     brittle.
+# Otherwise, the underlying file will not get built.  We don't automatically
+# build them as part of "all" because that approach is brittle.
+#
+
+# $(CARGO) should be used during the build process to invoke cargo and related
+# build tools.  All paths are fully qualified so that they work regardless of
+# the current working directory at the point of invocation.
+#
+
 #
 # When including this Makefile, you MAY also specify:
 #
-#	BUILD			top-level directory for built binaries
-#				(default: "build")
+#	RUST_TOOLCHAIN		The rust toolchain to be installed. This is passed
+#				directly to rustup. You may also instead use a
+#				rust-toolchain.toml file (by setting the "channel" property).
+#				In order to maintain compatibility with the RUST_USE_BOOTSTRAP
+#				option this should be a complete version number such as "1.63.0"
+#				and NOT "stable", "nightly", "1.50", etc. This variable takes
+#				precedence over the "channel" property in rust-toolchain.toml.
 #
-#	RUSTUP_HOME		where rust should install its built items
-#				(default: "$BUILD/node")
+#	RUST_TOOLCHAIN_DIR	Sets the root toolchain directory for storing installed
+# 				toolchains and configuration options. This is passed directly
+#				to rustup as RUSTUP_HOME.
+#				(default: "rust")
+#
+#	CARGO_TARGET_DIR	Location of where to place all generated artifacts,
+#				relative to the current working directory. This is passed
+#				directly to cargo.
+#				(default: "target")
+#
+#	CARGO_HOME		This is where Cargo maintains a local cache of the registry
+#				index and when using rustup, where rustup-init will install the
+#				wrappers that selects the desired toolchain to use on each
+#				invocation.
+#
+#	RUST_USE_BOOTSTRAP		Obtain RUST_TOOLCHAIN from the list of available
+#				Illumos builds instead of using rustup. This will default to
+#				`true` on Illumos systems unless set to `false`. All RUSTUP
+#				environment variables and everything in the rust-toolchain.toml
+#				file except "channel" will be ignored. See the RUST_BOOTSTRAP_*
+#				variables below for more options. This option has no impact on
+#				non-"SunOS" operating systems.
 #
 #	RUST_CLIPPY_ARGS	extra flags to pass to clippy
-#				(default: "--with-dtrace" on SmartOS; empty
-#				otherwise.)
+#				(default: "-- -D clippy::all")
 #
-#	RUST_TOOLCHAIN		The rust toolchain to be installed.
-#				This is passed directly to rustup. You may
-#				instead have a rust-toolchain.toml file.
+#	RUSTFMT_ARGS	extra flags to pass to rust fmt
+#				(default: "--check")
 
 TOP ?= $(error You must include Makefile.defs before this makefile)
 
-BUILD		 ?= build
-RUSTUP_HOME	  = $(BUILD)/rustup
-CARGO_HOME	  = $(BUILD)/cargo
-DISTCLEAN_FILES	 += $(RUSTUP_HOME)
+RUST_TOOLCHAIN_DIR		?= $(TOP)/rust
+CARGO_TARGET_DIR		?= target
+CARGO_HOME				?= $(RUST_TOOLCHAIN_DIR)/cargo
+RUST_CLIPPY_ARGS		?= -- -D clippy::all
+RUSTFMT_ARGS			?= -- --check
 
-RS_FILES	  = $(shell find $(TOP)/src -name *.rs)
+# This is currenlty only used when downloading bootstrap tarballs.
+CACHE_DIR				?= cache
 
-RUSTUP_ARGS	 ?= -y --no-modify-path
-RUST_CLIPPY_ARGS ?= -- -D clippy::all
-RUSTFMT_ARGS	 ?= -- --check
+DISTCLEAN_FILES			+= $(RUST_TOOLCHAIN_DIR) $(CACHE_DIR) $(CARGO_HOME)
 
-CARGO_EXEC	 = $(CARGO_HOME)/bin/cargo
+RS_FILES				?= $(shell find $(TOP)/src -name *.rs) Cargo.toml
 
-#
-# These paths should be used during the build process to invoke cargo and
-# related build tools.  All paths are fully qualified so that they work
-# regardless of the current working directory at the point of invocation.
-#
-# Note that where PATH is overridden, the value chosen must cause execution of
-# "cargo" to find the same binary to which the CARGO macro refers.
-#
+# On Illumos systems, fetch bootstrap builds by default.
+ifeq ($(shell uname -s),SunOS)
+RUST_USE_BOOTSTRAP	?= true
+else
+# Has no effect on other OSes
+RUST_USE_BOOTSTRAP	= false
+endif
 
-CARGO		:= $(TOP)/$(CARGO_EXEC)
+ifeq ($(shell uname -s)$(RUST_USE_BOOTSTRAP),SunOStrue)
+
+# For bootstrap builds, if no RUST_TOOLCHAIN is provided we can try to extract
+# the `channel` field from the rust-toolchain.toml file. This provides some
+# compat with rustup (which will consult rust-toolchain.toml automatically if
+# RUST_TOOLCHAIN is not specified.)
+ifndef RUST_TOOLCHAIN
+RUST_TOOLCHAIN=$(shell $(SED) -n \
+	's/^channel[[:blank:]]*=[[:blank:]]*"\(.*\)"$$/\1/p' rust-toolchain.toml)
+endif
+
+RUST_BOOTSTRAP_URL		?= https://us-central.manta.mnx.io/pkgsrc/public/pkg-bootstraps
+RUST_BOOTSTRAP_TARGET	?= x86_64-unknown-illumos
+RUST_BOOTSTRAP_TGZ		?= rust-$(RUST_TOOLCHAIN)-$(RUST_BOOTSTRAP_TARGET).tar.gz
+RUST_BOOTSTRAP_PATH 	= $(RUST_TOOLCHAIN_DIR)/toolchains/$(RUST_TOOLCHAIN)-$(RUST_BOOTSTRAP_TARGET)-boostrap
+
+CARGO_EXEC				= $(RUST_BOOTSTRAP_PATH)/bin/cargo
+
+CARGO = PATH=$(RUST_BOOTSTRAP_PATH)/bin/:$$PATH \
+	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
+
+else
+
+RUSTUP_HOME			= $(RUST_TOOLCHAIN_DIR)
+RUSTUP_ARGS			= -y --no-modify-path --component clippy --component rustfmt
+
+ifdef RUST_TOOLCHAIN
+RUSTUP_ARGS			+= --default-toolchain $(RUST_TOOLCHAIN)
+else
+# When using only a rust-toolchain.toml file, this argument is needed to prevent
+# rustup-init (which doesn't consult rust-toolchain.toml) from installing the
+# default stable version of rust. On the first invocation of cargo
+# rust-toolchain.toml will be consulted and the desired toolchain installed.
+# See also: rust-lang/rustup/issues/2686
+RUSTUP_ARGS			+= --default-toolchain none
+endif
+
+CARGO_EXEC			= $(CARGO_HOME)/bin/cargo
+
+# When using rustup, a generic cargo wrapper is installed in CARGO_HOME that
+# selects the default toolchain
+CARGO = PATH=$(CARGO_HOME)/bin:$$PATH CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) \
+	CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
+
+endif
