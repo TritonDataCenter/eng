@@ -125,6 +125,10 @@ RUST_USE_BOOTSTRAP	?= true
 else
 # Has no effect on other OSes
 RUST_USE_BOOTSTRAP	= false
+
+# rustup-init specifies /bin/sh but the script uses the `local` builtin which
+# is incompatible with the /bin/sh in SmartOS (zsh would also work here...)
+SHELL 				= /bin/bash
 endif
 
 ifeq ($(shell uname -s)$(RUST_USE_BOOTSTRAP),SunOStrue)
