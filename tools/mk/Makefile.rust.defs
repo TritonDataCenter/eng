@@ -90,13 +90,20 @@
 #				wrappers that selects the desired toolchain to use on each
 #				invocation.
 #
-#	RUST_USE_BOOTSTRAP		Obtain RUST_TOOLCHAIN from the list of available
-#				Illumos builds instead of using rustup. This will default to
-#				`true` on Illumos systems unless set to `false`. All RUSTUP
+#	RUST_USE_BOOTSTRAP	Obtain RUST_TOOLCHAIN from the list of available Illumos
+#				builds instead of using rustup. This will default to `true`
+#				on Illumos systems unless set to `false`. All RUSTUP_*
 #				environment variables and everything in the rust-toolchain.toml
 #				file except "channel" will be ignored. See the RUST_BOOTSTRAP_*
 #				variables below for more options. This option has no impact on
 #				non-"SunOS" operating systems.
+#				Note that versions of Rust before 1.47.0 are not available
+#				from rustup on Illumos/SunOS.
+#
+#	RUST_BOOTSTRAP_TARGET	Sets the target triple for the Illumos bootstrap. Must be set
+# 				to "x86_64-sun-solaris" if a toolchain older than 1.49.0 is
+# 				required.
+#				(default: "x86_64-unknown-illumos")
 #
 #	RUST_CLIPPY_ARGS	extra flags to pass to clippy
 #				(default: "-- -D clippy::all")
@@ -108,16 +115,16 @@ TOP ?= $(error You must include Makefile.defs before this makefile)
 
 RUST_TOOLCHAIN_DIR		?= $(TOP)/rust
 CARGO_TARGET_DIR		?= target
-CARGO_HOME				?= $(RUST_TOOLCHAIN_DIR)/cargo
+CARGO_HOME			?= $(RUST_TOOLCHAIN_DIR)/cargo
 RUST_CLIPPY_ARGS		?= -- -D clippy::all
 RUSTFMT_ARGS			?= -- --check
 
 # This is currenlty only used when downloading bootstrap tarballs.
-CACHE_DIR				?= cache
+CACHE_DIR			?= cache
 
 DISTCLEAN_FILES			+= $(RUST_TOOLCHAIN_DIR) $(CACHE_DIR) $(CARGO_HOME)
 
-RS_FILES				?= $(shell find $(TOP)/src -name *.rs) Cargo.toml
+RS_FILES			?= $(shell find $(TOP) -name *.rs) Cargo.toml
 
 # On Illumos systems, fetch bootstrap builds by default.
 ifeq ($(shell uname -s),SunOS)
@@ -125,10 +132,6 @@ RUST_USE_BOOTSTRAP	?= true
 else
 # Has no effect on other OSes
 RUST_USE_BOOTSTRAP	= false
-
-# rustup-init specifies /bin/sh but the script uses the `local` builtin which
-# is incompatible with the /bin/sh in SmartOS (zsh would also work here...)
-SHELL 				= /bin/bash
 endif
 
 ifeq ($(shell uname -s)$(RUST_USE_BOOTSTRAP),SunOStrue)
@@ -142,33 +145,37 @@ RUST_TOOLCHAIN=$(shell $(SED) -n \
 	's/^channel[[:blank:]]*=[[:blank:]]*"\(.*\)"$$/\1/p' rust-toolchain.toml)
 endif
 
-RUST_BOOTSTRAP_URL		?= https://us-central.manta.mnx.io/pkgsrc/public/pkg-bootstraps
+RUST_BOOTSTRAP_URL	?= https://us-central.manta.mnx.io/pkgsrc/public/pkg-bootstraps
 RUST_BOOTSTRAP_TARGET	?= x86_64-unknown-illumos
-RUST_BOOTSTRAP_TGZ		?= rust-$(RUST_TOOLCHAIN)-$(RUST_BOOTSTRAP_TARGET).tar.gz
+RUST_BOOTSTRAP_TGZ	?= rust-$(RUST_TOOLCHAIN)-$(RUST_BOOTSTRAP_TARGET).tar.gz
 RUST_BOOTSTRAP_PATH 	= $(RUST_TOOLCHAIN_DIR)/toolchains/$(RUST_TOOLCHAIN)-$(RUST_BOOTSTRAP_TARGET)-boostrap
 
-CARGO_EXEC				= $(RUST_BOOTSTRAP_PATH)/bin/cargo
+CARGO_EXEC		= $(RUST_BOOTSTRAP_PATH)/bin/cargo
 
 CARGO = PATH=$(RUST_BOOTSTRAP_PATH)/bin/:$$PATH \
 	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
 
 else
 
-RUSTUP_HOME			= $(RUST_TOOLCHAIN_DIR)
-RUSTUP_ARGS			= -y --no-modify-path --component clippy --component rustfmt
+RUSTUP_HOME		= $(RUST_TOOLCHAIN_DIR)
+RUSTUP_ARGS		= -y --no-modify-path --component clippy --component rustfmt
+
+# rustup-init specifies /bin/sh but the script uses the `local` builtin which
+# is incompatible with the /bin/sh in SmartOS (zsh would also work here...)
+SHELL 			= /bin/bash
 
 ifdef RUST_TOOLCHAIN
-RUSTUP_ARGS			+= --default-toolchain $(RUST_TOOLCHAIN)
+RUSTUP_ARGS		+= --default-toolchain $(RUST_TOOLCHAIN)
 else
 # When using only a rust-toolchain.toml file, this argument is needed to prevent
 # rustup-init (which doesn't consult rust-toolchain.toml) from installing the
 # default stable version of rust. On the first invocation of cargo
 # rust-toolchain.toml will be consulted and the desired toolchain installed.
 # See also: rust-lang/rustup/issues/2686
-RUSTUP_ARGS			+= --default-toolchain none
+RUSTUP_ARGS		+= --default-toolchain none
 endif
 
-CARGO_EXEC			= $(CARGO_HOME)/bin/cargo
+CARGO_EXEC		= $(CARGO_HOME)/bin/cargo
 
 # When using rustup, a generic cargo wrapper is installed in CARGO_HOME that
 # selects the default toolchain
