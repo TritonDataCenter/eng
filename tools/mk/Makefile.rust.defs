@@ -35,7 +35,7 @@
 # To use this facility, include "Makefile.rust.defs", use the variables as
 # described below to define targets, and then include "Makefile.rust.targ".
 #
-# The use case of addressed here is when invoking cargo as part of the build
+# The use case addressed here is when invoking cargo as part of the build
 # process, as in "cargo build".
 #
 # To facilitate this, this Makefile defines the variable CARGO that you can use
@@ -98,7 +98,8 @@
 #				variables below for more options. This option has no impact on
 #				non-"SunOS" operating systems.
 #				Note that versions of Rust before 1.47.0 are not available
-#				from rustup on Illumos/SunOS.
+#				from rustup on Illumos/SunOS and versions before 1.12.1 are not
+#				available via the bootstrap builds.
 #
 #	RUST_BOOTSTRAP_TARGET	Sets the target triple for the Illumos bootstrap. Must be set
 # 				to "x86_64-sun-solaris" if a toolchain older than 1.49.0 is
