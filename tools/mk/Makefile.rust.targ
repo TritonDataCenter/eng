@@ -1,0 +1,69 @@
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright 2023 MNX Cloud, Inc.
+#
+
+#
+# Makefile.rust.targ: See Makefile.rust.defs.
+#
+
+#
+# NOTE: This makefile comes from the "eng" repo. If you find yourself changing
+# this file, you should ensure that you test all consumers of it, since
+# eng.git is a git submodule of several repositories. After testing, push
+# changes to the eng.git repository as normal, then do the following for
+# each component that uses eng.git, likely reusing the original ticket subject
+# for the commit message as was used for the eng.git push.
+#
+#    $ git submodule update --remote deps/eng
+#    $ git add deps/eng
+#    $ git commit -m "TOOLS-xxxx some description" deps/eng
+#
+# Then create a PR as usual for review.
+
+CURL ?= $(error CURL is not set: was Makefile.defs included?)
+
+$(CACHE_DIR):
+	@mkdir -p $(CACHE_DIR)
+
+ifeq ($(RUST_USE_BOOTSTRAP),true)
+
+rust-fetch: $(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ)
+	@mkdir -p $(RUST_BOOTSTRAP_PATH)
+	$(TAR) -xmzf $(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ) --strip-components=1 -C \
+		$(RUST_BOOTSTRAP_PATH)
+
+$(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ): | $(CACHE_DIR)
+	$(CURL) -sL $(RUST_BOOTSTRAP_URL)/$(RUST_BOOTSTRAP_TGZ) -o \
+		$(CACHE_DIR)/$(RUST_BOOTSTRAP_TGZ)
+
+else
+
+rust-fetch: $(CACHE_DIR)/rustup-init.sh
+	@mkdir -p $(RUST_TOOLCHAIN_DIR)
+	RUSTUP_HOME=$(RUST_TOOLCHAIN_DIR) CARGO_HOME=$(CARGO_HOME) \
+		$(SHELL) $(CACHE_DIR)/rustup-init.sh $(RUSTUP_ARGS)
+
+$(CACHE_DIR)/rustup-init.sh: | $(CACHE_DIR)
+	$(CURL) -sSf https://sh.rustup.rs > $(CACHE_DIR)/rustup-init.sh
+	chmod +x $(CACHE_DIR)/rustup-init.sh
+
+endif
+
+$(CARGO_EXEC): rust-fetch
+
+.PHONY: clean
+clean::
+	$(RMTREE) $(CARGO_TARGET_DIR)
+
+.PHONY: check
+check:: | $(CARGO_EXEC)
+	$(CARGO) version
+	$(CARGO) check --all-targets
+	$(CARGO) clippy $(RUST_CLIPPY_ARGS)
+	$(CARGO) fmt $(RUSTFMT_ARGS)

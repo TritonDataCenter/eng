@@ -6,7 +6,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
-# Copyright 2022 MNX Cloud, Inc.
+# Copyright 2023 MNX Cloud, Inc.
 #
 
 #
@@ -52,8 +52,6 @@
 #			- check-bash: Checks $BASH_FILES for style.
 #			- check-manifests: Checks SMF manifests for validity
 #			  against the SMF DTD. See "Makefile.smf.defs".
-#			- check-rust: Checks rust files using `cargo clippy`
-#			  See "RUST_*" vars below.
 #			- check-copyright: Checks "Copyright" statements in
 #			  files different from master. See
 #			  "ENGBLD_CHECK_COPYRIGHT_" vars below.
@@ -113,21 +111,6 @@
 #
 #	JSSTYLE_FILES	JavaScript files to be style-checked
 #
-#	RUST_CODE	Set this, `RUST_CODE=1` to enable cargo clippy as part
-#			of `make check`.
-#	RUST_CLIPPY_ARGS
-#			Alternative options to pass to `cargo clippy` as part
-#			of `make check`. By default it is "-- -D clippy::all".
-#			Other potential options:
-#			- full clippy:
-#			  RUST_CLIPPY_ARGS="-- -D clippy::all -D clippy::pedantic -D clippy::nursery -D clippy::cargo"
-#			- just warn:
-#			  RUST_CLIPPY_ARGS="-- -W clippy::all"
-#			Specific clippy checks can be ignored via Rust
-#			attributes at the module or function level, e.g.
-#			    #[allow(clippy::match_bool)]
-#			    fn post_timer_metrics(method: Method, ...) {
-#
 #	ENGBLD_CHECK_COPYRIGHT_DISABLE
 #			Set this to disable "check-copyright".
 #	ENGBLD_CHECK_COPYRIGHT_ARGS
@@ -141,8 +124,6 @@
 #
 #	BUILD		top-level directory for node binaries, generated docs,
 #			and any other build output (default: "build")
-#
-#	CARGO		Path to cargo (default: "cargo")
 #
 #	CSCOPE_DIRS	Directories to search for source files for the cscope
 #			index. (default: ".")
@@ -177,7 +158,6 @@
 #
 BASH		?= bash
 BASHSTYLE   	?= $(NODE) deps/eng/tools/bashstyle
-CARGO		?= cargo
 ENGBLD_CHECK_COPYRIGHT ?= deps/eng/tools/check-copyright
 ENGBLD_CHECK_COPYRIGHT_ARGS ?= -q
 CP		?= cp
@@ -192,7 +172,6 @@ MV		?= mv
 RESTDOWN_FLAGS	?=
 RESTDOWN_EXT	?= .md
 RMTREE		?= rm -rf
-RUST_CLIPPY_ARGS ?= -- -D clippy::all
 JSL_FLAGS  	?= --nologo --nosummary
 
 ifeq ($(shell uname -s),SunOS)
@@ -300,21 +279,13 @@ JSSTYLE_TARGET = $(if $(JSSTYLE_FILES), check-jsstyle)
 check-jsstyle:  $(JSSTYLE_EXEC)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $(JSSTYLE_FILES)
 
-# We run `cargo clean` before `cargo clippy` because, at least in Rust v1.35
-# clippy will not check already compiled files.
-# https://github.com/rust-lang/cargo/pull/7157 might fix this.
-RUST_CHECK_TARGET = $(if $(RUST_CODE), check-rust)
-.PHONY: check-rust
-check-rust:
-	$(CARGO) clean && $(CARGO) clippy $(RUST_CLIPPY_ARGS)
-
 _CHECK_COPYRIGHT_TARGET = $(if $(ENGBLD_CHECK_COPYRIGHT_DISABLE),,check-copyright)
 .PHONY: check-copyright
 check-copyright:
 	$(ENGBLD_CHECK_COPYRIGHT) $(ENGBLD_CHECK_COPYRIGHT_ARGS)
 
 .PHONY: check
-check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash $(RUST_CHECK_TARGET) $(_CHECK_COPYRIGHT_TARGET)
+check:: $(ESLINT_TARGET) check-jsl check-json $(JSSTYLE_TARGET) check-bash $(_CHECK_COPYRIGHT_TARGET)
 	@echo check ok
 
 .PHONY: clean
