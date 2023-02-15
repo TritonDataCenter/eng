@@ -7,7 +7,7 @@
 
 #
 # Copyright 2022 Joyent, Inc.
-# Copyright 2022 MNX Cloud, Inc.
+# Copyright 2023 MNX Cloud, Inc.
 #
 
 #
@@ -555,7 +555,7 @@ function validate_opt_tools {
             git-base
             git-docs
             git-contrib
-            openjdk8
+            openjdk11
             nodejs-8.17.0nb1
             npm
             gcc7
