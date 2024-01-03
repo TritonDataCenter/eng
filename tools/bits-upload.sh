@@ -7,7 +7,7 @@
 
 #
 # Copyright 2019 Joyent, Inc.
-# Copyright 2022 MNX Cloud, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -118,7 +118,7 @@ function manta_upload {
             awk '{sub("^MD5:", "", $2); print $2}')
     fi
     if [[ -z "$MANTA_URL" ]]; then
-        export MANTA_URL=https://us-east.manta.joyent.com
+        export MANTA_URL=https://us-central.manta.mnx.io
     fi
     if [[ -z "$MANTA_USER" ]]; then
         export MANTA_USER="Joyent_Dev";

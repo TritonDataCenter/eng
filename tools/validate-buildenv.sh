@@ -7,7 +7,7 @@
 
 #
 # Copyright 2022 Joyent, Inc.
-# Copyright 2023 MNX Cloud, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -44,7 +44,7 @@
 
 #
 # For the NODE_PREBUILT_IMAGE checks, we use this list from
-# From https://us-east.manta.joyent.com/Joyent_Dev/public/releng/sdcnode/README.html
+# From https://us-central.manta.mnx.io/Joyent_Dev/public/releng/sdcnode/README.html
 # the following images versions are supported:
 #
 #    sdc-smartos@1.6.3: fd2cc906-8938-11e3-beab-4359c665ac99
@@ -502,7 +502,7 @@ function validate_pkgsrc_pkgs {
         # TLSv1.2. Newer jenkins-agent images have fixed this by symlinking
         # to the version of git from /opt/tools instead, but warn just in case.
         if [[ "$PKGSRC_RELEASE" == "2011Q4" ]]; then
-            JDEV="https://us-east.manta.joyent.com/Joyent_Dev/public/bits/"
+            JDEV="https://us-central.manta.mnx.io/Joyent_Dev/public/bits/"
             MODERN_GIT_TARBALL="modern-git-20170223a.tar.gz"
             echo "Note: the version of scmgit from pkgsrc may be too old."
             echo "Please verify that /opt/local/bin/git (which may be a "
