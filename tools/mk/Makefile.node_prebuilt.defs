@@ -6,6 +6,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -103,7 +104,7 @@
 #				for an sdcnode build that you want to use (potential compat
 #				issues be damned), then set this to the UUID of the sdcnode
 #				build you want. See here for available build image uuids:
-#				<https://us-east.manta.joyent.com/Joyent_Dev/public/releng/sdcnode>
+#				<https://us-central.manta.mnx.io/Joyent_Dev/public/releng/sdcnode>
 #
 #	BUILD			top-level directory for built binaries
 #				(default: "build")
@@ -147,7 +148,7 @@ else
 	NODE_PREBUILT_NAME := $(NODE_PREBUILT_VERSION)-$(NODE_PREBUILT_TAG)-$(NODE_PREBUILT_IMAGE)
 endif
 NODE_PREBUILT_PATTERN := sdcnode-$(NODE_PREBUILT_NAME)-$(NODE_PREBUILT_BRANCH)-.*\.tgz
-NODE_PREBUILT_MANTA_URL ?= https://us-east.manta.joyent.com
+NODE_PREBUILT_MANTA_URL ?= https://us-central.manta.mnx.io
 NODE_PREBUILT_MANTA_DIR ?= /Joyent_Dev/public/releng/sdcnode/$(BUILD_PLATFORM)/$(NODE_PREBUILT_IMAGE)/$(NODE_PREBUILT_BRANCH)-latest
 
 # only use NODE_PREBUILT_DIR if it is set.

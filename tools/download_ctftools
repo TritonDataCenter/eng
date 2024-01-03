@@ -7,6 +7,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -15,7 +16,7 @@
 # Jenkins job.
 #
 
-MANTA_HOST="https://us-east.manta.joyent.com"
+MANTA_HOST="https://us-central.manta.mnx.io"
 MIN_PLATFORM="$1"
 MPATH="/Joyent_Dev/public/builds/SmartOS/ctftools/master/built.joyent_$MIN_PLATFORM"
 TARBALL="ctftools.tar.gz"
