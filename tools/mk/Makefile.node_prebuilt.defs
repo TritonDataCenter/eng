@@ -127,7 +127,7 @@
 # build (say the developer changes NODE_PREBUILT_VERSION) will recreate the
 # node install.
 #
-# See <https://mo.joyent.com/docs/sdcnode/master/> for details on 'sdcnode-*'
+# See <https://github.com/TritonDataCenter/sdcnode> for details on 'sdcnode-*'
 # package naming.
 #
 

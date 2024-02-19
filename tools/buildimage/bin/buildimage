@@ -7,7 +7,7 @@
 
 /*
  * Copyright 2019 Joyent, Inc.
- * Copyright 2022 MNX Cloud, Inc.
+ * Copyright 2024 MNX Cloud, Inc.
  */
 
 var child_process = require('child_process');
@@ -572,13 +572,13 @@ function writeMotd(opts, callback) {
                 imageInfo.manifest.name + '@' + imageInfo.manifest.version);
 
             // An example of the motd created here:
-            // =  J O Y E N T  =
+            // =  T R I T O N  =
             //
-            // manta-storage (master-20190628T124752Z-g1199325)
-            // git@github.com:joyent/manta-mako.git
-            // triton-origin-multiarch-18.1.0@1.0.1
+            // ufds (release-20221215-20221215T002709Z-gb5661e9)
+            // https://github.com/tritondatacenter/sdc-ufds.git
+            // triton-origin-x86_64-21.4.0@master-20220322T012137Z-g9382491
             //
-            var motd = ' =  J O Y E N T  =\n\n';
+            var motd = ' =  T R I T O N  =\n\n';
             motd += sprintf(
                 '    %s (%s)\n', motd_data['name'], motd_data['stamp']);
             motd += sprintf('    %s\n', motd_data['source_repo']);

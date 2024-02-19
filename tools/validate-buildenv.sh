@@ -14,8 +14,8 @@
 # Check if the current build machine is supported for building this component
 # and that the build environment seems sane.
 #
-# Most Joyent software is built using a common build environment described in
-# https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md.
+# Most Triton software is built using a common build environment described in
+# https://github.com/TritonDataCenter/triton/blob/master/docs/developer-guide/build-zone-setup.md.
 # The quickest path to having a sane build environment likely involves following
 # that document.
 #
@@ -109,7 +109,7 @@ declare -A SDC_MAP=(
 
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
 # image uuid to a corresponding jenkins-agent image uuid.
-# Jenkins agent images are built by https://github.com/joyent/jenkins-agent
+# Jenkins agent images are built by https://github.com/TritonDataCenter/jenkins-agent
 declare -A JENKINS_AGENT_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=3e8e972d-1d38-4b68-a3b2-00861b2ec89a
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=f00a393d-a1c8-4e93-a13e-c364a7d0a2a9
@@ -388,7 +388,7 @@ function validate_delegated_dataset {
 
     has_delegated_ds=$(zfs list -H -o name zones/$zonename/data 2>/dev/null)
     if [[ -z "$has_delegated_ds" ]]; then
-        local djc_base="https://docs.joyent.com/private-cloud/instances/"
+        local djc_base="https://docs.tritondatacenter.com/private-cloud/instances/"
         echo "The current devzone does not have a delegated zfs dataset,"
         echo "which is required for 'buildimage' to function."
         echo "Please recreate this devzone, ensuring it has a delegated ds."
@@ -541,7 +541,7 @@ function validate_opt_tools {
         echo "Alternatively, you can install the current pkgsrc bootstrap bits"
         echo "which deliver /opt/tools. Run the following:"
         echo ""
-        BOOTSTRAP_URL="https://pkgsrc.joyent.com/packages/SmartOS/bootstrap/"
+        BOOTSTRAP_URL="https://pkgsrc.smartos.org/packages/SmartOS/bootstrap/"
         BOOTSTRAP_TAR="bootstrap-2019Q4-tools.tar.gz"
         BOOTSTRAP_SHA="e7bcc5352d0f4ecdad3143cb6c39c251bac2d0b6"
         echo "    curl -k -o /var/tmp/${BOOTSTRAP_TAR} \\"
@@ -749,7 +749,7 @@ else
         echo "Build zone setup typically requires almost no work if you are"
         echo "using the right image.  See:"
         echo ""
-        echo "https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md"
+        echo "https://github.com/TritonDataCenter/triton/blob/master/docs/developer-guide/build-zone-setup.md"
         echo ""
 
         exit 1

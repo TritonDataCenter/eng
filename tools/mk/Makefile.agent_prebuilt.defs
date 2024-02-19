@@ -6,6 +6,7 @@
 
 #
 # Copyright 2019 Joyent, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -110,7 +111,7 @@ AGENT_PREBUILT_DIR ?= /var/tmp/agent-cache.$(AGENT_USER)
 #
 # sdc-amon
 #
-AMON_PREBUILT_GIT_URL = 		https://github.com/joyent/sdc-amon.git
+AMON_PREBUILT_GIT_URL = 		https://github.com/TritonDataCenter/sdc-amon.git
 AMON_PREBUILT_REPO = 			sdc-amon
 AMON_PREBUILT_AGENT_TARGETS =		distclean agent pkg_agent
 AMON_PREBUILT_ROOTDIR = 		root/opt
@@ -126,7 +127,7 @@ AMON_PREBUILT_TARGETS += AMON-prebuilt-extract
 #
 # sdc-config-agent
 #
-CONFIG_PREBUILT_GIT_URL =		https://github.com/joyent/sdc-config-agent.git
+CONFIG_PREBUILT_GIT_URL =		https://github.com/TritonDataCenter/sdc-config-agent.git
 CONFIG_PREBUILT_REPO = 			sdc-config-agent
 CONFIG_PREBUILT_AGENT_TARGETS =		distclean release
 CONFIG_PREBUILT_ROOTDIR = 		root/opt/smartdc
@@ -142,7 +143,7 @@ CONFIG_PREBUILT_TARGETS += CONFIG-prebuilt-extract
 #
 # manta-mackerel
 #
-MACKEREL_PREBUILT_GIT_URL =			https://github.com/joyent/manta-mackerel.git
+MACKEREL_PREBUILT_GIT_URL =			https://github.com/TritonDataCenter/manta-mackerel.git
 MACKEREL_PREBUILT_REPO = 			manta-mackerel
 MACKEREL_PREBUILT_AGENT_TARGETS =	distclean release
 # intentionally left blank as the tarball includes root/opt/smartdc
@@ -159,7 +160,7 @@ MACKEREL_PREBUILT_TARGETS += MACKEREL-prebuilt-extract
 #
 # manta-minnow
 #
-MINNOW_PREBUILT_GIT_URL =		https://github.com/joyent/manta-minnow.git
+MINNOW_PREBUILT_GIT_URL =		https://github.com/TritonDataCenter/manta-minnow.git
 MINNOW_PREBUILT_REPO = 			manta-minnow
 MINNOW_PREBUILT_AGENT_TARGETS =	distclean release
 # intentionally left blank as the tarball includes root/opt/smartdc
@@ -176,7 +177,7 @@ MINNOW_PREBUILT_TARGETS += MINNOW-prebuilt-extract
 #
 # registrar
 #
-REGISTRAR_PREBUILT_GIT_URL =			https://github.com/joyent/registrar.git
+REGISTRAR_PREBUILT_GIT_URL =			https://github.com/TritonDataCenter/registrar.git
 REGISTRAR_PREBUILT_REPO = 				registrar
 REGISTRAR_PREBUILT_AGENT_TARGETS = 		distclean release
 # intentionally left blank as the tarball includes root/opt/smartdc
@@ -193,7 +194,7 @@ REGISTRAR_PREBUILT_TARGETS += REGISTRAR-prebuilt-extract
 #
 # waferlock
 #
-WAFERLOCK_PREBUILT_GIT_URL =			https://github.com/joyent/waferlock.git
+WAFERLOCK_PREBUILT_GIT_URL =			https://github.com/TritonDataCenter/waferlock.git
 WAFERLOCK_PREBUILT_REPO = 				waferlock
 WAFERLOCK_PREBUILT_AGENT_TARGETS = 		distclean release
 # intentionally left blank as the tarball includes root/opt/smartdc
@@ -210,7 +211,7 @@ WAFERLOCK_PREBUILT_TARGETS += WAFERLOCK-prebuilt-extract
 #
 # rebalancer
 #
-REBALANCER_PREBUILT_GIT_URL =			https://github.com/joyent/manta-rebalancer.git
+REBALANCER_PREBUILT_GIT_URL =			https://github.com/TritonDataCenter/manta-rebalancer.git
 REBALANCER_PREBUILT_REPO =				manta-rebalancer
 REBALANCER_PREBUILT_AGENT_TARGETS =		distclean agent pkg_agent
 # intentionally left blank as the tarball includes root/opt/smartdc
