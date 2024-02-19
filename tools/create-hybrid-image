@@ -8,6 +8,7 @@
 
 #
 # Copyright 2022 Joyent, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -37,7 +38,7 @@ cat <<EOF
 
 Create a hybrid (kvm, bhyve) image from a given ISO file. This should be run
 from a joyent brand zone that is as described in the "Build environment" section
-of https://github.com/joyent/eng/tree/master/docs/hybridimages.md
+of https://github.com/TritonDataCenter/eng/tree/master/docs/hybridimages.md
 or $ENGDIR/tools/hybridimages.md.
 
 Usage:
@@ -47,7 +48,7 @@ Usage:
 Example:
   create-hybrid-image -i binary.iso -n debian-10 \\
       -d "Debian 10 (bionic) 64-bit image with just essential packages... " \\
-      -u https://docs.joyent.com/images/hvm/debian
+      -u https://docs.tritondatacenter.com/images/hvm/debian
 
 OPTIONS:
   -h Show this message

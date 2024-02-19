@@ -1,5 +1,5 @@
 ---
-title: Joyent Engineering Guide
+title: Triton Engineering Guide
 markdown2extras: tables, code-friendly
 apisections:
 ---
@@ -11,12 +11,13 @@ apisections:
 
 <!--
     Copyright 2019 Joyent, Inc.
+    Copyright 2024 MNX Cloud, Inc.
 -->
 
-# Joyent Engineering Guide
+# Triton Engineering Guide
 
-This document describes standards and best practices for software development at
-Joyent. These standards are intended to maintain product quality and to provide
+This document describes standards and best practices for software development on
+Triton. These standards are intended to maintain product quality and to provide
 consistency across codebases to make it easier for all engineers to learn new
 parts of the system. This latter goal is important to encourage everyone to feel
 comfortable diving into all parts of the system, as is often necessary when
@@ -27,10 +28,9 @@ be followed blindly. However, these guidelines represent the best practices
 agreed upon by the team. If you feel it necessary to diverge from them, that's
 okay, but be prepared to explain why.
 
-Note: In this document (and elsewhere at Joyent), a service implementing an API
-is referred to by the API name itself. For example, "SAPI" denotes both the
-"Services API" in the abstract as well as the software component that implements
-that API.
+Note: In this document, a service implementing an API is referred to by the API
+name itself. For example, "SAPI" denotes both the "Services API" in the
+abstract as well as the software component that implements that API.
 
 
 # Repository Guidelines
@@ -62,19 +62,14 @@ being able to commit frequently.
 
 ## Repositories and documentation
 
-Open-source projects and components live at github.com/joyent. These include
-Node.js, SmartOS, Triton, Manta, and a large number of smaller Node modules and
+Open-source projects and components live at github.com/TritonDataCenter. These
+include SmartOS, Triton, Manta, and a large number of smaller Node modules and
 other components. Some components still live under individuals' github
-accounts, but new components should generally be created under the "joyent"
-organization.
+accounts, but new components should generally be created under the
+"TritonDataCenter" organization.
 
 Note that just because a repo is on github doesn't mean its issues are tracked
 there. That's decided on a per-project basis.
-
-Some older components (and a few proprietary ones that are still used) are
-managed by gitosis running on the internal Joyent git server. Files, commits,
-and documentation for these projects can be browsed at mo.joyent.com by Joyent
-employees.
 
 
 ## Repository Naming
@@ -194,7 +189,7 @@ Dependencies via `npm` can either take the form of an `npm` package name with a
 version specifier (in which case it must be published to the public `npm`
 package servers), or a `git` URL.
 
-For externally developed packages not published by Joyent, version specifiers
+For externally developed packages not published under Triton, version specifiers
 should always be used (and the package published to `npm`):
 
     "dependencies": {
@@ -219,10 +214,10 @@ because it prevents users from being able to clone and build the package on a
 machine that does not have their GitHub private key on it.
 
     "dependencies": {
-      "joyent-module": "git+https://github.com/joyent/node-joyent-module.git#016977"
+      "triton-module": "git+https://github.com/TritonDataCenter/node-triton-module.git#016977"
     }
 
-For certain dependencies, it is standard practice across the Joyent repositories
+For certain dependencies, it is standard practice across the Triton repositories
 to use `git` submodules and not `npm`. This applies in particular to
 `javascriptlint`, `jsstyle`, `restdown`, `sdc-scripts` and some other modules
 that are not node.js-based. Similar to `npm` `git` dependencies, these must use
@@ -230,12 +225,11 @@ that are not node.js-based. Similar to `npm` `git` dependencies, these must use
 
     [submodule "deps/javascriptlint"]
             path = deps/javascriptlint
-            url = https://github.com/davepacheco/javascriptlint.git
+            url = https://github.com/TritonDataCenter/javascriptlint.git
 
 Lastly, though you will find discussion about it in places, we don't currently
 use the npm "shrinkwrap" feature in any repositories. This is for a variety of
-reasons, the discussion about which is far too involved to relate here (but feel
-free to ask a senior Joyeur about the sordid history of SDC release management).
+reasons, the discussion about which is far too involved to relate here.
 
 *[1]* There are a handful of exceptions here in cases where multiple logical
 node.js modules are combined in one repository (e.g. `ca-native` and `amon`
@@ -251,8 +245,8 @@ tabs and tabstops). All styles **must** limit line length to 80
 columns<sup>[1](#footnote1)</sup>.  Existing style-checking tools
 include:
 
-* C: [cstyle](https://github.com/joyent/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
-* JavaScript: [jsstyle](https://github.com/davepacheco/jsstyle),
+* C: [cstyle](https://github.com/TritonDataCenter/illumos-joyent/blob/master/usr/src/tools/scripts/cstyle.pl)
+* JavaScript: [jsstyle](https://github.com/TritonDataCenter/jsstyle),
   [gjslint](https://code.google.com/closure/utilities/docs/linter_howto.html),
   [eslint](http://eslint.org/)
 * Bash: bashstyle (contained in eng.git:tools/bashstyle)
@@ -288,12 +282,12 @@ run [javascriptlint](http://github.com/davepacheco/javascriptlint) and/or
 not the same as style: lint covers objectively dangerous patterns like
 undeclared variables, while style covers subjective conventions like spacing.
 
-All of `lint`, `javascriptlint`, and `eslint` are very configurable. See
-[RFD 100](https://github.com/joyent/rfd/tree/master/rfd/0100) for eslint usage
-in Joyent repositories. Projects may choose to enable and disable particular
-sets of checks as they deem appropriate. Most checks can be disabled on a
-per-line basis. As with style, it's recommended that we minimize divergence
-between repositories.
+All of `lint`, `javascriptlint`, and `eslint` are very configurable. See [RFD
+100](https://github.com/TritonDataCenter/rfd/tree/master/rfd/0100) for eslint
+usage in Triton repositories. Projects may choose to enable and disable
+particular sets of checks as they deem appropriate. Most checks can be disabled
+on a per-line basis. As with style, it's recommended that we minimize
+divergence between repositories.
 
 Make target: "check"
 
@@ -316,7 +310,7 @@ When modifying existing code, the year should be updated to be the
 current year that the file was modified. There should only be a single
 year, not a list. For example:
 
-    Copyright 2019 Joyent, Inc.
+    Copyright 2024 MNX Cloud, Inc.
 
 
 ## Testing
@@ -326,17 +320,17 @@ for in-Triton systems tests (see boilerplate 'tools/runtests.in').
 
 All repos **must** be tested by a comprehensive automated test suite and must
 be able to generate TAP output. (No particular node.js test framework is
-required, but all things being equal, use "nodeunit" or "node-tap".)
-These tests may be repo-specific, or may be part of a broader system test
-suite (ideally both). In either case, bug fixes and new features should not
-be integrated without adding new tests, and the tests **must** be run
+required, but all things being equal, use "nodeunit" or "node-tap".) These
+tests may be repo-specific, or may be part of a broader system test suite
+(ideally both). In either case, bug fixes and new features should not be
+integrated without adding new tests, and the tests **must** be run
 automatically (as via jenkins) either with every commit or daily. Currently
-this is handled by the [nightly environment](https://github.com/joyent/globe-theatre/)
-and the "stage-test-\*" Jenkins jobs. In other words, your project should
-have some sort of "stage-test-\*" job. Understanding and fixing failures in
-the automated test run **must** be considered the top development priority for
-that repo's team.  Persistent failures are not acceptable. Currently, these
-nightly and CI environments can only be accessed by Joyent employees.
+this is handled by the [nightly
+environment](https://github.com/TritonDataCenter/globe-theatre/) and the
+"stage-test-\*" Jenkins jobs. In other words, your project should have some
+sort of "stage-test-\*" job. Understanding and fixing failures in the automated
+test run **must** be considered the top development priority for that repo's
+team.  Persistent failures are not acceptable.
 
 All installed components **should** provide a "runtests" driver script
 (preferably in the "test" subdirectory) and the necessary test files
@@ -402,9 +396,7 @@ Once the index is built, you can browse the source with:
 
     # cscope -dq
 
-cscope is available for SmartOS in pkgsrc. It's also buildable on MacOS. For
-instructions, see [the
-wiki](https://hub.joyent.com/wiki/display/dev/Snow+Leopard+tips%2C+fixes+and+bugs).
+cscope is available for SmartOS and macOS in pkgsrc.
 
 Make target: "xref"
 
@@ -453,7 +445,7 @@ high level the component that's implemented in the file. For example:
 For non-trivial subsystems, consider adding a Big Theory statement that
 describes what the component does, the external interface, and internal details.
 For a great example, check out
-[panic.c](https://github.com/joyent/illumos-joyent/blob/master/usr/src/uts/common/os/panic.c#L29)
+[panic.c](https://github.com/TritonDataCenter/illumos-joyent/blob/master/usr/src/uts/common/os/panic.c#L29)
 in the kernel.
 
 Consider keeping design documents in restdown inside the repo. It's okay to have
@@ -474,7 +466,7 @@ node build). There are two ways you can get a node build for your repo:
    "tools/mk/Makefile.node.targ". You'll also need a git submodule of the node
    sources:
 
-        $ git submodule add https://github.com/joyent/node.git deps/node
+        $ git submodule add https://github.com/nodejs/node.git deps/node
         $ cd deps/node
         $ git checkout v0.6.18   # select whichever version you want
 
@@ -537,7 +529,7 @@ the comments and not in the JIRA tickets.
 
 ### Commit Comments
 
-Across Joyent we require that **each commit be associated with one or more JIRA
+Across Triton we require that **each commit be associated with one or more JIRA
 tickets and that those tickets be listed in the commit comments**. This way,
 given either the commit or the JIRA ticket, one can find the other.
 
@@ -775,7 +767,7 @@ gather more information. To facilitate this:
 Service API endpoints **should** be named. Endpoint names **must** be
 CamelCase, **should** include the name of resource being operated on,
 and **should** follow the lead of
-[CloudAPI](https://apidocs.joyent.com/cloudapi/) for verb usage, e.g.:
+[CloudAPI](https://apidocs.tritondatacenter.com/cloudapi/) for verb usage, e.g.:
 
     # CRUD examples:
     ListMachines
@@ -790,7 +782,7 @@ and **should** follow the lead of
     ResizeMachine
 
     # Example using "Put" verb from
-    # <https://apidocs.joyent.com/manta/api.html#PutObject> when the action
+    # <https://apidocs.tritondatacenter.com/manta/api.html#PutObject> when the action
     # is idempotent.
     PutObject
 
@@ -1124,7 +1116,7 @@ rather than system scripts whose output goes to a log.
 # Java
 
 If you find yourself having to do anything related to Java or the Java Manta SDK
-[QUICKSTART.md in java-manta](https://github.com/joyent/java-manta/blob/master/QUICKSTART.md)
+[QUICKSTART.md in java-manta](https://github.com/TritonDataCenter/java-manta/blob/master/QUICKSTART.md)
 has a condensed guide for getting started and covers many aspects of our usage
 of Java and Maven that might not be familiar to an engineer that hasn't worked
 with these tools yet.
@@ -1375,10 +1367,8 @@ See the top-level Makefile in eng.git for the complete details.
 
 # Software development process
 
-Team synchronization begins daily with our morning scrum. We use continuous
-integration with GitHub and Jenkins. Bugs and feature requests are tracked in
-Jira. For more details on Joyent's morning scrum please read the: [Onboarding
-Guide](https://mo.joyent.com/docs/engdoc/master/engguide/onboard.html#scrum).
+We use continuous integration with GitHub and Jenkins. Bugs and feature
+requests are tracked in Jira.
 
 In general, process is shrink-to-fit: we adopt process that help us work better,
 but process for process's sake is avoided. Any resemblance to formalized
@@ -1386,7 +1376,11 @@ methodologies, living or dead, is purely coincidental.
 
 # Security Statement and Best Practices
 
-Joyent Engineering makes security a top priority for all of our projects. All engineering work is expected to follow industry best practices. New changes affecting security are reviewed by a developer other than the person who wrote the new code. Both developers test that these changes are not vulnerable to the OWASP top 10 security, pass PCI DSS, and are safe.
+Triton Engineering makes security a top priority for all of our projects. All
+engineering work is expected to follow industry best practices. New changes
+affecting security are reviewed by a developer other than the person who wrote
+the new code. Both developers test that these changes are not vulnerable to the
+OWASP top 10 security, pass PCI DSS, and are safe.
 
 Common vulnerabilities to watch out for:
 
@@ -1400,7 +1394,7 @@ Common vulnerabilities to watch out for:
 
 ## Production code deployment process
 
-For the Joyent Public Cloud, Jira change tickets should include the following before the code is promoted to production:
+For the Public Cloud, Jira change tickets should include the following before the code is promoted to production:
 
 - Description of the change's impact
 - Record of approval by authorized stake holders
@@ -1411,13 +1405,13 @@ For reference, read the [owasp top 10](https://www.owasp.org/index.php/Category:
 
 # Community Interaction
 
-Due to the open source nature of Joyent software, community interaction is very
+Due to the open source nature of Triton software, community interaction is very
 important.
 
-There are mailing lists and IRC channels for top-level Joyent projects (Triton,
-Manta, SmartOS). In addition to using these channels for assisting community
-members with developing and using Joyent products, they are useful for notifying
-the community of major changes.
+There are mailing lists and IRC channels for top-level projects (Triton, Manta,
+SmartOS). In addition to using these channels for assisting community members
+with developing and using our products, they are useful for notifying the
+community of major changes.
 
 ## Flag Day and Heads Up Notifications
 
