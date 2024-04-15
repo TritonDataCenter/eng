@@ -534,7 +534,7 @@ function validate_opt_tools {
         echo "Alternatively, you can install the current pkgsrc bootstrap bits"
         echo "which deliver /opt/tools. Run the following:"
         echo ""
-        BOOTSTRAP_URL="https://pkgsrc.joyent.com/packages/SmartOS/bootstrap/"
+        BOOTSTRAP_URL="https://pkgsrc.smartos.org/packages/SmartOS/bootstrap/"
         BOOTSTRAP_TAR="bootstrap-2019Q4-tools.tar.gz"
         BOOTSTRAP_SHA="e7bcc5352d0f4ecdad3143cb6c39c251bac2d0b6"
         echo "    curl -k -o /var/tmp/${BOOTSTRAP_TAR} \\"
