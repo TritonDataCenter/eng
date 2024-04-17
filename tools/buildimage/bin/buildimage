@@ -7,7 +7,7 @@
 
 /*
  * Copyright 2019 Joyent, Inc.
- * Copyright 2022 MNX Cloud, Inc.
+ * Copyright 2024 MNX Cloud, Inc.
  */
 
 var child_process = require('child_process');
@@ -294,15 +294,107 @@ function replaceHttpProxy(opts, callback) {
     callback();
 }
 
+function pkgsrcCopyKeyring(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    logLine('pkgsrc update gpg keyring...');
+    const child = child_process.spawn('/usr/bin/cp', [
+        '/opt/local/etc/gnupg/pkgsrc.gpg',
+        opts.mountpoint + '/root/opt/local/etc/gnupg/pkgsrc.gpg'
+    ], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        logLine('gpg keyring cp exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to copy pkgsrc.gpg'));
+            return;
+        }
+        callback();
+    })
+}
+
+function pkgsrcPivotSource(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    logLine('Fix pkg_install.conf...');
+    const child = child_process.spawn('/usr/bin/cp', [
+        '/opt/local/etc/pkg_install.conf',
+        opts.mountpoint + '/root/opt/local/etc/pkg_install.conf'
+    ], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        logLine('pkg_install.conf cp exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to copy pkg_install.conf'));
+            return;
+        }
+        callback();
+    })
+}
+
+function pkginPivotSource(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    logLine('Fix pkg_install.conf...');
+    const child = child_process.spawn('/usr/bin/cp', [
+        '/opt/local/etc/pkgin/repositories.conf',
+        opts.mountpoint + '/root/opt/local/etc/pkgin/repositories.conf'
+    ], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        logLine('repositories.conf cp exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to copy repositories.conf'));
+            return;
+        }
+        callback();
+    })
+}
+
+function pkginClean(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.mountpoint, 'opts.mountpoint');
+    assert.func(callback, 'callback');
+
+    logLine('pkgsrc clean...');
+    const child = child_process.spawn('/usr/sbin/chroot', [
+        opts.mountpoint + '/root',
+        '/opt/local/bin/pkgin', 'clean'
+    ], {
+        stdio: ['ignore', process.stdout, process.stderr]
+    });
+
+    child.on('close', function _onClose(code) {
+        logLine('Child pkgin chroot exited with code ' + code);
+        if (code !== 0) {
+            callback(new Error('failed to clean pkgin'));
+            return;
+        }
+        callback();
+    })
+}
 
 function pkginUpdate(opts, callback) {
     assert.object(opts, 'opts');
     assert.bool(opts.upgrade_first, 'opts.upgrade_first');
     assert.func(callback, 'callback');
 
-    if (!opts.upgrade_first) {
-        return callback();
-    }
+    // Now, always update
+    // if (!opts.upgrade_first) {
+    //     return callback();
+    // }
 
     logLine('pkgin update...');
     const child = child_process.spawn('/usr/sbin/chroot', [
@@ -799,6 +891,10 @@ function buildImage(opts, callback) {
             replaceHttpProxy,
             installFiles,
             setupChroot,
+            pkgsrcCopyKeyring,
+            pkgsrcPivotSource,
+            pkginPivotSource,
+            pkginClean,
             pkginUpdate,
             pkginFullUpgrade,
             installPkgsrcPkgs,
