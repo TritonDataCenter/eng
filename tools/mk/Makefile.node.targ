@@ -6,6 +6,7 @@
 
 #
 # Copyright (c) 2019, Joyent, Inc.
+# Copyright (c) 2025 MNX Cloud, Inc.
 #
 
 #
@@ -38,7 +39,7 @@ else
 $(NODE_EXEC) $(NPM_EXEC) $(NODE_WAF_EXEC):
 	(mkdir -p $(BUILD) \
 		&& cd $(BUILD) \
-		&& [[ -d src-node ]] && (cd src-node && git checkout master && git pull) || git clone https://github.com/joyent/node.git src-node \
+		&& [[ -d src-node ]] && (cd src-node && git checkout master && git pull) || git clone https://github.com/nodejs/node.git src-node \
 		&& cd src-node \
 		&& git checkout $(NODE_PREBUILT_VERSION) \
 		&& ./configure $(NODE_CONFIG_FLAGS) \

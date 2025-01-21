@@ -21,6 +21,7 @@
  * CDDL HEADER END
  *
  * Copyright 2020 Joyent, Inc.
+ * Copyright 2025 MNX Cloud, Inc.
  *
  * * *
  * Error classes that imgadm may produce.
@@ -52,7 +53,7 @@ function _indent(s, indent) {
  * a string `code` (a CamelCase string). The possible codes are those
  * for every error subclass here, plus the possible `restCode` error
  * responses from IMGAPI.
- * See <https://mo.joyent.com/docs/imgapi/master/#errors>.
+ * See <https://github.com/TritonDataCenter/sdc-imgapi/blob/master/docs/index.md#errors>.
  */
 function ImgadmError(options) {
     assert.object(options, 'options');
@@ -132,7 +133,7 @@ util.inherits(ManifestValidationError, ImgadmError);
  * `requirements.min_platform` or `requirements.max_platform` fail.
  *
  * // JSSTYLED
- * https://github.com/joyent/sdc-imgapi/blob/master/docs/index.md#manifest-requirementsmin_platform
+ * https://github.com/TritonDataCenter/sdc-imgapi/blob/master/docs/index.md#manifest-requirementsmin_platform
  */
 function MinPlatformError(platVer, platTimestamp, minPlatSpec) {
     assert.string(platVer, 'platVer');

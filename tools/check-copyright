@@ -7,13 +7,13 @@
 
 #
 # Copyright 2020 Joyent, Inc.
-# Copyright 2022 MNX Cloud, Inc.
+# Copyright 2025 MNX Cloud, Inc.
 #
 
 #
 # Check that changed files (uncommitted and unpushed files) have the appropriate
 # MNX copyright year and blessed format, per:
-# https://github.com/joyent/rfd/blob/master/rfd/0164/README.md#copyright-notice
+# https://github.com/TritonDataCenter/rfd/blob/master/rfd/0164/README.md#copyright-notice
 #
 # Usage: Run this anywhere in your git clone.
 #
