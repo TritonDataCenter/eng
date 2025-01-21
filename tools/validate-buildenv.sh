@@ -87,6 +87,9 @@ declare -A PKGSRC_MAP=(
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=2019Q4
     [a7199134-7e94-11ec-be67-db6f482136c2]=2021Q4
     [502eeef2-8267-489f-b19c-a206906f57ef]=2021Q4
+    [41bd4100-eb86-409a-85b0-e649aadf6f62]=2024Q4
+    [4dd8810e-10a8-49d1-b37b-1c4e32ed6c05]=2024Q4
+
 )
 
 # Used to provide useful error messages to the user, mapping the
@@ -101,6 +104,8 @@ declare -A SDC_MAP=(
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=triton-origin-x86_64-19.4.0@master-20200130T200825Z-gbb45b8d
     [a7199134-7e94-11ec-be67-db6f482136c2]=minimal-64-lts@21.4.0
     [502eeef2-8267-489f-b19c-a206906f57ef]=triton-origin-x86_64-21.4.0@master-20220322T012137Z-g9382491
+    [41bd4100-eb86-409a-85b0-e649aadf6f62]=minimal-64-lts@24.4.1
+    [4dd8810e-10a8-49d1-b37b-1c4e32ed6c05]=triton-origin-x86_64-24.4.1@master-20250116T175211Z-gb17eb8e
 )
 
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
@@ -521,7 +526,10 @@ function validate_pkgsrc_pkgs {
 # /opt/local/bin.
 #
 function validate_opt_tools {
-    if [[ ! -f /opt/tools/bin/pkgin ]]; then
+    # Modern releases have no need for /opt/tools
+    if [[ "$PKGSRC_RELEASE" == "2024Q4" ]]; then
+        return 0
+    elif [[ ! -f /opt/tools/bin/pkgin ]]; then
 
         local JENKINS_IMAGE="${JENKINS_AGENT_MAP[${REQUIRED_IMAGE}]}"
         echo "This build zone is missing /opt/tools/bin, which is"
