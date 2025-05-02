@@ -7,15 +7,15 @@
 
 #
 # Copyright 2022 Joyent, Inc.
-# Copyright 2024 MNX Cloud, Inc.
+# Copyright 2025 MNX Cloud, Inc.
 #
 
 #
 # Check if the current build machine is supported for building this component
 # and that the build environment seems sane.
 #
-# Most Joyent software is built using a common build environment described in
-# https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md.
+# Most Triton software is built using a common build environment described in
+# https://github.com/TritonDataCenter/triton/blob/master/docs/developer-guide/build-zone-setup.md.
 # The quickest path to having a sane build environment likely involves following
 # that document.
 #
@@ -87,6 +87,9 @@ declare -A PKGSRC_MAP=(
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=2019Q4
     [a7199134-7e94-11ec-be67-db6f482136c2]=2021Q4
     [502eeef2-8267-489f-b19c-a206906f57ef]=2021Q4
+    [41bd4100-eb86-409a-85b0-e649aadf6f62]=2024Q4
+    [4dd8810e-10a8-49d1-b37b-1c4e32ed6c05]=2024Q4
+
 )
 
 # Used to provide useful error messages to the user, mapping the
@@ -101,11 +104,13 @@ declare -A SDC_MAP=(
     [59ba2e5e-976f-4e09-8aac-a4a7ef0395f5]=triton-origin-x86_64-19.4.0@master-20200130T200825Z-gbb45b8d
     [a7199134-7e94-11ec-be67-db6f482136c2]=minimal-64-lts@21.4.0
     [502eeef2-8267-489f-b19c-a206906f57ef]=triton-origin-x86_64-21.4.0@master-20220322T012137Z-g9382491
+    [41bd4100-eb86-409a-85b0-e649aadf6f62]=minimal-64-lts@24.4.1
+    [4dd8810e-10a8-49d1-b37b-1c4e32ed6c05]=triton-origin-x86_64-24.4.1@master-20250116T175211Z-gb17eb8e
 )
 
 # Used to provide useful error messages to the user, mapping the NODE_PREBUILT
 # image uuid to a corresponding jenkins-agent image uuid.
-# Jenkins agent images are built by https://github.com/joyent/jenkins-agent
+# Jenkins agent images are built by https://github.com/TritonDataCenter/jenkins-agent
 declare -A JENKINS_AGENT_MAP=(
     [fd2cc906-8938-11e3-beab-4359c665ac99]=3e8e972d-1d38-4b68-a3b2-00861b2ec89a
     [18b094b0-eb01-11e5-80c1-175dac7ddf02]=f00a393d-a1c8-4e93-a13e-c364a7d0a2a9
@@ -384,7 +389,7 @@ function validate_delegated_dataset {
 
     has_delegated_ds=$(zfs list -H -o name zones/$zonename/data 2>/dev/null)
     if [[ -z "$has_delegated_ds" ]]; then
-        local djc_base="https://docs.joyent.com/private-cloud/instances/"
+        local djc_base="https://docs.tritondatacenter.com/private-cloud/instances/"
         echo "The current devzone does not have a delegated zfs dataset,"
         echo "which is required for 'buildimage' to function."
         echo "Please recreate this devzone, ensuring it has a delegated ds."
@@ -521,7 +526,10 @@ function validate_pkgsrc_pkgs {
 # /opt/local/bin.
 #
 function validate_opt_tools {
-    if [[ ! -f /opt/tools/bin/pkgin ]]; then
+    # Modern releases have no need for /opt/tools
+    if [[ "$PKGSRC_RELEASE" == "2024Q4" ]]; then
+        return 0
+    elif [[ ! -f /opt/tools/bin/pkgin ]]; then
 
         local JENKINS_IMAGE="${JENKINS_AGENT_MAP[${REQUIRED_IMAGE}]}"
         echo "This build zone is missing /opt/tools/bin, which is"
@@ -742,7 +750,7 @@ else
         echo "Build zone setup typically requires almost no work if you are"
         echo "using the right image.  See:"
         echo ""
-        echo "https://github.com/joyent/triton/blob/master/docs/developer-guide/build-zone-setup.md"
+        echo "https://github.com/TritonDataCenter/triton/blob/master/docs/developer-guide/build-zone-setup.md"
         echo ""
 
         exit 1
