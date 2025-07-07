@@ -10,7 +10,8 @@ apisections:
 -->
 
 <!--
-    Copyright 2019 Joyent, Inc.
+    Copyright 2025 MNX Cloud, Inc.
+    Copyright 2025 Edgecast Cloud LLC.
 -->
 
 # Joyent Engineering Guide
@@ -316,7 +317,7 @@ When modifying existing code, the year should be updated to be the
 current year that the file was modified. There should only be a single
 year, not a list. For example:
 
-    Copyright 2019 Joyent, Inc.
+    Copyright 2025 Edgecast Cloud LLC.
 
 
 ## Testing
