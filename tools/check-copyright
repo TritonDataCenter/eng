@@ -8,11 +8,12 @@
 #
 # Copyright 2020 Joyent, Inc.
 # Copyright 2025 MNX Cloud, Inc.
+# Copyright 2025 Edgecast Cloud LLC.
 #
 
 #
 # Check that changed files (uncommitted and unpushed files) have the appropriate
-# MNX copyright year and blessed format, per:
+# Edgecast copyright year and blessed format, per:
 # https://github.com/TritonDataCenter/rfd/blob/master/rfd/0164/README.md#copyright-notice
 #
 # Usage: Run this anywhere in your git clone.
@@ -47,7 +48,8 @@ function fatal
 }
 
 function usage {
-    echo "Check the MNX Copyright line in uncommitted and unpushed changes."
+    # BASHSTYLED
+    echo "Check the Edgecast Copyright line in uncommitted and unpushed changes."
     echo ""
     echo "Usage:"
     echo "    check-copyright [-h] [-b BRANCH] [-q] [-v] [-W] [-x FILE]"
@@ -58,7 +60,7 @@ function usage {
     echo "    -q       Quiet: no pithy statements, only errors and warnings."
     echo "    -v       Verbose: show a message for each file processed."
     echo "    -W       Warn only (instead of error) on copyright line format:"
-    echo "                 'Copyright <year> MNX Cloud, Inc.'"
+    echo "                 'Copyright <year> Edgecast Cloud LLC."
     echo "    -x FILE  Exclude the given FILE (relative path from base of repo)"
     echo "             from copyright checking. This can be used multiple times"
     echo "             for multiple files."
@@ -80,17 +82,16 @@ function check_file {
         return
     fi
 
-    hit=$( (grep -i "copyright.*mnx" "$path" 2>/dev/null || true) | head -1)
+    hit=$((grep -i "copyright.*edgecast" "$path" 2>/dev/null || true) | head -1)
     if [[ $hit == "" ]]; then
-        # No MNX hit. Look for a Joyent one that needs updating.
-        # BASHSTYLED
-        hit=$( (grep -i "copyright.*joyent" "$path" 2>/dev/null || true) | head -1)
+        # No Edgecast hit. Look for an MNX one that needs updating.
+        hit=$( (grep -i "copyright.*mnx" "$path" 2>/dev/null || true) | head -1)
     fi
 
     # No Copyright line in this file.
     if [[ -z "$hit" ]]; then
         if [[ -n "$optVerbose" ]]; then
-            echo "info: $file: skipping (no MNX or Joyent Copyright line)" >&2
+            echo "info: $file: skipping (no Edgecast or MNX Copyright line)" >&2
         fi
         return
     fi
@@ -103,20 +104,21 @@ function check_file {
     fi
 
     # Wrong company?
-    joyent='Copyright [0-9]{4} Joyent, Inc\.$'
-    if [[ "$hit" =~ $joyent ]]; then
+    mnx='Copyright [0-9]{4} MNX Cloud, Inc\.$'
+    if [[ "$hit" =~ $mnx ]]; then
         if [[ -n "$optWarnOnlyOnFormat" ]]; then
-            echo "warning: $file: Joyent copyright, but MNX missing, '$hit'" >&2
+            echo "warning: $file: MNX copyright, but Edgecast missing, '$hit'" \
+                >&2
             numWarnings=$(( numWarnings + 1 ))
         else
-            echo "error: $file: Joyent copyright, but MNX missing, '$hit'" >&2
+            echo "error: $file: MNX copyright, but Edgecast missing, '$hit'" >&2
             numErrors=$(( numErrors + 1 ))
         fi
         return
     fi
 
     # Wrong copyright format?
-    blessed='Copyright [0-9]{4} MNX Cloud, Inc\.$'
+    blessed='Copyright [0-9]{4} Edgecast Cloud LLC\.$'
     if [[ ! "$hit" =~ $blessed ]]; then
         if [[ -n "$optWarnOnlyOnFormat" ]]; then
             echo "warning: $file: copyright not in RFD 164 form, '$hit'" \
