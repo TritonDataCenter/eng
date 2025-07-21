@@ -1,8 +1,8 @@
 {
     "name": "buildimage",
     "description": "Triton Image Builder",
-    "version": "0.0.3",
-    "author": "MNX Cloud (mnx.io)",
+    "version": "0.0.2",
+    "author": "Edgecast Cloud (edgecast.io)",
     "private": true,
     "dependencies": {
         "assert-plus": "1.0.0",
