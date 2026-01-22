@@ -6,6 +6,7 @@
 
 #
 # Copyright 2023 MNX Cloud, Inc.
+# Copyright 2026 Edgecast Cloud LLC.
 #
 
 #
@@ -184,3 +185,22 @@ CARGO = PATH=$(CARGO_HOME)/bin:$$PATH CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) \
 	CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
 
 endif
+
+#
+# Optional Rust development tools
+# These are installed on-demand when their targets are invoked.
+#
+
+# cargo-tarpaulin: Code coverage tool
+# Requires vendored-openssl feature for portability
+CARGO_TARPAULIN_EXEC		= $(CARGO_HOME)/bin/cargo-tarpaulin
+CARGO_TARPAULIN_INSTALL		= $(CARGO) install --features vendored-openssl cargo-tarpaulin
+
+# arch-lint: Architecture linter (e.g., detect sync I/O in async code)
+# Package name is arch-lint-cli, binary is arch-lint
+ARCH_LINT_EXEC			= $(CARGO_HOME)/bin/arch-lint
+ARCH_LINT_INSTALL		= $(CARGO) install arch-lint-cli
+
+# cargo-hakari: Workspace dependency management
+CARGO_HAKARI_EXEC		= $(CARGO_HOME)/bin/cargo-hakari
+CARGO_HAKARI_INSTALL		= $(CARGO) install cargo-hakari

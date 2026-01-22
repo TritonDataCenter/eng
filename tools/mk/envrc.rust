@@ -1,0 +1,16 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# Copyright 2026 Edgecast Cloud LLC.
+
+# Configure Rust toolchain to match Makefile.rust.defs
+# This ensures `cargo` commands use the same toolchain as `make`
+export CARGO_HOME="$PWD/rust/cargo"
+PATH_add "$CARGO_HOME/bin"
+
+# Ensure Rust toolchain is installed
+if [[ ! -x "$CARGO_HOME/bin/cargo" ]]; then
+    log_status "Rust toolchain not found, running 'make rust-fetch'..."
+    make rust-fetch
+fi

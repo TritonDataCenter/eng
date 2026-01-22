@@ -6,6 +6,7 @@
 
 #
 # Copyright 2023 MNX Cloud, Inc.
+# Copyright 2026 Edgecast Cloud LLC.
 #
 
 #
@@ -67,3 +68,32 @@ check:: | $(CARGO_EXEC)
 	$(CARGO) check --all-targets
 	$(CARGO) clippy $(RUST_CLIPPY_ARGS)
 	$(CARGO) fmt $(RUSTFMT_ARGS)
+
+#
+# Optional tool targets
+# These install tools on-demand and then run them.
+#
+
+# cargo-tarpaulin: Code coverage
+$(CARGO_TARPAULIN_EXEC): | $(CARGO_EXEC)
+	@echo "Installing cargo-tarpaulin..."
+	$(CARGO_TARPAULIN_INSTALL)
+
+.PHONY: coverage
+coverage: | $(CARGO_TARPAULIN_EXEC) ## Run code coverage analysis
+	@echo "Running code coverage analysis..."
+	$(CARGO) tarpaulin
+
+# arch-lint: Architecture linter
+$(ARCH_LINT_EXEC): | $(CARGO_EXEC)
+	@echo "Installing arch-lint..."
+	$(ARCH_LINT_INSTALL)
+
+.PHONY: arch-lint
+arch-lint: | $(ARCH_LINT_EXEC) ## Run architecture lints
+	$(ARCH_LINT_EXEC) check
+
+# cargo-hakari: Workspace dependency management
+$(CARGO_HAKARI_EXEC): | $(CARGO_EXEC)
+	@echo "Installing cargo-hakari..."
+	$(CARGO_HAKARI_INSTALL)
