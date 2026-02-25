@@ -204,3 +204,7 @@ ARCH_LINT_INSTALL		= $(CARGO) install arch-lint-cli
 # cargo-hakari: Workspace dependency management
 CARGO_HAKARI_EXEC		= $(CARGO_HOME)/bin/cargo-hakari
 CARGO_HAKARI_INSTALL		= $(CARGO) install cargo-hakari
+
+# cargo-nextest: Faster test harness
+CARGO_NEXTEST_EXEC		= $(CARGO_HOME)/bin/cargo-nextest
+CARGO_NEXTEST_INSTALL		= $(CARGO) install cargo-nextest --locked

@@ -97,3 +97,8 @@ arch-lint: | $(ARCH_LINT_EXEC) ## Run architecture lints
 $(CARGO_HAKARI_EXEC): | $(CARGO_EXEC)
 	@echo "Installing cargo-hakari..."
 	$(CARGO_HAKARI_INSTALL)
+
+# cargo-nextest: Faster test harness
+$(CARGO_NEXTEST_EXEC): | $(CARGO_EXEC)
+	@echo "Installing cargo-nextest..."
+	$(CARGO_NEXTEST_INSTALL)
