@@ -402,11 +402,11 @@ prepush: check test
 .PHONY: validate-buildenv
 validate-buildenv:
 	ENGBLD_SKIP_VALIDATE_BUILDENV=$(ENGBLD_SKIP_VALIDATE_BUILDENV) \
-	   $(TOP)/deps/eng/tools/validate-buildenv.sh
+	   $(ENGBLD_REPO_ROOT)/deps/eng/tools/validate-buildenv.sh
 
 .PHONY: show-buildenv
 show-buildenv:
-	@$(TOP)/deps/eng/tools/validate-buildenv.sh -r
+	@$(ENGBLD_REPO_ROOT)/deps/eng/tools/validate-buildenv.sh -r
 
 #
 # Everything should depend on us having a valid build environment.
@@ -463,7 +463,7 @@ endif
 # BUILDIMAGE_SKIP_MOTD.
 #
 ifndef BUILDIMAGE_SKIP_MOTD
-BUILDIMAGE_MOTD_ARGS = -M -S "$$(git -C $(TOP) remote get-url origin)"
+BUILDIMAGE_MOTD_ARGS = -M -S "$$(git -C $(ENGBLD_REPO_ROOT) remote get-url origin)"
 else
 BUILDIMAGE_MOTD_ARGS =
 endif
@@ -499,7 +499,7 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 	mkdir -p $(ENGBLD_BITS_DIR)/$(NAME)
 	mkdir -p $(BUILDIMAGE_STAGEDIR)
 	cd $(BUILDIMAGE_STAGEDIR) ; \
-	$(TOP)/deps/eng/tools/buildimage-extract-pkg.sh $(BUILDIMAGE_PKG)
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/buildimage-extract-pkg.sh $(BUILDIMAGE_PKG)
 	$(PFEXEC) chown -R root:root $(BUILDIMAGE_STAGEDIR)
 	cd $(BUILDIMAGE_STAGEDIR); \
 	BUILDIMAGE=$$(cat $(TOP)/$(STAMP_BUILDIMAGE_PREP)); \
@@ -529,7 +529,7 @@ buildimage: stamp-buildimage-prep release $(AGENTS:%=%-prebuilt)
 ifndef ENGBLD_BITS_UPLOAD_OVERRIDE
 .PHONY: bits-upload
 bits-upload: publish $(BUILDIMAGE_TARG)
-	$(TOP)/deps/eng/tools/bits-upload.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/bits-upload.sh \
 		-b "$(BRANCH)" \
 		-B "$(TRY_BRANCH)" \
 		$(BITS_UPLOAD_LOCAL_ARG) \
@@ -546,7 +546,7 @@ bits-upload: publish $(BUILDIMAGE_TARG)
 #
 .PHONY: bits-upload-latest
 bits-upload-latest:
-	$(TOP)/deps/eng/tools/bits-upload.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/bits-upload.sh \
 		-b "$(BRANCH)" \
 		-B "$(TRY_BRANCH)" \
 		$(BITS_UPLOAD_LOCAL_ARG) \
@@ -562,7 +562,7 @@ endif
 # use in the 'buildimage' target. We use a crude version comparison here,
 # choosing the deps/eng copy if it's different to the copy in /opt/tools.
 #
-$(STAMP_BUILDIMAGE_PREP): $(TOP)/deps/eng/tools/buildimage/package.json
+$(STAMP_BUILDIMAGE_PREP): $(ENGBLD_REPO_ROOT)/deps/eng/tools/buildimage/package.json
 	$(MAKE_STAMP_REMOVE)
 	if [[ -n "$(ENGBLD_FORCE_LOCAL_BUILDIMAGE)" ]]; then \
 		LOCAL_BUILDIMAGE=true; \
@@ -570,7 +570,7 @@ $(STAMP_BUILDIMAGE_PREP): $(TOP)/deps/eng/tools/buildimage/package.json
 		LOCAL_BUILDIMAGE=true; \
 	else \
 		LOCAL_BUILDIMAGE_VER=$$( \
-		    json -f $(TOP)/deps/eng/tools/buildimage/package.json version); \
+		    json -f $(ENGBLD_REPO_ROOT)/deps/eng/tools/buildimage/package.json version); \
 		TOOLS_BUILDIMAGE_VER=$$( \
 		    json -f \
 		        /opt/tools/lib/node_modules/buildimage/package.json version); \
@@ -579,9 +579,9 @@ $(STAMP_BUILDIMAGE_PREP): $(TOP)/deps/eng/tools/buildimage/package.json
 		fi; \
 	fi; \
 	if [[ -n "$$LOCAL_BUILDIMAGE" ]]; then \
-		echo $(TOP)/deps/eng/tools/buildimage/bin/buildimage > \
+		echo $(ENGBLD_REPO_ROOT)/deps/eng/tools/buildimage/bin/buildimage > \
 		    $(STAMP_BUILDIMAGE_PREP); \
-		cd $(TOP)/deps/eng/tools/buildimage; \
+		cd $(ENGBLD_REPO_ROOT)/deps/eng/tools/buildimage; \
 		$(MAKE) buildimage-prep; \
 	else \
 		echo /opt/tools/bin/buildimage > $(STAMP_BUILDIMAGE_PREP); \

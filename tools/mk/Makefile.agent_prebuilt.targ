@@ -41,7 +41,7 @@ waferlock-prebuilt: $(WAFERLOCK_PREBUILT_TARGETS)
 rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 
 %-prebuilt-download:
-	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/agent-prebuilt.sh \
 		-b '$(AGENT_PREBUILT_BRANCH)' \
 		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
 		-c '$(AGENT_PREBUILT_DIR)' \
@@ -55,7 +55,7 @@ rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 # cloned/checked-out source.
 #
 %-prebuilt-build: %-prebuilt-clone $(AGENT_PREBUILT_DIR)
-	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/agent-prebuilt.sh \
 		-b '$(AGENT_PREBUILT_BRANCH)' \
 		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
 		-c '$(AGENT_PREBUILT_DIR)' \
@@ -68,7 +68,7 @@ rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 # to the version specified by $($*_PREBUILT_BRANCH)
 #
 %-prebuilt-clone: $(AGENT_PREBUILT_DIR)
-	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/agent-prebuilt.sh \
 		-b '$(AGENT_PREBUILT_BRANCH)' \
 		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
 		-c '$(AGENT_PREBUILT_DIR)' \
@@ -81,7 +81,7 @@ rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 # Just emit the tarball version
 #
 %-prebuilt-tarball: $(AGENT_PREBUILT_DIR)
-	@$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+	@$(ENGBLD_REPO_ROOT)/deps/eng/tools/agent-prebuilt.sh \
 		-b '$(AGENT_PREBUILT_BRANCH)' \
 		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
 		-c '$(AGENT_PREBUILT_DIR)' \
@@ -95,7 +95,7 @@ rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 %-prebuilt-extract:
 	mkdir -p $(BUILDIMAGE_STAGEDIR); \
 	cd $(BUILDIMAGE_STAGEDIR); \
-	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/agent-prebuilt.sh \
 		-b '$(AGENT_PREBUILT_BRANCH)' \
 		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
 		-c '$(AGENT_PREBUILT_DIR)' \
@@ -109,7 +109,7 @@ rebalancer-prebuilt: $(REBALANCER_PREBUILT_TARGETS)
 # for the agent (it's the only way to be sure)
 #
 %-prebuilt-clean: $(AGENT_PREBUILT_DIR)
-	$(TOP)/deps/eng/tools/agent-prebuilt.sh \
+	$(ENGBLD_REPO_ROOT)/deps/eng/tools/agent-prebuilt.sh \
 		-b '$(AGENT_PREBUILT_BRANCH)' \
 		-B '$(AGENT_PREBUILT_AGENT_BRANCH)' \
 		-c '$(AGENT_PREBUILT_DIR)' \

@@ -61,6 +61,16 @@ SHELL ?= /bin/bash
 TOP ?= $(shell pwd)
 
 #
+# ENGBLD_REPO_ROOT is where the git repository root lives. For single-repo
+# projects this is the same as $(TOP). In a monorepo, where per-service
+# Makefiles live in subdirectories (e.g., images/<service>/), $(TOP) resolves
+# to that subdirectory while deps/eng and other repo-level resources live at
+# the repository root. Set ENGBLD_REPO_ROOT before including Makefile.defs to
+# point eng tool references at the correct location.
+#
+ENGBLD_REPO_ROOT ?= $(TOP)
+
+#
 # Mountain Gorilla-spec'd versioning.
 # See "Package Versioning" in MG's README.md:
 # <https://github.com/TritonDataCenter/triton/blob/master/docs/developer-guide/release-engineering.md#package-versioning>
