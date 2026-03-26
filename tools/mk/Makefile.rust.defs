@@ -115,18 +115,18 @@
 
 TOP ?= $(error You must include Makefile.defs before this makefile)
 
-RUST_TOOLCHAIN_DIR		?= $(TOP)/rust
+RUST_TOOLCHAIN_DIR		?= $(ENGBLD_REPO_ROOT)/rust
 CARGO_TARGET_DIR		?= target
 CARGO_HOME			?= $(RUST_TOOLCHAIN_DIR)/cargo
 RUST_CLIPPY_ARGS		?= -- -D clippy::all
 RUSTFMT_ARGS			?= -- --check
 
 # This is currenlty only used when downloading bootstrap tarballs.
-CACHE_DIR			?= cache
+CACHE_DIR			?= $(ENGBLD_REPO_ROOT)/cache
 
 DISTCLEAN_FILES			+= $(RUST_TOOLCHAIN_DIR) $(CACHE_DIR) $(CARGO_HOME)
 
-RS_FILES			?= $(shell find $(TOP) -name *.rs) Cargo.toml
+RS_FILES			?= $(shell find $(ENGBLD_REPO_ROOT) -name '*.rs' -o -name 'Cargo.toml')
 
 # On Illumos systems, fetch bootstrap builds by default.
 ifeq ($(shell uname -s),SunOS)
@@ -144,7 +144,7 @@ ifeq ($(shell uname -s)$(RUST_USE_BOOTSTRAP),SunOStrue)
 # RUST_TOOLCHAIN is not specified.)
 ifndef RUST_TOOLCHAIN
 RUST_TOOLCHAIN=$(shell $(SED) -n \
-	's/^channel[[:blank:]]*=[[:blank:]]*"\(.*\)"$$/\1/p' rust-toolchain.toml)
+	's/^channel[[:blank:]]*=[[:blank:]]*"\(.*\)"$$/\1/p' $(ENGBLD_REPO_ROOT)/rust-toolchain.toml)
 endif
 
 RUST_BOOTSTRAP_URL	?= https://us-central.manta.mnx.io/pkgsrc/public/pkg-bootstraps

@@ -60,7 +60,7 @@ $(CARGO_EXEC): rust-fetch
 
 .PHONY: clean
 clean::
-	$(RMTREE) $(CARGO_TARGET_DIR)
+	$(RMTREE) $(ENGBLD_REPO_ROOT)/$(CARGO_TARGET_DIR)
 
 .PHONY: check
 check:: | $(CARGO_EXEC)
