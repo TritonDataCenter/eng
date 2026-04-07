@@ -16,10 +16,10 @@
 #
 
 #
-# This is the expected location of the modern pkgsrc bootstrap,
-# currently bootstrap-2018Q3-tools.tar.gz
+# Pkgsrc bootstrap location: /opt/tools on older SmartOS images,
+# /opt/local on 24.4.x and newer.
 #
-BUILD_TOOLS = /opt/tools
+BUILD_TOOLS = $(shell if [ -d /opt/tools ]; then echo /opt/tools; else echo /opt/local; fi)
 
 
 IMGADM_CC = CC=$(BUILD_TOOLS)/bin/gcc
