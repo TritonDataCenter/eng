@@ -419,8 +419,10 @@ publish: prepublish
 # Store some information about the build environment. The latest-build-stamp
 # file is used if running the 'bits-upload-latest' target. See bits-upload.sh.
 # When generating npm-ls.json output, we ignore errors since older versions
-# of npm seem to sometimes install packages that /opt/tools/bin/npm deems
-# "invalid". That shouldn't be allowed to fail the build.
+# of npm seem to sometimes install packages that npm deems "invalid". That
+# shouldn't be allowed to fail the build. npm lives in /opt/tools on older
+# SmartOS images and /opt/local on 24.4.x and newer — detect at recipe time
+# (matching the pattern in tools/buildimage/Makefile).
 #
 .PHONY: prepublish
 prepublish:
@@ -435,7 +437,8 @@ prepublish:
 		echo image_uuid: $$BUILD_IMG_UUID >> $(ENGBLD_BITS_DIR)/$(NAME)/build-environment; \
 	fi
 	@echo "Generating $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json"
-	-/opt/tools/bin/npm ls --json > $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json
+	-BUILD_TOOLS=$$([ -d /opt/tools ] && echo /opt/tools || echo /opt/local); \
+	    $$BUILD_TOOLS/bin/npm ls --json > $(ENGBLD_BITS_DIR)/$(NAME)/npm-ls.json
 
 
 #
