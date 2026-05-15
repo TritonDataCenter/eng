@@ -110,13 +110,31 @@
 #	RUST_CLIPPY_ARGS	extra flags to pass to clippy
 #				(default: "-- -D clippy::all")
 #
-#	RUSTFMT_ARGS	extra flags to pass to rust fmt
+#	RUSTFMT_ARGS		extra flags to pass to rust fmt
 #				(default: "--check")
+#
+#	RUST_SYSROOT		Optional path to an alternate illumos sysroot. When set,
+#				every $(CARGO) invocation builds against this sysroot by
+#				passing --sysroot=$(RUST_SYSROOT) to rustc's linker
+#				(via RUSTFLAGS) and to cc-rs build scripts (via
+#				CFLAGS_x86_64_unknown_illumos and the matching CXXFLAGS
+#				variable). CARGO_TARGET_DIR also switches to
+#				"target-sysroot" by default so the sysroot build cache
+#				does not collide with the normal one.
 
 TOP ?= $(error You must include Makefile.defs before this makefile)
 
 RUST_TOOLCHAIN_DIR		?= $(ENGBLD_REPO_ROOT)/rust
+ifdef RUST_SYSROOT
+CARGO_TARGET_DIR		?= target-sysroot
+RUST_SYSROOT_ENV		= \
+	RUSTFLAGS="-C link-arg=--sysroot=$(RUST_SYSROOT)" \
+	CFLAGS_x86_64_unknown_illumos="--sysroot=$(RUST_SYSROOT)" \
+	CXXFLAGS_x86_64_unknown_illumos="--sysroot=$(RUST_SYSROOT)"
+else
 CARGO_TARGET_DIR		?= target
+RUST_SYSROOT_ENV		=
+endif
 CARGO_HOME			?= $(RUST_TOOLCHAIN_DIR)/cargo
 RUST_CLIPPY_ARGS		?= -- -D clippy::all
 RUSTFMT_ARGS			?= -- --check
@@ -154,7 +172,7 @@ RUST_BOOTSTRAP_PATH 	= $(RUST_TOOLCHAIN_DIR)/toolchains/$(RUST_TOOLCHAIN)-$(RUST
 
 CARGO_EXEC		= $(RUST_BOOTSTRAP_PATH)/bin/cargo
 
-CARGO = PATH=$(RUST_BOOTSTRAP_PATH)/bin/:$$PATH \
+CARGO = $(RUST_SYSROOT_ENV) PATH=$(RUST_BOOTSTRAP_PATH)/bin/:$$PATH \
 	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
 
 else
@@ -181,8 +199,8 @@ CARGO_EXEC		= $(CARGO_HOME)/bin/cargo
 
 # When using rustup, a generic cargo wrapper is installed in CARGO_HOME that
 # selects the default toolchain
-CARGO = PATH=$(CARGO_HOME)/bin:$$PATH CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) \
-	CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
+CARGO = $(RUST_SYSROOT_ENV) PATH=$(CARGO_HOME)/bin:$$PATH \
+	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
 
 endif
 
