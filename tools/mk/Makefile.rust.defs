@@ -136,6 +136,17 @@ else
 RUST_USE_BOOTSTRAP	= false
 endif
 
+# Default cargo flags. --locked refuses to silently update Cargo.lock during
+# build/test/run, which is what we want for every recipe except those that
+# explicitly mutate the lockfile (e.g. "cargo update"). Such recipes should use
+# $(CARGO_UPDATE) instead of $(CARGO), e.g.
+#
+#	cargo-update:
+#		$(CARGO_UPDATE)
+#
+# Or override globally for one invocation: make CARGO_LOCKED= <target>
+CARGO_LOCKED		?= --locked
+
 ifeq ($(shell uname -s)$(RUST_USE_BOOTSTRAP),SunOStrue)
 
 # For bootstrap builds, if no RUST_TOOLCHAIN is provided we can try to extract
@@ -155,7 +166,8 @@ RUST_BOOTSTRAP_PATH 	= $(RUST_TOOLCHAIN_DIR)/toolchains/$(RUST_TOOLCHAIN)-$(RUST
 CARGO_EXEC		= $(RUST_BOOTSTRAP_PATH)/bin/cargo
 
 CARGO = PATH=$(RUST_BOOTSTRAP_PATH)/bin/:$$PATH \
-	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
+	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) CARGO_HOME=$(CARGO_HOME) \
+	$(CARGO_EXEC) $(CARGO_LOCKED)
 
 else
 
@@ -182,9 +194,13 @@ CARGO_EXEC		= $(CARGO_HOME)/bin/cargo
 # When using rustup, a generic cargo wrapper is installed in CARGO_HOME that
 # selects the default toolchain
 CARGO = PATH=$(CARGO_HOME)/bin:$$PATH CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) \
-	CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC)
+	CARGO_HOME=$(CARGO_HOME) $(CARGO_EXEC) $(CARGO_LOCKED)
 
 endif
+
+# "cargo update" must mutate Cargo.lock, so run cargo without --locked.
+# Use as: $(CARGO_UPDATE) [--breaking]
+CARGO_UPDATE = $(filter-out $(CARGO_LOCKED),$(CARGO)) update
 
 #
 # Optional Rust development tools
