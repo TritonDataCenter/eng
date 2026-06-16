@@ -6,6 +6,7 @@
 
 #
 # Copyright (c) 2020 Joyent, Inc.
+# Copyright 2026 Edgecast Cloud LLC.
 #
 
 #
@@ -67,3 +68,19 @@ $(STAMP_GO_TOOLCHAIN): $(GO_TARBALL)
 	mkdir $(GO_INSTALL)
 	cd $(GO_INSTALL) && tar xfj $(TOP)/$(GO_TARBALL)
 	$(MAKE_STAMP_CREATE)
+
+#
+# Remove the Go module cache. The directories under $GOPATH/pkg/mod are
+# read-only (Go enforces module immutability against the on-disk hash), so
+# the generic CLEAN_FILES "rm -rf" path fails on every file. "go clean
+# -modcache" is Go's native mechanism and handles the read-only bits
+# correctly; $(RMTREE) then removes the GOPATH skeleton it leaves behind.
+# Both the cache directory and the Go binary must be present; otherwise
+# we do nothing (a partial install is better surfaced than silently
+# patched up).
+#
+clean::
+	@if [ -d "$(GO_GOPATH)" ] && [ -x "$(GO_INSTALL)/bin/go" ]; then \
+	    $(GO) clean -modcache; \
+	    $(RMTREE) "$(GO_GOPATH)"; \
+	fi
