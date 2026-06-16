@@ -6,6 +6,7 @@
 
 #
 # Copyright 2019 Joyent, Inc.
+# Copyright 2026 Edgecast Cloud LLC.
 #
 
 #
@@ -139,5 +140,8 @@ STAMP_GO_TOOLCHAIN =		$(MAKE_STAMPS_DIR)/go-toolchain-$(GO_VERSION)
 
 #
 # A regular "make clean" should remove any cached build artefacts from GOPATH.
+# Go's module cache directories are marked read-only to enforce module
+# immutability, which defeats "rm -rf". We use "go clean -modcache" via a
+# dedicated clean:: rule in Makefile.go_prebuilt.targ instead of the generic
+# CLEAN_FILES path.
 #
-CLEAN_FILES +=			$(GO_GOPATH)
