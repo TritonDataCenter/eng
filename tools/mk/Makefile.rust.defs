@@ -176,7 +176,7 @@ RUSTUP_ARGS		= -y --no-modify-path --component clippy --component rustfmt
 
 # rustup-init specifies /bin/sh but the script uses the `local` builtin which
 # is incompatible with the /bin/sh in SmartOS (zsh would also work here...)
-SHELL 			= /bin/bash
+SHELL 			:= $(or $(shell command -v bash),/bin/bash)
 
 ifdef RUST_TOOLCHAIN
 RUSTUP_ARGS		+= --default-toolchain $(RUST_TOOLCHAIN)

@@ -217,7 +217,7 @@ BUILDIMAGE_MF           ?= \
 # $(PFEXEC) will only be defined if we're running the build
 # as non-root.
 #
-UID = $(shell /usr/bin/id -u)
+UID = $(shell id -u)
 ifeq ($(UID), 0)
     PFEXEC=
 else
